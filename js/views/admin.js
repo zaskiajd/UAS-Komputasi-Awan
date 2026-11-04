@@ -16,6 +16,10 @@ export function setAdminTab(tab) {
   });
 
   $$("[data-admin-tab]").forEach((button) => {
+    // Pintasan filter di drawer (mis. "Tiket Masuk & Triage") bukan tab utama,
+    // jadi tidak ikut ditandai aktif agar tidak ada dua menu menyala sekaligus.
+    if (button.dataset.adminFilter) return;
+
     const isActive = button.dataset.adminTab === tab;
     button.classList.toggle("is-active", isActive);
     if (button.classList.contains("seg-tab")) {

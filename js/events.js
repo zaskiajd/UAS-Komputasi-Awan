@@ -142,6 +142,7 @@ function handleAction(actionElement) {
       break;
 
     case "demo":
+      toggleSidebar(false);
       showToast(
         "Mode Prototipe",
         actionElement.dataset.note || "Fitur ini akan terhubung ke backend pada tahap berikutnya.",
@@ -164,7 +165,7 @@ function bindStudentFilter(button) {
 
 function bindAdminFilter(button) {
   state.adminFilter = button.dataset.adminFilter;
-  $$("[data-admin-filter]").forEach((element) => {
+  $$(".filter-chip[data-admin-filter]").forEach((element) => {
     element.classList.toggle("is-active", element.dataset.adminFilter === state.adminFilter);
   });
   renderAdminTickets();
