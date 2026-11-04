@@ -1,0 +1,101 @@
+<div class="cc-panel" id="panel-admin-inventory">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-5">
+              <div>
+                <h2 class="text-xl sm:text-2xl font-bold text-on-surface font-display tracking-tight">Inventaris Sarana &amp; Prasarana</h2>
+                <p class="text-xs text-secondary mt-1">Daftar aset kritis, kondisi terakhir, dan jadwal pemeliharaan.</p>
+              </div>
+              <button type="button" class="h-11 px-5 rounded-full bg-surface-container-lowest border border-white text-xs font-bold text-on-surface shadow-sm hover:bg-surface-container-high transition flex items-center gap-2" data-action="export">
+                <span class="material-symbols-outlined text-base">download</span>
+                Unduh Data Aset
+              </button>
+            </div>
+
+            <div class="bg-surface-container-lowest rounded-2xl border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)] overflow-hidden">
+              <div class="p-5 flex flex-wrap items-center justify-between gap-3 border-b border-surface-container-high">
+                <div class="flex items-center gap-2">
+                  <span class="w-9 h-9 rounded-full bg-surface-container text-on-surface flex items-center justify-center"><span class="material-symbols-outlined text-lg">inventory_2</span></span>
+                  <div>
+                    <p class="font-display text-sm font-bold text-on-surface">Aset Terdaftar</p>
+                    <p class="text-[11px] text-secondary">Total 1.284 unit • 38 aset perlu perhatian</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 text-[11px] font-semibold">
+                  <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700">Baik 1.102</span>
+                  <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-800">Perlu Servis 144</span>
+                  <span class="px-3 py-1 rounded-full bg-red-100 text-red-700">Rusak 38</span>
+                </div>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs min-w-[720px]">
+                  <thead>
+                    <tr class="text-[10px] uppercase tracking-wider text-secondary border-b border-surface-container-high">
+                      <th class="py-3 px-5 font-bold">Kode Aset</th>
+                      <th class="py-3 px-5 font-bold">Nama Fasilitas</th>
+                      <th class="py-3 px-5 font-bold">Lokasi</th>
+                      <th class="py-3 px-5 font-bold">Kondisi</th>
+                      <th class="py-3 px-5 font-bold">Servis Terakhir</th>
+                      <th class="py-3 px-5 font-bold text-right">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-surface-container">
+                    <tr class="hover:bg-surface-container-low transition">
+                      <td class="py-3.5 px-5 font-bold text-on-surface">AST-AC-0312</td>
+                      <td class="py-3.5 px-5 text-on-surface">AC Split 2 PK — Lab Komputer 3</td>
+                      <td class="py-3.5 px-5 text-secondary">Gedung F • Lt. 2</td>
+                      <td class="py-3.5 px-5"><span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-bold text-[10px]">PERLU SERVIS</span></td>
+                      <td class="py-3.5 px-5 text-secondary">12 Okt 2026</td>
+                      <td class="py-3.5 px-5 text-right"><button type="button" class="text-primary font-bold hover:underline" data-action="demo" data-note="Detail aset AST-AC-0312 dibuka.">Detail</button></td>
+                    </tr>
+                    <tr class="hover:bg-surface-container-low transition">
+                      <td class="py-3.5 px-5 font-bold text-on-surface">AST-PRJ-0087</td>
+                      <td class="py-3.5 px-5 text-on-surface">Proyektor Laser 5000 Lumens</td>
+                      <td class="py-3.5 px-5 text-secondary">GKB • R.204</td>
+                      <td class="py-3.5 px-5"><span class="px-2.5 py-1 rounded-full bg-red-100 text-red-700 font-bold text-[10px]">RUSAK</span></td>
+                      <td class="py-3.5 px-5 text-secondary">02 Sep 2026</td>
+                      <td class="py-3.5 px-5 text-right"><button type="button" class="text-primary font-bold hover:underline" data-action="demo" data-note="Detail aset AST-PRJ-0087 dibuka.">Detail</button></td>
+                    </tr>
+                    <tr class="hover:bg-surface-container-low transition">
+                      <td class="py-3.5 px-5 font-bold text-on-surface">AST-WIFI-0145</td>
+                      <td class="py-3.5 px-5 text-on-surface">Access Point Wi-Fi 6</td>
+                      <td class="py-3.5 px-5 text-secondary">Perpustakaan • Lt. 2</td>
+                      <td class="py-3.5 px-5"><span class="px-2.5 py-1 rounded-full bg-orange-100 text-primary font-bold text-[10px]">GANGGUAN</span></td>
+                      <td class="py-3.5 px-5 text-secondary">18 Okt 2026</td>
+                      <td class="py-3.5 px-5 text-right"><button type="button" class="text-primary font-bold hover:underline" data-action="demo" data-note="Detail aset AST-WIFI-0145 dibuka.">Detail</button></td>
+                    </tr>
+                    <tr class="hover:bg-surface-container-low transition">
+                      <td class="py-3.5 px-5 font-bold text-on-surface">AST-LFT-0004</td>
+                      <td class="py-3.5 px-5 text-on-surface">Lift Penumpang 8 Orang</td>
+                      <td class="py-3.5 px-5 text-secondary">Rektorat • Gedung A</td>
+                      <td class="py-3.5 px-5"><span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 font-bold text-[10px]">BAIK</span></td>
+                      <td class="py-3.5 px-5 text-secondary">28 Okt 2026</td>
+                      <td class="py-3.5 px-5 text-right"><button type="button" class="text-primary font-bold hover:underline" data-action="demo" data-note="Detail aset AST-LFT-0004 dibuka.">Detail</button></td>
+                    </tr>
+                    <tr class="hover:bg-surface-container-low transition">
+                      <td class="py-3.5 px-5 font-bold text-on-surface">AST-MJR-0210</td>
+                      <td class="py-3.5 px-5 text-on-surface">Meja Dosen Ergonomis</td>
+                      <td class="py-3.5 px-5 text-secondary">Fakultas Teknik • R.301</td>
+                      <td class="py-3.5 px-5"><span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 font-bold text-[10px]">BAIK</span></td>
+                      <td class="py-3.5 px-5 text-secondary">05 Okt 2026</td>
+                      <td class="py-3.5 px-5 text-right"><button type="button" class="text-primary font-bold hover:underline" data-action="demo" data-note="Detail aset AST-MJR-0210 dibuka.">Detail</button></td>
+                    </tr>
+                    <tr class="hover:bg-surface-container-low transition">
+                      <td class="py-3.5 px-5 font-bold text-on-surface">AST-SAN-0063</td>
+                      <td class="py-3.5 px-5 text-on-surface">Pintu Geser Otomatis Toilet</td>
+                      <td class="py-3.5 px-5 text-secondary">Rektorat • Lt. 1</td>
+                      <td class="py-3.5 px-5"><span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-bold text-[10px]">PERLU SERVIS</span></td>
+                      <td class="py-3.5 px-5 text-secondary">21 Sep 2026</td>
+                      <td class="py-3.5 px-5 text-right"><button type="button" class="text-primary font-bold hover:underline" data-action="demo" data-note="Detail aset AST-SAN-0063 dibuka.">Detail</button></td>
+                    </tr>
+                    <tr class="hover:bg-surface-container-low transition">
+                      <td class="py-3.5 px-5 font-bold text-on-surface">AST-LMP-0455</td>
+                      <td class="py-3.5 px-5 text-on-surface">Lampu Sorot LED 200W</td>
+                      <td class="py-3.5 px-5 text-secondary">Gelanggang Olahraga</td>
+                      <td class="py-3.5 px-5"><span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 font-bold text-[10px]">BAIK</span></td>
+                      <td class="py-3.5 px-5 text-secondary">24 Apr 2026</td>
+                      <td class="py-3.5 px-5 text-right"><button type="button" class="text-primary font-bold hover:underline" data-action="demo" data-note="Detail aset AST-LMP-0455 dibuka.">Detail</button></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>

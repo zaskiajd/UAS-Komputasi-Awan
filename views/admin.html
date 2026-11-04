@@ -1,0 +1,244 @@
+<section class="app-view" id="view-admin" aria-label="Dashboard Admin Sarpras">
+
+    <!-- Backdrop overlay for drawer -->
+    <div class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 transition-opacity duration-300 opacity-0 pointer-events-none" id="sidebar-backdrop" data-action="close-sidebar"></div>
+
+    <!-- Collapsible Slide-out Sidebar Drawer -->
+    <aside class="fixed top-0 left-0 bottom-0 w-80 md:w-96 bg-surface-container-lowest shadow-2xl z-50 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col border-r border-surface-container-high" id="sidebar-drawer" aria-label="Sidebar Menu Admin">
+      <!-- Drawer Header -->
+      <div class="h-20 px-6 flex items-center justify-between border-b border-surface-container-high shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-primary-container text-white flex items-center justify-center font-bold shadow-sm">
+            <span class="material-symbols-outlined text-xl">domain</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-base font-bold text-on-surface leading-tight font-display">CampusCare Sarpras</span>
+            <span class="text-[11px] text-secondary font-medium">Navigasi Operasional &amp; Kontrol</span>
+          </div>
+        </div>
+        <button type="button" class="w-9 h-9 rounded-full bg-surface-container hover:bg-surface-container-high text-secondary hover:text-on-surface flex items-center justify-center transition-all" data-action="close-sidebar" aria-label="Tutup Menu">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+
+      <!-- Drawer Body Navigation Links -->
+      <div class="flex-1 overflow-y-auto px-4 py-5 space-y-6">
+        <!-- Section 1: Menu Utama -->
+        <div>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-secondary px-3 mb-2 block">Menu Utama</span>
+          <div class="space-y-1">
+            <button type="button" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-secondary hover:bg-surface-container hover:text-on-surface text-xs font-semibold transition-all group is-active" data-admin-tab="dashboard">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-xl">grid_view</span>
+                <span>Dashboard Sarpras</span>
+              </div>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-surface-container-high text-secondary font-bold">Utama</span>
+            </button>
+            <button type="button" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-secondary hover:bg-surface-container hover:text-on-surface text-xs font-medium transition-all group" data-admin-tab="dispatches">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-xl group-hover:text-primary transition-colors">inbox</span>
+                <span>Disposisi Penugasan</span>
+              </div>
+              <span class="text-[11px] px-2 py-0.5 rounded-full bg-primary-fixed text-primary font-bold">9</span>
+            </button>
+            <button type="button" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-secondary hover:bg-surface-container hover:text-on-surface text-xs font-medium transition-all group" data-admin-tab="techs">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-xl group-hover:text-tertiary transition-colors">engineering</span>
+                <span>Personil &amp; Teknisi</span>
+              </div>
+              <span class="text-[11px] px-2 py-0.5 rounded-full bg-tertiary-fixed text-tertiary font-bold">14 Siaga</span>
+            </button>
+            <button type="button" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-secondary hover:bg-surface-container hover:text-on-surface text-xs font-medium transition-all group" data-admin-tab="inventory">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-xl group-hover:text-primary transition-colors">domain</span>
+                <span>Inventaris Sarana</span>
+              </div>
+            </button>
+            <button type="button" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-secondary hover:bg-surface-container hover:text-on-surface text-xs font-medium transition-all group" data-admin-tab="sla">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-xl group-hover:text-emerald-600 transition-colors">analytics</span>
+                <span>Laporan &amp; SLA</span>
+              </div>
+              <span class="text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">97.2%</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Section 2: Operasional Sarpras -->
+        <div>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-secondary px-3 mb-2 block">Pintasan Fitur</span>
+          <div class="space-y-1">
+            <button type="button" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-secondary hover:bg-surface-container hover:text-on-surface text-xs font-medium transition-all group" data-action="open-dispatch-modal">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-xl text-primary-container">bolt</span>
+                <span>Disposisi Cepat</span>
+              </div>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-primary-fixed text-primary font-bold">Modal</span>
+            </button>
+            <button type="button" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-secondary hover:bg-surface-container hover:text-on-surface text-xs font-medium transition-all group" data-action="demo" data-note="Panduan operasional Sarpras dibuka.">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-xl">help_outline</span>
+                <span>Panduan Operasional</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Hotline Card inside drawer -->
+        <div class="p-4 rounded-2xl bg-surface-container-low border border-surface-container-high flex flex-col gap-2">
+          <div class="flex items-center gap-2 text-xs font-bold text-on-surface font-display">
+            <span class="material-symbols-outlined text-primary-container text-lg">support_agent</span>
+            <span>Call Center Sarpras UNSIL</span>
+          </div>
+          <p class="text-[11px] text-secondary">Layanan koordinasi darurat unit pelaksana teknis sarana &amp; prasarana.</p>
+          <a class="text-xs font-bold text-primary hover:underline flex items-center gap-1 mt-1" href="tel:+628211234UNSIL">
+            <span>+62 821-1234-UNSIL</span>
+            <span class="material-symbols-outlined text-sm">call</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Drawer Footer: Switch Role & Logout Buttons -->
+      <div class="p-4 border-t border-surface-container-high bg-surface-container-lowest flex flex-col gap-2 shrink-0">
+        <button type="button" class="w-full h-11 rounded-2xl bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold flex items-center justify-center gap-2 transition-colors" data-action="switch-role" data-role="student">
+          <span class="material-symbols-outlined text-base text-primary">school</span>
+          <span>Buka Portal Mahasiswa</span>
+        </button>
+        <button type="button" class="w-full h-11 rounded-2xl bg-surface-container hover:bg-red-50 text-secondary hover:text-error text-xs font-bold flex items-center justify-center gap-2 transition-colors" data-action="logout">
+          <span class="material-symbols-outlined text-lg">logout</span>
+          <span>Keluar Portal</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Full-Width Top Navigation Bar -->
+    <header class="admin-header fixed top-0 left-0 right-0 h-20 bg-surface-container-lowest/95 backdrop-blur-xl border-b border-surface-container-high z-40 px-4 lg:px-8 flex items-center justify-between shadow-[0_4px_20px_rgba(20,23,26,0.04)]">
+      <!-- Left Side: Hamburger Toggle + Brand -->
+      <div class="flex items-center gap-3 sm:gap-4">
+        <!-- Hamburger Button -->
+        <button type="button" class="w-11 h-11 rounded-2xl bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-sm" id="sidebar-toggle-btn" data-action="toggle-sidebar" aria-label="Buka Menu Navigasi">
+          <span class="material-symbols-outlined text-2xl font-bold">menu</span>
+        </button>
+        <!-- CampusCare Logo & Title -->
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-primary-container text-white flex items-center justify-center shadow-[0_6px_18px_rgba(255,102,31,0.35)] shrink-0">
+            <span class="material-symbols-outlined text-2xl font-bold">school</span>
+          </div>
+          <div class="flex flex-col">
+            <div class="flex items-center gap-2">
+              <span class="text-xl font-bold tracking-tight text-on-surface leading-none font-display">CampusCare</span>
+              <span class="text-[10px] tracking-wider uppercase text-primary font-bold px-2 py-0.5 rounded-full bg-primary-fixed hidden sm:inline-block">UNSIL SARPRAS</span>
+            </div>
+            <span class="text-[11px] text-secondary font-medium tracking-tight mt-0.5 hidden md:block">
+              UNIVERSITAS SILIWANGI • Biro Sarana &amp; Prasarana
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center: Main Navigation Tabs -->
+      <nav class="hidden xl:flex items-center p-1 bg-surface-container rounded-full gap-1" aria-label="Navigasi admin">
+        <button type="button" class="seg-tab is-active" data-admin-tab="dashboard">Dashboard Admin</button>
+        <button type="button" class="seg-tab" data-admin-tab="dispatches">Disposisi Penugasan</button>
+        <button type="button" class="seg-tab" data-admin-tab="techs">Manajemen Teknisi</button>
+        <button type="button" class="seg-tab" data-admin-tab="inventory">Inventaris Sarpras</button>
+        <button type="button" class="seg-tab" data-admin-tab="sla">Laporan &amp; SLA</button>
+      </nav>
+
+      <!-- Right Side: Mode Status + Bell + Profile Capsule -->
+      <div class="flex items-center gap-3">
+        <!-- Mode Siaga Indicator -->
+        <div class="hidden 2xl:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-container text-on-surface text-xs font-medium border border-white/60">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-secondary">Mode Siaga Aktif</span>
+        </div>
+
+        <!-- Notification Bell -->
+        <button type="button" class="w-11 h-11 rounded-full bg-surface-container flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-all relative" data-action="notify" data-note="4 pengaduan baru menunggu verifikasi." aria-label="Notifikasi pengaduan masuk" title="Notifikasi Masuk">
+          <span class="material-symbols-outlined text-xl">notifications</span>
+          <span class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-error ring-2 ring-surface-container-lowest"></span>
+        </button>
+
+        <div class="h-6 w-px bg-surface-container-high hidden sm:block"></div>
+
+        <!-- User Profile Capsule / Dropdown -->
+        <div class="relative">
+          <button type="button" class="flex items-center gap-3 pl-1 pr-3 py-1 bg-surface-container-low rounded-full hover:bg-surface-container transition border border-white/70 shadow-xs" data-action="toggle-menu" data-menu="admin-user-menu" aria-haspopup="true" aria-expanded="false" aria-label="Menu akun admin">
+            <span class="w-8 h-8 rounded-full bg-primary-container text-white font-bold text-xs flex items-center justify-center shadow-sm">IH</span>
+            <span class="hidden md:flex flex-col text-left">
+              <span class="text-xs font-bold text-on-surface leading-tight font-display">Ir. Hendrawan, M.T.</span>
+              <span class="text-[11px] text-secondary leading-tight">Kepala Biro Sarpras</span>
+            </span>
+            <span class="material-symbols-outlined text-base text-secondary hidden md:inline">expand_more</span>
+          </button>
+          <div class="cc-menu" id="admin-user-menu" hidden>
+            <div class="cc-menu__head">
+              <p class="cc-menu__name">Ir. Hendrawan, M.T.</p>
+              <p class="cc-menu__role">Kepala Biro Sarana &amp; Prasarana</p>
+            </div>
+            <button type="button" class="cc-menu__item" data-action="switch-role" data-role="student">
+              <span class="material-symbols-outlined text-base">school</span>
+              Buka Portal Mahasiswa
+            </button>
+            <button type="button" class="cc-menu__item" data-action="demo" data-note="Pengaturan akun admin dibuka.">
+              <span class="material-symbols-outlined text-base">settings</span>
+              Pengaturan Akun
+            </button>
+            <button type="button" class="cc-menu__item cc-menu__item--danger" data-action="logout">
+              <span class="material-symbols-outlined text-base">logout</span>
+              Keluar Portal
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="w-full px-4 sm:px-6 lg:px-8 transition-all duration-300">
+
+      <!-- Content -->
+      <main class="admin-content w-full pt-28 pb-16">
+        <div class="flex flex-col w-full max-w-[1520px] mx-auto">
+
+          <!-- Welcome -->
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 pt-2">
+            <div class="flex flex-col gap-2 max-w-3xl">
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-lowest text-on-surface border border-surface-container-high w-fit shadow-sm">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="text-xs font-medium text-secondary">Mode Siaga Aktif • Semester Genap 2026/2027 • Biro Sarana &amp; Prasarana (Kampus 1 Mugarsari)</span>
+              </div>
+              <h1 class="text-3xl lg:text-4xl font-bold text-on-surface tracking-tight font-display">Selamat Bertugas Kembali, Ir. Hendrawan, M.T.</h1>
+              <p class="text-sm text-secondary leading-relaxed">Pantau arus aduan civitas akademika, disposisi teknisi lapangan real-time, dan monitor SLA pemeliharaan fasilitas Universitas Siliwangi.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3 shrink-0">
+              <button type="button" class="h-12 px-6 rounded-full bg-surface-container-lowest text-on-surface shadow-[0_8px_24px_rgba(20,23,26,0.06)] hover:bg-surface-container-high transition-all flex items-center gap-2 text-sm font-semibold border border-white" data-action="export">
+                <span class="material-symbols-outlined text-lg text-secondary">download</span>
+                <span>Export Rekap (PDF/XLS)</span>
+              </button>
+              <button type="button" class="h-12 px-7 rounded-full bg-primary-container text-white text-sm font-semibold shadow-[0_12px_28px_-4px_rgba(255,102,31,0.4)] hover:shadow-[0_16px_36px_-4px_rgba(255,102,31,0.55)] hover:scale-[1.02] active:scale-[0.99] transition-all flex items-center gap-2" data-action="open-dispatch">
+                <span class="material-symbols-outlined text-xl font-bold">bolt</span>
+                <span>+ Disposisi Cepat</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- PANEL: DASHBOARD -->
+          <div data-include="views/admin/dashboard.html"></div>
+
+          <!-- PANEL: DISPOSISI -->
+          <div data-include="views/admin/dispatches.html"></div>
+
+          <!-- PANEL: TEKNISI -->
+          <div data-include="views/admin/techs.html"></div>
+
+          <!-- PANEL: INVENTARIS -->
+          <div data-include="views/admin/inventory.html"></div>
+
+          <!-- PANEL: LAPORAN & SLA -->
+          <div data-include="views/admin/sla.html"></div>
+        </div>
+      </main>
+    </div>
+
+    <!-- MODAL: DISPOSISI CEPAT -->
+    <div data-include="views/modals/dispatch.html"></div>
+  </section>
