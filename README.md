@@ -10,7 +10,7 @@ Satu aplikasi web utuh yang menggabungkan tiga tampilan CampusCare (login/regist
 
 ```
 .
-├── index.html                 # Shell SPA: <head>, Tailwind config, kontainer partial, layar boot
+├── index.html                 # Shell SPA: <head>, kontainer partial, layar boot + pemantau boot
 ├── views/                     # Partial HTML yang dimuat saat runtime
 │   ├── auth.html              #   Halaman login & registrasi
 │   ├── student.html           #   Kerangka dashboard mahasiswa (header + dock + footer)
@@ -39,7 +39,10 @@ Satu aplikasi web utuh yang menggabungkan tiga tampilan CampusCare (login/regist
 │   ├── student.css            #   Penyesuaian khusus mahasiswa
 │   ├── admin.css              #   Header, drawer, dan konten admin
 │   ├── responsive.css         #   Aturan responsif lintas view
-│   └── utilities.css          #   Kelas bantu & preferensi pengguna
+│   ├── utilities.css          #   Kelas bantu & preferensi pengguna
+│   ├── fonts.css              #   @font-face font lokal (Space Grotesk, Jakarta Sans, ikon)
+│   ├── tailwind.input.css     #   Sumber kompilasi Tailwind
+│   └── tailwind.css           #   Tailwind hasil kompilasi (statis, tanpa CDN)
 ├── js/                        # ES module (tanpa build step)
 │   ├── main.js                #   Titik masuk: muat partial → init → tampilkan UI
 │   ├── events.js              #   Delegasi klik/keydown & pemetaan data-action
@@ -66,10 +69,13 @@ Satu aplikasi web utuh yang menggabungkan tiga tampilan CampusCare (login/regist
 │       ├── complaint.js       #     Pengaduan baru
 │       ├── session.js         #     Masuk & keluar sesi
 │       └── timeline.js        #     Pelacakan tiket
+├── assets/fonts/              # Font WOFF2 lokal (teks + Material Symbols)
+├── tailwind.config.js         # Tema & daftar berkas yang dipindai Tailwind
+├── package.json               # Skrip build CSS (opsional, hanya untuk maintainer)
 └── README.md                  # Panduan ini
 ```
 
-Tidak ada proses build. Gaya memakai Tailwind Play CDN + CSS kustom, sedangkan seluruh perilaku berada di ES module dalam `js/` dan dimuat oleh `js/main.js`.
+Tidak ada proses build saat menjalankan aplikasi. Utility Tailwind sudah dikompilasi ke `css/tailwind.css`, sedangkan seluruh perilaku berada di ES module dalam `js/` dan dimuat oleh `js/main.js`.
 
 ---
 
@@ -87,11 +93,9 @@ Alternatif lain: `npx serve .`, ekstensi *Live Server* di VS Code, atau unggah f
 
 **Mengapa tidak bisa `file://`?** Partial dimuat dengan `fetch`, dan browser memblokir `fetch`/module script untuk protokol `file://`. Bila dibuka langsung, aplikasi menampilkan panel "Antarmuka tidak dapat dimuat" beserta instruksi server di atas.
 
-Butuh koneksi internet karena memuat:
+**Jika tampilan terlihat rusak setelah memperbarui file**, lakukan *hard refresh* (`Ctrl+F5`) agar browser tidak memakai CSS/JS lama dari cache. Bila modul JS gagal dimuat, aplikasi menampilkan panel peringatan otomatis setelah 8 detik, bukan layar "Memuat CampusCare…" yang menggantung.
 
-- Tailwind Play CDN (`cdn.tailwindcss.com` + plugin forms & container-queries)
-- Google Fonts (Space Grotesk, Plus Jakarta Sans) dan Material Symbols
-- Beberapa foto kampus dari `lh3.googleusercontent.com` (CSS menyediakan gradient sebagai fallback)
+Tanpa koneksi internet aplikasi tetap berfungsi penuh: Tailwind sudah dikompilasi ke `css/tailwind.css`, JS disajikan lokal, dan seluruh font (termasuk ikon Material Symbols) di-*host* sendiri di `assets/fonts/`. Hanya foto kampus dari `lh3.googleusercontent.com` yang perlu internet; CSS menyediakan gradient sebagai fallback.
 
 ---
 
@@ -144,6 +148,17 @@ Registrasi baru juga tersedia (minimal 8 karakter, konfirmasi sandi harus sama, 
 - **Urutan impor bebas dari siklus**: `core → data → ui → features → views → events → main`. `js/main.js` menunggu partial selesai dimuat sebelum menjalankan `init()`.
 - Semua interaksi memakai **event delegation** (`data-action`, `data-student-tab`, `data-admin-tab`, `data-student-filter`, `data-admin-filter`) — tidak ada `onclick` inline.
 - Partial boleh memuat partial lain (mis. modal di dalam `views/student.html`); `core/partials.js` menyelesaikannya secara rekursif.
-- Setelah injeksi, UI baru ditampilkan setelah dua `requestAnimationFrame` agar Tailwind Play CDN sempat memindai kelas pada markup hasil injeksi.
+- Setelah injeksi, UI baru ditampilkan pada `requestAnimationFrame` berikutnya; stylesheet lokal sudah siap sebelum modul berjalan sehingga tidak ada kedipan gaya.
 - Data disimpan **di memori** (`state`) sehingga perubahan akan hilang saat halaman dimuat ulang; ini cukup untuk demo tanpa backend.
 - Semua ID elemen unik dan setiap referensi `byId(...)` di modul JS sudah diverifikasi ada di partial terkait.
+
+### Menyesuaikan Tailwind
+
+`css/tailwind.css` dihasilkan dari tema di `tailwind.config.js` (warna, bayangan, dan font yang sama dengan desain asli). Jika menambah kelas utility baru pada `index.html`, `views/**`, atau `js/**`, kompilasi ulang:
+
+```powershell
+npm install          # sekali saja
+npm run build:css
+```
+
+Sumber kompilasi ada di `css/tailwind.input.css`; `node_modules/` diabaikan git sehingga aplikasi tetap bisa dijalankan tanpa npm.
