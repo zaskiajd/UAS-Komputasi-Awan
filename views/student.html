@@ -1,0 +1,168 @@
+<section class="app-view p-2 sm:p-4 md:p-6" id="view-student" aria-label="Dashboard Mahasiswa">
+
+    <main class="w-full max-w-[1440px] mx-auto bg-[#EEF1F5] rounded-[36px] shadow-2xl p-4 sm:p-5 md:p-7 relative border border-white/60 overflow-hidden flex flex-col justify-between">
+
+      <!-- Top navigation -->
+      <header class="flex flex-wrap items-center justify-between gap-3 relative z-30 pb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-brand-orange flex items-center justify-center shadow-lg shadow-orange-500/25">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+              <polyline points="2 17 12 22 22 17"></polyline>
+              <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-xl font-extrabold tracking-tight text-[#111417] leading-tight">CampusCare</span>
+            <span class="text-[10px] uppercase font-semibold tracking-wider text-gray-500">Student Facility Portal</span>
+          </div>
+        </div>
+
+        <nav class="hidden lg:flex items-center bg-white/70 p-1.5 rounded-full border border-white/80 shadow-sm backdrop-blur-md" aria-label="Navigasi mahasiswa">
+          <button type="button" class="seg-tab is-active" data-student-tab="dashboard">Dashboard</button>
+          <button type="button" class="seg-tab" data-student-tab="complaints">Pengaduan Fasilitas</button>
+          <button type="button" class="seg-tab" data-student-tab="timeline">Timeline Status</button>
+          <button type="button" class="seg-tab" data-student-tab="campus">Area Kampus</button>
+        </nav>
+
+        <div class="flex items-center gap-2 sm:gap-3">
+          <button type="button" class="hidden sm:flex items-center gap-2 bg-brand-orange text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-lg shadow-orange-500/30 hover:bg-orange-600 transition-transform active:scale-95" data-action="open-complaint">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+              <line x1="12" x2="12" y1="5" y2="19"></line>
+              <line x1="5" x2="19" y1="12" y2="12"></line>
+            </svg>
+            Lapor Masalah
+          </button>
+          <button type="button" class="w-10 h-10 rounded-full bg-white/80 hover:bg-white text-gray-700 flex items-center justify-center border border-white shadow-sm transition" title="Pusat Arsip Fasilitas" data-action="notify" data-note="Pusat arsip fasilitas dibuka.">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+              <rect height="14" rx="2" ry="2" width="20" x="2" y="7"></rect>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+            </svg>
+          </button>
+          <button type="button" class="w-10 h-10 rounded-full bg-white/80 hover:bg-white text-gray-700 flex items-center justify-center border border-white shadow-sm relative transition" title="Notifikasi" data-action="notify" data-note="3 notifikasi baru: 1 tiket selesai, 2 pembaruan status.">
+            <span class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-brand-orange ring-2 ring-white"></span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+          </button>
+
+          <div class="relative">
+            <button type="button" class="w-10 h-10 rounded-full ring-2 ring-white bg-gradient-to-tr from-amber-400 to-indigo-600 p-[2px] shadow-sm flex items-center justify-center overflow-hidden" data-action="toggle-menu" data-menu="student-user-menu" aria-haspopup="true" aria-expanded="false" aria-label="Menu akun mahasiswa">
+              <span class="w-full h-full rounded-full bg-slate-800 flex items-center justify-center text-white text-xs font-bold">AR</span>
+            </button>
+            <div class="cc-menu" id="student-user-menu" hidden>
+              <div class="cc-menu__head">
+                <p class="cc-menu__name">Ahmad Rizki</p>
+                <p class="cc-menu__role">Mahasiswa • Teknik Informatika</p>
+              </div>
+              <button type="button" class="cc-menu__item" data-action="switch-role" data-role="admin">
+                <span class="material-symbols-outlined text-base">admin_panel_settings</span>
+                Buka Dashboard Admin
+              </button>
+              <button type="button" class="cc-menu__item" data-action="open-sso-help">
+                <span class="material-symbols-outlined text-base">help</span>
+                Pusat Bantuan SSO
+              </button>
+              <button type="button" class="cc-menu__item cc-menu__item--danger" data-action="logout">
+                <span class="material-symbols-outlined text-base">logout</span>
+                Keluar Portal
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Body -->
+      <section class="grid grid-cols-12 gap-5 relative z-20 my-2">
+
+        <!-- Floating dock -->
+        <aside class="student-dock col-span-12 lg:col-span-1 flex lg:flex-col items-center justify-between gap-3 lg:gap-0 bg-white/75 backdrop-blur-md rounded-full py-3 px-3 lg:py-4 border border-white/80 shadow-sm self-start lg:max-h-[580px]" aria-label="Dock navigasi cepat">
+          <div class="flex lg:flex-col items-center gap-3 lg:gap-4 w-full justify-center lg:justify-start">
+            <button type="button" class="dock-btn is-active" data-student-tab="dashboard" title="Dashboard Fasilitas">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+              </svg>
+            </button>
+            <button type="button" class="dock-btn" data-student-tab="complaints" title="Pengaduan Fasilitas">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" x2="8" y1="13" y2="13"></line>
+                <line x1="16" x2="8" y1="17" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+            </button>
+            <button type="button" class="dock-btn" data-student-tab="campus" title="Peta Kampus &amp; Sensor">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+              </svg>
+            </button>
+            <button type="button" class="dock-btn" data-student-tab="timeline" title="Timeline Status">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            </button>
+            <button type="button" class="dock-btn" title="Hak Akses" data-action="show-lock-info">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <rect height="11" rx="2" ry="2" width="18" x="3" y="11"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </button>
+          </div>
+          <div class="flex lg:flex-col items-center gap-2 lg:gap-3 lg:pt-5 lg:border-t border-gray-200/60">
+            <button type="button" class="dock-btn dock-btn--sm" title="Pusat Bantuan" data-action="open-sso-help">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                <line x1="12" x2="12.01" y1="17" y2="17"></line>
+              </svg>
+            </button>
+            <button type="button" class="dock-btn dock-btn--sm hover:text-red-500" title="Keluar" data-action="logout">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" x2="9" y1="12" y2="12"></line>
+              </svg>
+            </button>
+          </div>
+        </aside>
+
+        <div class="col-span-12 lg:col-span-11">
+
+          <!-- PANEL: DASHBOARD -->
+          <div data-include="views/student/dashboard.html"></div>
+
+          <!-- PANEL: PENGADUAN -->
+          <div data-include="views/student/complaints.html"></div>
+
+          <!-- PANEL: TIMELINE -->
+          <div data-include="views/student/timeline.html"></div>
+
+          <!-- PANEL: AREA KAMPUS -->
+          <div data-include="views/student/campus.html"></div>
+
+        </div>
+      </section>
+
+      <!-- Status bar -->
+      <footer class="pt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="font-medium">Sistem Sensor IoT Kampus: 142 Node Aktif (Koneksi Optimal)</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-4 text-[11px] font-semibold text-gray-400">
+          <span>Server Rektorat Cloud: Latensi 18ms</span>
+          <span>•</span>
+          <span>Protokol Keamanan: Terverifikasi SSO Kampus</span>
+        </div>
+      </footer>
+    </main>
+
+    <!-- MODAL: BUAT PENGADUAN -->
+    <div data-include="views/modals/complaint.html"></div>
+  </section>

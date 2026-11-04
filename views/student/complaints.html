@@ -1,0 +1,29 @@
+<div class="cc-panel" id="panel-student-complaints">
+            <div class="glass-panel rounded-3xl p-5 sm:p-6 border border-white/90">
+              <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div>
+                  <h2 class="font-display text-xl sm:text-2xl font-extrabold text-[#111417] tracking-tight">Pengaduan Fasilitas Saya</h2>
+                  <p class="text-xs text-gray-500 mt-1">Pantau seluruh laporan, status verifikasi, dan progres penanganan teknisi.</p>
+                </div>
+                <button type="button" class="inline-flex items-center justify-center gap-2 bg-brand-orange text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-lg shadow-orange-500/30 hover:bg-orange-600 transition" data-action="open-complaint">
+                  <span class="material-symbols-outlined text-base">add</span>
+                  Buat Pengaduan Baru
+                </button>
+              </div>
+
+              <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3 mt-5">
+                <div class="relative flex-1">
+                  <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none">search</span>
+                  <input type="search" id="student-search" class="w-full h-11 pl-11 pr-4 rounded-full bg-white/85 border border-white text-xs font-medium text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-orange/40" placeholder="Cari kode tiket, fasilitas, atau lokasi...">
+                </div>
+                <div class="flex items-center gap-1 p-1 bg-white/70 rounded-full overflow-x-auto no-scrollbar border border-white">
+                  <button type="button" class="filter-chip is-active" data-student-filter="all">Semua <span data-student-count="all">0</span></button>
+                  <button type="button" class="filter-chip" data-student-filter="review">Verifikasi <span data-student-count="review">0</span></button>
+                  <button type="button" class="filter-chip" data-student-filter="progress">Diproses <span data-student-count="progress">0</span></button>
+                  <button type="button" class="filter-chip" data-student-filter="done">Selesai <span data-student-count="done">0</span></button>
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-3.5 mt-5" id="student-report-list"></div>
+            </div>
+          </div>

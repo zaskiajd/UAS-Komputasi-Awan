@@ -1,0 +1,276 @@
+<section class="app-view is-active" id="view-auth" aria-label="Autentikasi CampusCare">
+
+    <!-- Top floating glass header -->
+    <header class="w-full max-w-7xl mx-auto glass-dock rounded-full px-4 sm:px-6 py-3 shadow-dock-pill flex items-center justify-between gap-4 z-20">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-full bg-primary-container flex items-center justify-center text-white shadow-glow-orange shrink-0">
+          <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1">domain_verification</span>
+        </div>
+        <div class="flex flex-col">
+          <div class="flex items-center gap-2">
+            <span class="font-display font-bold text-xl tracking-tight text-gray-900 leading-none">CampusCare</span>
+            <span class="px-2 py-0.5 rounded-full bg-orange-100 text-primary-container text-[11px] font-bold uppercase tracking-wider hidden sm:inline-block">UNSIL Hub</span>
+          </div>
+          <p class="text-xs text-gray-600 font-body font-medium mt-0.5 hidden md:block">UNIVERSITAS SILIWANGI • Sistem Monitoring &amp; Preservasi Sarana</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2.5 sm:gap-4">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 border border-gray-200/70 shadow-sm text-xs font-semibold text-gray-700">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span class="hidden sm:inline">IoT Core Preservasi Online</span>
+          <span class="sm:hidden text-[11px]">IoT Online</span>
+        </div>
+        <button type="button" data-action="open-sso-help" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-900/90 hover:bg-black text-white text-xs font-semibold shadow-sm transition-all">
+          <span class="material-symbols-outlined text-[16px]">support_agent</span>
+          <span class="hidden md:inline">Hotline Sarpras</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Auth card -->
+    <main class="w-full max-w-xl mx-auto my-6 sm:my-8 z-10 flex flex-col items-center px-3 sm:px-0">
+      <div class="w-full glass-card-elevated rounded-[28px] shadow-floating-glass p-6 sm:p-9 relative overflow-hidden">
+        <div class="text-center mb-6">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-surface-container text-primary text-xs font-bold mb-3 shadow-inner">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Autentikasi Terintegrasi SSO UNSIL</span>
+            <span class="material-symbols-outlined text-sm text-gray-400">verified_user</span>
+          </div>
+          <h1 class="font-display font-bold text-2xl sm:text-3xl text-gray-900 tracking-tight" id="portal-title">Masuk ke Akun Kampus</h1>
+          <p class="font-body text-xs sm:text-sm text-gray-500 mt-1 max-w-md mx-auto" id="portal-subtitle">
+            Gunakan akun resmi Universitas Siliwangi untuk mengakses sistem preservasi dan pemantauan sarana kampus.
+          </p>
+        </div>
+
+        <!-- Tab switch: login / register -->
+        <div class="flex items-center p-1.5 bg-gray-100/90 rounded-full max-w-md mx-auto mb-6 shadow-inner border border-gray-200/60" role="tablist" aria-label="Pilih formulir">
+          <button type="button" class="auth-tab is-active" id="tab-btn-login" data-action="auth-tab" data-tab="login" role="tab" aria-selected="true">
+            <span class="material-symbols-outlined text-base">lock_open</span>
+            <span>Masuk Akun (SSO)</span>
+          </button>
+          <button type="button" class="auth-tab" id="tab-btn-register" data-action="auth-tab" data-tab="register" role="tab" aria-selected="false">
+            <span class="material-symbols-outlined text-base">person_add</span>
+            <span>Registrasi Mahasiswa</span>
+          </button>
+        </div>
+
+        <!-- TAB LOGIN -->
+        <div class="tab-transition" id="view-login">
+          <form class="space-y-4" id="login-form">
+            <div class="space-y-1">
+              <span class="block font-display text-xs sm:text-sm font-semibold text-gray-800">Masuk sebagai</span>
+              <div class="flex items-center gap-1 p-1 rounded-full bg-white/70 border border-gray-200/80 shadow-sm">
+                <button type="button" class="auth-role-chip is-active" data-action="auth-role" data-role="student">
+                  <span class="material-symbols-outlined text-[15px]">school</span>
+                  Mahasiswa
+                </button>
+                <button type="button" class="auth-role-chip" data-action="auth-role" data-role="admin">
+                  <span class="material-symbols-outlined text-[15px]">admin_panel_settings</span>
+                  Admin Sarpras
+                </button>
+              </div>
+            </div>
+
+            <div class="space-y-1">
+              <label class="block font-display text-xs sm:text-sm font-semibold text-gray-800" for="login-email">Email Kampus / Akun SSO</label>
+              <div class="relative flex items-center">
+                <span class="material-symbols-outlined absolute left-4 text-gray-400 text-lg pointer-events-none">mail</span>
+                <input class="w-full bg-white text-gray-900 placeholder-gray-400 font-body text-xs sm:text-sm pl-11 pr-4 py-3 rounded-full outline-none focus:ring-2 focus:ring-primary-container focus:border-transparent transition-all border border-gray-200 shadow-sm" id="login-email" placeholder="217006001@student.unsil.ac.id" required type="email" autocomplete="username">
+              </div>
+              <p class="font-body text-[11px] text-gray-500 pl-3">Format: @student.unsil.ac.id (Mahasiswa) atau @unsil.ac.id (Dosen/Tendik)</p>
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex items-center justify-between">
+                <label class="block font-display text-xs sm:text-sm font-semibold text-gray-800" for="login-password">Kata Sandi Akun</label>
+                <button type="button" class="text-[11px] font-semibold text-primary hover:text-primary-container hover:underline" data-action="open-sso-help">
+                  Lupa kata sandi?
+                </button>
+              </div>
+              <div class="relative flex items-center">
+                <span class="material-symbols-outlined absolute left-4 text-gray-400 text-lg pointer-events-none">lock</span>
+                <input class="w-full bg-white text-gray-900 placeholder-gray-400 font-body text-xs sm:text-sm pl-11 pr-11 py-3 rounded-full outline-none focus:ring-2 focus:ring-primary-container focus:border-transparent transition-all border border-gray-200 shadow-sm" id="login-password" placeholder="Masukkan kata sandi SSO Anda" required type="password" autocomplete="current-password">
+                <button type="button" class="absolute right-3.5 text-gray-400 hover:text-gray-700 p-1" data-action="toggle-password" data-target="login-password" title="Tampilkan sandi" aria-label="Tampilkan sandi">
+                  <span class="material-symbols-outlined text-lg" id="login-eye-icon">visibility</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input checked class="w-4 h-4 rounded text-primary-container focus:ring-0 cursor-pointer" type="checkbox">
+                <span class="font-body text-xs text-gray-600">Ingat sesi di perangkat ini</span>
+              </label>
+              <span class="text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                Protokol OAuth2 Aktif
+              </span>
+            </div>
+
+            <div class="pt-2 space-y-3">
+              <button class="w-full bg-primary-container hover:bg-primary-hover text-white font-display font-bold text-sm py-3.5 rounded-full shadow-glow-orange flex items-center justify-center gap-2 transition-all transform active:scale-[0.99]" type="submit">
+                <span>Masuk ke Portal CampusCare</span>
+                <span class="material-symbols-outlined text-base">arrow_forward</span>
+              </button>
+
+              <div class="flex items-center gap-3 my-2">
+                <div class="h-px bg-gray-200 flex-1"></div>
+                <span class="text-xs font-semibold text-gray-400">atau masuk dengan</span>
+                <div class="h-px bg-gray-200 flex-1"></div>
+              </div>
+
+              <button type="button" class="w-full bg-white hover:bg-gray-50 text-gray-700 font-display font-semibold text-xs sm:text-sm py-3 rounded-full flex items-center justify-center gap-3 transition-all border border-gray-200 shadow-sm" data-action="google-login">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"></path>
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"></path>
+                </svg>
+                <span>Masuk dengan Akun Google Kampus</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- TAB REGISTER -->
+        <div class="hidden tab-transition" id="view-register">
+          <form class="space-y-3.5" id="register-form">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="space-y-1">
+                <label class="block font-display text-xs font-semibold text-gray-800" for="reg-name">Nama Lengkap Mahasiswa</label>
+                <div class="relative flex items-center">
+                  <span class="material-symbols-outlined absolute left-3.5 text-gray-400 text-lg pointer-events-none">person</span>
+                  <input class="w-full bg-white text-gray-900 font-body text-xs pl-10 pr-3 py-2.5 rounded-full border border-gray-200 outline-none focus:ring-2 focus:ring-primary-container" id="reg-name" placeholder="Cth: Muhammad Rizki" required type="text" autocomplete="name">
+                </div>
+              </div>
+              <div class="space-y-1">
+                <label class="block font-display text-xs font-semibold text-gray-800" for="reg-nim">NIM (Nomor Induk)</label>
+                <div class="relative flex items-center">
+                  <span class="material-symbols-outlined absolute left-3.5 text-gray-400 text-lg pointer-events-none">badge</span>
+                  <input class="w-full bg-white text-gray-900 font-body text-xs pl-10 pr-3 py-2.5 rounded-full border border-gray-200 outline-none focus:ring-2 focus:ring-primary-container" id="reg-nim" maxlength="12" placeholder="Cth: 217006120" required type="text" inputmode="numeric">
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="space-y-1">
+                <label class="block font-display text-xs font-semibold text-gray-800" for="reg-fakultas">Fakultas &amp; Jurusan</label>
+                <div class="relative flex items-center">
+                  <span class="material-symbols-outlined absolute left-3.5 text-gray-400 text-lg pointer-events-none">school</span>
+                  <select class="w-full bg-white text-gray-900 font-body text-xs pl-10 pr-8 py-2.5 rounded-full border border-gray-200 outline-none focus:ring-2 focus:ring-primary-container appearance-none cursor-pointer" id="reg-fakultas" required>
+                    <option disabled selected value="">Pilih Fakultas...</option>
+                    <option value="Teknik Informatika">Fakultas Teknik - Informatika</option>
+                    <option value="Teknik Sipil">Fakultas Teknik - Teknik Sipil</option>
+                    <option value="Teknik Elektro">Fakultas Teknik - Elektro</option>
+                    <option value="Fakultas Ekonomi">Fakultas Ekonomi &amp; Bisnis</option>
+                    <option value="FKIP">FKIP - Pendidikan</option>
+                    <option value="Fakultas Pertanian">Fakultas Pertanian</option>
+                    <option value="Fakultas Ilmu Kesehatan">Fakultas Ilmu Kesehatan</option>
+                  </select>
+                  <span class="material-symbols-outlined absolute right-3 text-gray-400 pointer-events-none text-base">expand_more</span>
+                </div>
+              </div>
+              <div class="space-y-1">
+                <label class="block font-display text-xs font-semibold text-gray-800" for="reg-email">Email Kampus Resmi</label>
+                <div class="relative flex items-center">
+                  <span class="material-symbols-outlined absolute left-3.5 text-gray-400 text-lg pointer-events-none">alternate_email</span>
+                  <input class="w-full bg-white text-gray-900 font-body text-xs pl-10 pr-3 py-2.5 rounded-full border border-gray-200 outline-none focus:ring-2 focus:ring-primary-container" id="reg-email" placeholder="217006120@student.unsil.ac.id" required type="email" autocomplete="email">
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="space-y-1">
+                <label class="block font-display text-xs font-semibold text-gray-800" for="reg-password">Kata Sandi Baru</label>
+                <div class="relative flex items-center">
+                  <span class="material-symbols-outlined absolute left-3.5 text-gray-400 text-lg pointer-events-none">key</span>
+                  <input class="w-full bg-white text-gray-900 font-body text-xs pl-10 pr-9 py-2.5 rounded-full border border-gray-200 outline-none focus:ring-2 focus:ring-primary-container" id="reg-password" placeholder="Min. 8 karakter" required type="password" autocomplete="new-password">
+                  <button type="button" class="absolute right-3 text-gray-400 hover:text-gray-600" data-action="toggle-password" data-target="reg-password" aria-label="Tampilkan sandi">
+                    <span class="material-symbols-outlined text-base" id="reg-eye-1">visibility</span>
+                  </button>
+                </div>
+              </div>
+              <div class="space-y-1">
+                <label class="block font-display text-xs font-semibold text-gray-800" for="reg-confirm">Konfirmasi Sandi</label>
+                <div class="relative flex items-center">
+                  <span class="material-symbols-outlined absolute left-3.5 text-gray-400 text-lg pointer-events-none">lock_reset</span>
+                  <input class="w-full bg-white text-gray-900 font-body text-xs pl-10 pr-9 py-2.5 rounded-full border border-gray-200 outline-none focus:ring-2 focus:ring-primary-container" id="reg-confirm" placeholder="Ulangi kata sandi" required type="password" autocomplete="new-password">
+                  <button type="button" class="absolute right-3 text-gray-400 hover:text-gray-600" data-action="toggle-password" data-target="reg-confirm" aria-label="Tampilkan sandi">
+                    <span class="material-symbols-outlined text-base" id="reg-eye-2">visibility</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="px-2 pt-0.5">
+              <div class="flex items-center justify-between gap-2 text-[11px] text-gray-500 mb-1.5">
+                <span>Kekuatan Kata Sandi: <b class="text-gray-600" id="strength-text">Belum Diisi</b></span>
+                <span class="hidden sm:inline">Min. 8 Karakter, Kombinasi Huruf &amp; Angka</span>
+              </div>
+              <div class="pw-meter" id="pw-meter" data-level="0" role="presentation">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+
+            <p class="form-error" id="reg-error">
+              <span class="material-symbols-outlined text-[14px]">error</span>
+              <span id="reg-error-text">Konfirmasi kata sandi tidak cocok.</span>
+            </p>
+
+            <div class="pt-1">
+              <label class="flex items-start gap-2.5 cursor-pointer text-left">
+                <input class="w-4 h-4 mt-0.5 rounded text-primary-container focus:ring-0 cursor-pointer" required type="checkbox">
+                <span class="font-body text-xs text-gray-600 leading-snug">
+                  Saya menyetujui Ketentuan Layanan &amp; Etika Pelaporan Preservasi Kampus Universitas Siliwangi.
+                </span>
+              </label>
+            </div>
+
+            <div class="pt-2">
+              <button class="w-full bg-primary-container hover:bg-primary-hover text-white font-display font-bold text-sm py-3.5 rounded-full shadow-glow-orange flex items-center justify-center gap-2 transition-all transform active:scale-[0.99]" type="submit">
+                <span class="material-symbols-outlined text-base">how_to_reg</span>
+                <span>Daftarkan Akun Mahasiswa</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Quick stats -->
+      <div class="w-full mt-4 glass-dock rounded-2xl px-5 py-3 shadow-dock-pill flex flex-wrap items-center justify-around gap-3 text-center">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary-container text-lg">health_and_safety</span>
+          <div class="text-left leading-tight">
+            <p class="font-display font-bold text-xs text-gray-900">96.5%</p>
+            <p class="text-[10px] text-gray-500 font-medium">Kesiapan Sarana (Optimal)</p>
+          </div>
+        </div>
+        <div class="h-5 w-px bg-gray-300 hidden sm:block"></div>
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-tertiary text-lg">bolt</span>
+          <div class="text-left leading-tight">
+            <p class="font-display font-bold text-xs text-gray-900">1.8 Jam</p>
+            <p class="text-[10px] text-gray-500 font-medium">Rata-rata Respon Keluhan</p>
+          </div>
+        </div>
+        <div class="h-5 w-px bg-gray-300 hidden sm:block"></div>
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-emerald-600 text-lg">lock</span>
+          <div class="text-left leading-tight">
+            <p class="font-display font-bold text-xs text-gray-900">256-Bit</p>
+            <p class="text-[10px] text-gray-500 font-medium">Enkripsi SSO Merdeka</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="w-full max-w-7xl mx-auto py-2 text-center text-xs text-white/80 font-medium z-10 flex flex-wrap items-center justify-center gap-4">
+      <span>© 2026 CampusCare • Biro Sarana &amp; Prasarana Universitas Siliwangi</span>
+      <span>•</span>
+      <span>UPT TIK UNSIL Integrated SSO Hub v2.4</span>
+    </footer>
+  </section>
