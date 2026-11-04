@@ -1,0 +1,199 @@
+/* ==========================================================================
+   CampusCare — Base & Latar View
+   Reset, tipografi dasar, scrollbar, latar per view, dan layar boot.
+   ========================================================================== */
+
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  font-family: var(--cc-font-body);
+  color: var(--cc-charcoal);
+  background-color: #e4e7ec;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior-y: none;
+}
+
+body.cc-modal-open {
+  overflow: hidden;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+::selection {
+  background: var(--cc-orange-soft);
+  color: #370e00;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+body[data-view="auth"] {
+  color: #191c1f;
+  background-color: #0f172a;
+  background-image:
+    linear-gradient(135deg, rgba(15, 23, 42, 0.88) 0%, rgba(30, 41, 59, 0.72) 50%, rgba(15, 23, 42, 0.92) 100%),
+    url("https://lh3.googleusercontent.com/aida-public/AB6AXuCS9mouP4YMePqbQ6F1CKAjGuGsdFIyUjYGu8TRIDiOnQKjtIXfdRBd473GpQlyV0K3Bzj0c__lT2kJ4fxQ3iy2bWiEuXE22zMfADzdVEfqN-qawNHR4xFn2CTI6HArxKc6HeK5U35zJb2dsMTKmEdOO6ZXhY3TGONPnr9cjgqvYYLefcXfARRhrG60pR801sYvD8mQo7310_2ZopwQTApyUN5oGe_tR6auuTkrplbAumDDC8VA_M0K");
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+body[data-view="student"] {
+  background-color: var(--cc-canvas-student);
+}
+
+body[data-view="admin"] {
+  background-color: var(--cc-canvas);
+}
+
+/* Cadangan bila halaman autentikasi dipakai tanpa data-view */
+.hero-bg-canvas {
+  background-color: #0f172a;
+  background-image: linear-gradient(135deg, rgba(15, 23, 42, 0.88) 0%, rgba(30, 41, 59, 0.72) 50%, rgba(15, 23, 42, 0.92) 100%);
+  background-size: cover;
+  background-position: center center;
+}
+
+/* --------------------------------------------------------------------------
+   Layar boot & pesan bila partial gagal dimuat
+   -------------------------------------------------------------------------- */
+body.cc-booting #app {
+  visibility: hidden;
+}
+
+#boot-screen,
+#boot-error {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: none;
+  place-items: center;
+  padding: 1.5rem;
+  background: #0f172a;
+  color: #e2e8f0;
+  text-align: center;
+}
+
+body.cc-booting #boot-screen {
+  display: grid;
+}
+
+#boot-error {
+  display: grid;
+  background-image: linear-gradient(160deg, #0f172a 0%, #1e293b 100%);
+}
+
+#boot-error[hidden] {
+  display: none;
+}
+
+.boot-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  max-width: 26rem;
+}
+
+.boot-spinner {
+  width: 34px;
+  height: 34px;
+  margin-bottom: 0.35rem;
+  border: 3px solid rgba(255, 255, 255, 0.22);
+  border-top-color: var(--cc-orange);
+  border-radius: 9999px;
+  animation: boot-spin 0.85s linear infinite;
+}
+
+@keyframes boot-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.boot-title {
+  margin: 0;
+  font-family: var(--cc-font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.boot-text {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: #cbd5e1;
+}
+
+.boot-code {
+  margin: 0.5rem 0 0;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0.6rem;
+  background: rgba(255, 255, 255, 0.08);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: #ffffff;
+  text-align: left;
+  white-space: pre-wrap;
+}
+
+.boot-error-icon {
+  font-size: 2.2rem;
+  color: #ffb37f;
+}
+
+.boot-detail {
+  margin: 0.25rem 0 0;
+  font-size: 0.68rem;
+  color: #94a3b8;
+  word-break: break-word;
+}
+
+.boot-noscript {
+  position: fixed;
+  inset: 0;
+  z-index: 130;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: #0f172a;
+  text-align: center;
+}

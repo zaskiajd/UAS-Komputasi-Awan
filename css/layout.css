@@ -1,0 +1,68 @@
+/* ==========================================================================
+   CampusCare — Layout & View Router
+   Mekanisme tampil/sembunyi view dan panel SPA.
+   ========================================================================== */
+
+
+.app-view {
+  display: none;
+}
+
+.app-view.is-active {
+  display: block;
+  animation: cc-fade-in 0.28s ease both;
+}
+
+#view-auth {
+  padding: 0.75rem;
+}
+
+#view-auth.is-active {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+@media (min-width: 640px) {
+  #view-auth {
+    padding: 1.25rem;
+  }
+}
+
+@media (min-width: 768px) {
+  #view-auth {
+    padding: 1.75rem;
+  }
+}
+
+@keyframes cc-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes cc-view-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Sub-panel di dalam tiap dashboard */
+.cc-panel {
+  display: none;
+}
+
+.cc-panel.is-active {
+  display: block;
+  animation: cc-view-in 0.3s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+}

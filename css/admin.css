@@ -1,0 +1,45 @@
+/* ==========================================================================
+   CampusCare — Dashboard Admin Sarpras
+   Header tetap, sidebar drawer, konten admin, dan dock admin.
+   ========================================================================== */
+
+
+#view-admin {
+  min-height: 100vh;
+  background-color: var(--cc-canvas);
+}
+
+#view-admin .admin-header {
+  height: 5rem;
+}
+
+#view-admin .admin-content {
+  padding-top: 6.5rem;
+  padding-bottom: 4rem;
+}
+
+#sidebar-drawer {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#sidebar-drawer [data-admin-tab].is-active {
+  background-color: var(--inverse-surface, #1e293b);
+  color: var(--inverse-on-surface, #ffffff);
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(20, 23, 26, 0.12);
+}
+
+#sidebar-drawer [data-admin-tab].is-active span.material-symbols-outlined {
+  color: var(--primary-container, #ff661f);
+}
+
+#sidebar-backdrop {
+  transition: opacity 0.3s ease;
+}
+
+@media (max-width: 1023px) {
+  #view-admin .admin-content {
+    padding-top: 6rem;
+    padding-bottom: 4rem;
+  }
+}

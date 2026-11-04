@@ -1,0 +1,42 @@
+/* ==========================================================================
+   CampusCare — Dashboard Mahasiswa
+   Penyesuaian dock dan layout khusus portal mahasiswa.
+   ========================================================================== */
+
+
+/* Dock mahasiswa versi mobile — ringkas agar seluruh ikon muat */
+@media (max-width: 767px) {
+  #view-student .student-dock {
+    justify-content: flex-start;
+    gap: 0.35rem;
+    padding-right: 0.5rem;
+    padding-left: 0.5rem;
+    overflow-x: auto;
+  }
+
+  #view-student .student-dock > div {
+    flex: 0 0 auto;
+    gap: 0.35rem;
+  }
+
+  #view-student .student-dock > div:first-child {
+    justify-content: flex-start;
+    width: auto;
+  }
+
+  #view-student .student-dock > div:last-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  #view-student .student-dock .dock-btn {
+    flex: 0 0 auto;
+    width: 38px;
+    height: 38px;
+  }
+
+  #view-student .student-dock .dock-btn--sm {
+    width: 32px;
+    height: 32px;
+  }
+}

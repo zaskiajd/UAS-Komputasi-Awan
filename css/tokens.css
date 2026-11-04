@@ -1,0 +1,28 @@
+/* ==========================================================================
+   CampusCare — Design Tokens
+   Variabel warna, font, radius, dan bayangan bersama.
+   ========================================================================== */
+
+:root {
+  --cc-orange: #ff661f;
+  --cc-orange-strong: #e55615;
+  --cc-orange-soft: #ffdbce;
+  --cc-charcoal: #14171a;
+  --cc-ink: #111417;
+  --cc-canvas: #eceef2;
+  --cc-canvas-soft: #eef1f5;
+  --cc-canvas-student: #dde2e7;
+  --cc-slate: #7e8691;
+  --cc-secondary: #5c5f62;
+  --cc-blue: #2563eb;
+  --cc-emerald: #10b981;
+  --cc-crimson: #ef4444;
+
+  --cc-font-display: "Space Grotesk", "Plus Jakarta Sans", system-ui, sans-serif;
+  --cc-font-body: "Plus Jakarta Sans", "Space Grotesk", system-ui, sans-serif;
+
+  --cc-radius-card: 24px;
+  --cc-shadow-pod: 0 12px 32px -4px rgba(20, 23, 26, 0.05), 0 4px 12px rgba(166, 175, 189, 0.2);
+  --cc-shadow-float: 0 20px 40px -15px rgba(20, 23, 26, 0.12);
+  --cc-shadow-glow: 0 8px 24px -2px rgba(255, 102, 31, 0.35);
+}

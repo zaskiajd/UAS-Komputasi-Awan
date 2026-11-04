@@ -1,0 +1,12 @@
+/* ==========================================================================
+   CampusCare — Responsif Global
+   Penyesuaian ukuran layar kecil yang berlaku lintas view.
+   ========================================================================== */
+
+
+@media (max-width: 640px) {
+  .filter-chip {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.68rem;
+  }
+}
