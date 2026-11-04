@@ -87,5 +87,26 @@
 
   <!-- JavaScript aplikasi (ES module, dimuat setelah partial siap) -->
   <script type="module" src="js/main.js"></script>
+
+  <!-- Pemantau boot: bila modul inti tidak pernah selesai dimuat, tampilkan pesan
+       yang jelas alih-alih membiarkan layar "Memuat CampusCare…" menggantung. -->
+  <script>
+    window.setTimeout(function () {
+      if (window.location.protocol === "file:") return;
+      if (!document.body.classList.contains("cc-booting")) return;
+
+      var panel = document.getElementById("boot-error");
+      var detail = document.getElementById("boot-error-detail");
+      var screen = document.getElementById("boot-screen");
+
+      document.body.classList.remove("cc-booting");
+      if (screen) screen.remove();
+      if (detail) {
+        detail.textContent =
+          "Modul aplikasi tidak selesai dimuat. Pastikan folder js/ dan views/ lengkap, lalu muat ulang dengan Ctrl+F5.";
+      }
+      if (panel) panel.hidden = false;
+    }, 8000);
+  </script>
 </body>
 </html>
