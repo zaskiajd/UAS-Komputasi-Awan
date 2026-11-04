@@ -1,0 +1,2016 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="CampusCare UNSIL — satu portal terpadu untuk pengaduan fasilitas, monitoring sarana, dan disposisi teknisi Universitas Siliwangi.">
+  <title>CampusCare UNSIL — Portal Pengaduan &amp; Monitoring Fasilitas Kampus</title>
+
+  <!-- Google Fonts: Space Grotesk & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS (utility layer) -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              DEFAULT: '#a73a00',
+              container: '#ff661f',
+              hover: '#e55615',
+              fixed: '#ffdbce'
+            },
+            'on-primary': '#ffffff',
+            'on-primary-fixed': '#370e00',
+            'on-primary-fixed-variant': '#802a00',
+            surface: {
+              DEFAULT: '#f7f9fd',
+              container: '#eceef2',
+              'container-low': '#f2f4f8',
+              'container-lowest': '#ffffff',
+              'container-high': '#e6e8ec',
+              'container-highest': '#e0e2e6',
+              dim: '#d8dade',
+              bright: '#f7f9fd',
+              variant: '#e0e2e6'
+            },
+            'on-surface': '#191c1f',
+            'on-surface-variant': '#5a4138',
+            'inverse-surface': '#1e293b',
+            'inverse-on-surface': '#eff1f5',
+            secondary: '#5c5f62',
+            tertiary: '#0053db',
+            'tertiary-fixed': '#dbe1ff',
+            'on-tertiary-fixed-variant': '#003ea8',
+            error: '#ba1a1a',
+            'error-container': '#ffdad6',
+            'on-error-container': '#93000a',
+            brand: {
+              orange: '#FF661F',
+              dark: '#14171A',
+              lightGray: '#F3F4F6',
+              bgCanvas: '#E4E7EC',
+              cardBg: 'rgba(255, 255, 255, 0.85)'
+            }
+          },
+          fontFamily: {
+            sans: ['"Space Grotesk"', '"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Space Grotesk"', 'sans-serif'],
+            body: ['"Plus Jakarta Sans"', 'sans-serif']
+          },
+          boxShadow: {
+            'glow-orange': '0 8px 25px -4px rgba(255, 102, 31, 0.45)',
+            'floating-glass': '0 24px 60px -12px rgba(15, 23, 42, 0.28), 0 0 0 1px rgba(255, 255, 255, 0.85)',
+            'dock-pill': '0 10px 25px -5px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.9)',
+            glass: '0 8px 32px 0 rgba(0, 0, 0, 0.06)',
+            'glass-inset': 'inset 0 1px 1px 0 rgba(255, 255, 255, 0.8)',
+            floating: '0 20px 40px -15px rgba(20, 23, 26, 0.08)'
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Custom style (dipisah dari HTML) -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body data-view="auth" class="antialiased">
+
+  <!-- ===================================================================== -->
+  <!-- VIEW 1 — AUTENTIKASI (LOGIN & REGISTRASI TERPUSAT)                    -->
+  <!-- ===================================================================== -->
+  <section class="app-view is-active" id="view-auth" aria-label="Autentikasi CampusCare">
+
+    <!-- Top floating glass header -->
+    <header class="w-full max-w-7xl mx-auto glass-dock rounded-full px-4 sm:px-6 py-3 shadow-dock-pill flex items-center justify-between gap-4 z-20">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-full bg-primary-container flex items-center justify-center text-white shadow-glow-orange shrink-0">
+          <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1">domain_verification</span>
+        </div>
+        <div class="flex flex-col">
+          <div class="flex items-center gap-2">
+            <span class="font-display font-bold text-xl tracking-tight text-gray-900 leading-none">CampusCare</span>
+            <span class="px-2 py-0.5 rounded-full bg-orange-100 text-primary-container text-[11px] font-bold uppercase tracking-wider hidden sm:inline-block">UNSIL Hub</span>
+          </div>
+          <p class="text-xs text-gray-600 font-body font-medium mt-0.5 hidden md:block">UNIVERSITAS SILIWANGI • Sistem Monitoring &amp; Preservasi Sarana</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2.5 sm:gap-4">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 border border-gray-200/70 shadow-sm text-xs font-semibold text-gray-700">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span class="hidden sm:inline">IoT Core Preservasi Online</span>
+          <span class="sm:hidden text-[11px]">IoT Online</span>
+        </div>
+        <button type="button" data-action="open-sso-help" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-900/90 hover:bg-black text-white text-xs font-semibold shadow-sm transition-all">
+          <span class="material-symbols-outlined text-[16px]">support_agent</span>
+          <span class="hidden md:inline">Hotline Sarpras</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Auth card -->
+    <main class="w-full max-w-xl mx-auto my-6 sm:my-8 z-10 flex flex-col items-center px-3 sm:px-0">
+      <div class="w-full glass-card-elevated rounded-[28px] shadow-floating-glass p-6 sm:p-9 relative overflow-hidden">
+        <div class="text-center mb-6">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-surface-container text-primary text-xs font-bold mb-3 shadow-inner">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Autentikasi Terintegrasi SSO UNSIL</span>
+            <span class="material-symbols-outlined text-sm text-gray-400">verified_user</span>
+          </div>
+          <h1 class="font-display font-bold text-2xl sm:text-3xl text-gray-900 tracking-tight" id="portal-title">Masuk ke Akun Kampus</h1>
+          <p class="font-body text-xs sm:text-sm text-gray-500 mt-1 max-w-md mx-auto" id="portal-subtitle">
+            Gunakan akun resmi Universitas Siliwangi untuk mengakses sistem preservasi dan pemantauan sarana kampus.
+          </p>
+        </div>
+
+        <!-- Tab switch: login / register -->
+        <div class="flex items-center p-1.5 bg-gray-100/90 rounded-full max-w-md mx-auto mb-6 shadow-inner border border-gray-200/60" role="tablist" aria-label="Pilih formulir">
+          <button type="button" class="auth-tab is-active" id="tab-btn-login" data-action="auth-tab" data-tab="login" role="tab" aria-selected="true">
+            <span class="material-symbols-outlined text-base">lock_open</span>
+            <span>Masuk Akun (SSO)</span>
+          </button>
+          <button type="button" class="auth-tab" id="tab-btn-register" data-action="auth-tab" data-tab="register" role="tab" aria-selected="false">
+            <span class="material-symbols-outlined text-base">person_add</span>
+            <span>Registrasi Mahasiswa</span>
+          </button>
+        </div>
+
+        <!-- TAB LOGIN -->
+        <div class="tab-transition" id="view-login">
+          <form class="space-y-4" id="login-form">
+            <div class="space-y-1">
+              <span class="block font-display text-xs sm:text-sm font-semibold text-gray-800">Masuk sebagai</span>
+              <div class="flex items-center gap-1 p-1 rounded-full bg-white/70 border border-gray-200/80 shadow-sm">
+                <button type="button" class="auth-role-chip is-active" data-action="auth-role" data-role="student">
+                  <span class="material-symbols-outlined text-[15px]">school</span>
+                  Mahasiswa
+                </button>
+                <button type="button" class="auth-role-chip" data-action="auth-role" data-role="admin">
+                  <span class="material-symbols-outlined text-[15px]">admin_panel_settings</span>
+                  Admin Sarpras
+                </button>
+              </div>
+            </div>
+
+            <div class="space-y-1">
+              <label class="block font-display text-xs sm:text-sm font-semibold text-gray-800" for="login-email">Email Kampus / Akun SSO</label>
+              <div class="relative flex items-center">
+                <span class="material-symbols-outlined absolute left-4 text-gray-400 text-lg pointer-events-none">mail</span>
+                <input class="w-full bg-white text-gray-900 placeholder-gray-400 font-body text-xs sm:text-sm pl-11 pr-4 py-3 rounded-full outline-none focus:ring-2 focus:ring-primary-container focus:border-transparent transition-all border border-gray-200 shadow-sm" id="login-email" placeholder="217006001@student.unsil.ac.id" required type="email" autocomplete="username">
+              </div>
+              <p class="font-body text-[11px] text-gray-500 pl-3">Format: @student.unsil.ac.id (Mahasiswa) atau @unsil.ac.id (Dosen/Tendik)</p>
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex items-center justify-between">
+                <label class="block font-display text-xs sm:text-sm font-semibold text-gray-800" for="login-password">Kata Sandi Akun</label>
+                <button type="button" class="text-[11px] font-semibold text-primary hover:text-primary-container hover:underline" data-action="open-sso-help">
+                  Lupa kata sandi?
+                </button>
+              </div>
+              <div class="relative flex items-center">
+                <span class="material-symbols-outlined absolute left-4 text-gray-400 text-lg pointer-events-none">lock</span>
+                <input class="w-full bg-white text-gray-900 placeholder-gray-400 font-body text-xs sm:text-sm pl-11 pr-11 py-3 rounded-full outline-none focus:ring-2 focus:ring-primary-container focus:border-transparent transition-all border border-gray-200 shadow-sm" id="login-password" placeholder="Masukkan kata sandi SSO Anda" required type="password" autocomplete="current-password">
+                <button type="button" class="absolute right-3.5 text-gray-400 hover:text-gray-700 p-1" data-action="toggle-password" data-target="login-password" title="Tampilkan sandi" aria-label="Tampilkan sandi">
+                  <span class="material-symbols-outlined text-lg" id="login-eye-icon">visibility</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input checked class="w-4 h-4 rounded text-primary-container focus:ring-0 cursor-pointer" type="checkbox">
+                <span class="font-body text-xs text-gray-600">Ingat sesi di perangkat ini</span>
+              </label>
+              <span class="text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                Protokol OAuth2 Aktif
+              </span>
+            </div>
+
+            <div class="pt-2 space-y-3">
+              <button class="w-full bg-primary-container hover:bg-primary-hover text-white font-display font-bold text-sm py-3.5 rounded-full shadow-glow-orange flex items-center justify-center gap-2 transition-all transform active:scale-[0.99]" type="submit">
+                <span>Masuk ke Portal CampusCare</span>
+                <span class="material-symbols-outlined text-base">arrow_forward</span>
+              </button>
+
+              <div class="flex items-center gap-3 my-2">
+                <div class="h-px bg-gray-200 flex-1"></div>
+                <span class="text-xs font-semibold text-gray-400">atau masuk dengan</span>
+                <div class="h-px bg-gray-200 flex-1"></div>
+              </div>
+
+              <button type="button" class="w-full bg-white hover:bg-gray-50 text-gray-700 font-display font-semibold text-xs sm:text-sm py-3 rounded-full flex items-center justify-center gap-3 transition-all border border-gray-200 shadow-sm" data-action="google-login">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"></path>
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"></path>
+                </svg>
+                <span>Masuk dengan Akun Google Kampus</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- TAB REGISTER -->
+        <div class="hidden tab-transition" id="view-register">
+          <form class="space-y-3.5" id="register-form">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="space-y-1">
+                <label class="block font-display text-xs font-semibold text-gray-800" for="reg-name">Nama Lengkap Mahasiswa</label>
+                <div class="relative flex items-center">
+                  <span class="material-symbols-outlined absolute left-3.5 text-gray-400 text-lg pointer-events-none">person</span>
+                  <input class="w-full bg-white text-gray-900 font-body text-xs pl-10 pr-3 py-2.5 rounded-full border border-gray-200 outline-none focus:ring-2 focus:ring-primary-container" id="reg-name" placeholder="Cth: Muhammad Rizki" required type="text" autocomplete="name">
+                </div>
+              </div>
+              <div class="space-y-1">
+                <label class="block font-display text-xs font-semibold text-gray-800" for="reg-nim">NIM (Nomor Induk)</label>
+                <div class="relative flex items-center">
+                  <span class="material-symbols-outlined absolute left-3.5 text-gray-400 text-lg pointer-events-none">badge</span>
+                  <input class="w-full bg-white text-gray-900 font-body text-xs pl-10 pr-3 py-2.5 rounded-full border border-gray-200 outline-none focus:ring-2 focus:ring-primary-container" id="reg-nim" maxlength="12" placeholder="Cth: 217006120" required type="text" inputmode="numeric">
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="space-y-1">
+                <label class="block font-display text-xs font-semibold text-gray-800" for="reg-fakultas">Fakultas &amp; Jurusan</label>
+                <div class="relative flex items-center">
+                  <span class="material-symbols-outlined absolute left-3.5 text-gray-400 text-lg pointer-events-none">school</span>
+                  <select class="w-full bg-white text-gray-900 font-body text-xs pl-10 pr-8 py-2.5 rounded-full border border-gray-200 outline-none focus:ring-2 focus:ring-primary-container appearance-none cursor-pointer" id="reg-fakultas" required>
+                    <option disabled selected value="">Pilih Fakultas...</option>
+                    <option value="Teknik Informatika">Fakultas Teknik - Informatika</option>
+                    <option value="Teknik Sipil">Fakultas Teknik - Teknik Sipil</option>
+                    <option value="Teknik Elektro">Fakultas Teknik - Elektro</option>
+                    <option value="Fakultas Ekonomi">Fakultas Ekonomi &amp; Bisnis</option>
+                    <option value="FKIP">FKIP - Pendidikan</option>
+                    <option value="Fakultas Pertanian">Fakultas Pertanian</option>
+                    <option value="Fakultas Ilmu Kesehatan">Fakultas Ilmu Kesehatan</option>
+                  </select>
+                  <span class="material-symbols-outlined absolute right-3 text-gray-400 pointer-events-none text-base">expand_more</span>
+                </div>
+              </div>
+              <div class="space-y-1">
+                <label class="block font-display text-xs font-semibold text-gray-800" for="reg-email">Email Kampus Resmi</label>
+                <div class="relative flex items-center">
+                  <span class="material-symbols-outlined absolute left-3.5 text-gray-400 text-lg pointer-events-none">alternate_email</span>
+                  <input class="w-full bg-white text-gray-900 font-body text-xs pl-10 pr-3 py-2.5 rounded-full border border-gray-200 outline-none focus:ring-2 focus:ring-primary-container" id="reg-email" placeholder="217006120@student.unsil.ac.id" required type="email" autocomplete="email">
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="space-y-1">
+                <label class="block font-display text-xs font-semibold text-gray-800" for="reg-password">Kata Sandi Baru</label>
+                <div class="relative flex items-center">
+                  <span class="material-symbols-outlined absolute left-3.5 text-gray-400 text-lg pointer-events-none">key</span>
+                  <input class="w-full bg-white text-gray-900 font-body text-xs pl-10 pr-9 py-2.5 rounded-full border border-gray-200 outline-none focus:ring-2 focus:ring-primary-container" id="reg-password" placeholder="Min. 8 karakter" required type="password" autocomplete="new-password">
+                  <button type="button" class="absolute right-3 text-gray-400 hover:text-gray-600" data-action="toggle-password" data-target="reg-password" aria-label="Tampilkan sandi">
+                    <span class="material-symbols-outlined text-base" id="reg-eye-1">visibility</span>
+                  </button>
+                </div>
+              </div>
+              <div class="space-y-1">
+                <label class="block font-display text-xs font-semibold text-gray-800" for="reg-confirm">Konfirmasi Sandi</label>
+                <div class="relative flex items-center">
+                  <span class="material-symbols-outlined absolute left-3.5 text-gray-400 text-lg pointer-events-none">lock_reset</span>
+                  <input class="w-full bg-white text-gray-900 font-body text-xs pl-10 pr-9 py-2.5 rounded-full border border-gray-200 outline-none focus:ring-2 focus:ring-primary-container" id="reg-confirm" placeholder="Ulangi kata sandi" required type="password" autocomplete="new-password">
+                  <button type="button" class="absolute right-3 text-gray-400 hover:text-gray-600" data-action="toggle-password" data-target="reg-confirm" aria-label="Tampilkan sandi">
+                    <span class="material-symbols-outlined text-base" id="reg-eye-2">visibility</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="px-2 pt-0.5">
+              <div class="flex items-center justify-between gap-2 text-[11px] text-gray-500 mb-1.5">
+                <span>Kekuatan Kata Sandi: <b class="text-gray-600" id="strength-text">Belum Diisi</b></span>
+                <span class="hidden sm:inline">Min. 8 Karakter, Kombinasi Huruf &amp; Angka</span>
+              </div>
+              <div class="pw-meter" id="pw-meter" data-level="0" role="presentation">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+
+            <p class="form-error" id="reg-error">
+              <span class="material-symbols-outlined text-[14px]">error</span>
+              <span id="reg-error-text">Konfirmasi kata sandi tidak cocok.</span>
+            </p>
+
+            <div class="pt-1">
+              <label class="flex items-start gap-2.5 cursor-pointer text-left">
+                <input class="w-4 h-4 mt-0.5 rounded text-primary-container focus:ring-0 cursor-pointer" required type="checkbox">
+                <span class="font-body text-xs text-gray-600 leading-snug">
+                  Saya menyetujui Ketentuan Layanan &amp; Etika Pelaporan Preservasi Kampus Universitas Siliwangi.
+                </span>
+              </label>
+            </div>
+
+            <div class="pt-2">
+              <button class="w-full bg-primary-container hover:bg-primary-hover text-white font-display font-bold text-sm py-3.5 rounded-full shadow-glow-orange flex items-center justify-center gap-2 transition-all transform active:scale-[0.99]" type="submit">
+                <span class="material-symbols-outlined text-base">how_to_reg</span>
+                <span>Daftarkan Akun Mahasiswa</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Quick stats -->
+      <div class="w-full mt-4 glass-dock rounded-2xl px-5 py-3 shadow-dock-pill flex flex-wrap items-center justify-around gap-3 text-center">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary-container text-lg">health_and_safety</span>
+          <div class="text-left leading-tight">
+            <p class="font-display font-bold text-xs text-gray-900">96.5%</p>
+            <p class="text-[10px] text-gray-500 font-medium">Kesiapan Sarana (Optimal)</p>
+          </div>
+        </div>
+        <div class="h-5 w-px bg-gray-300 hidden sm:block"></div>
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-tertiary text-lg">bolt</span>
+          <div class="text-left leading-tight">
+            <p class="font-display font-bold text-xs text-gray-900">1.8 Jam</p>
+            <p class="text-[10px] text-gray-500 font-medium">Rata-rata Respon Keluhan</p>
+          </div>
+        </div>
+        <div class="h-5 w-px bg-gray-300 hidden sm:block"></div>
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-emerald-600 text-lg">lock</span>
+          <div class="text-left leading-tight">
+            <p class="font-display font-bold text-xs text-gray-900">256-Bit</p>
+            <p class="text-[10px] text-gray-500 font-medium">Enkripsi SSO Merdeka</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="w-full max-w-7xl mx-auto py-2 text-center text-xs text-white/80 font-medium z-10 flex flex-wrap items-center justify-center gap-4">
+      <span>© 2026 CampusCare • Biro Sarana &amp; Prasarana Universitas Siliwangi</span>
+      <span>•</span>
+      <span>UPT TIK UNSIL Integrated SSO Hub v2.4</span>
+    </footer>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- VIEW 2 — DASHBOARD MAHASISWA                                          -->
+  <!-- ===================================================================== -->
+  <section class="app-view p-2 sm:p-4 md:p-6" id="view-student" aria-label="Dashboard Mahasiswa">
+
+    <main class="w-full max-w-[1440px] mx-auto bg-[#EEF1F5] rounded-[36px] shadow-2xl p-4 sm:p-5 md:p-7 relative border border-white/60 overflow-hidden flex flex-col justify-between">
+
+      <!-- Top navigation -->
+      <header class="flex flex-wrap items-center justify-between gap-3 relative z-30 pb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-brand-orange flex items-center justify-center shadow-lg shadow-orange-500/25">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+              <polyline points="2 17 12 22 22 17"></polyline>
+              <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-xl font-extrabold tracking-tight text-[#111417] leading-tight">CampusCare</span>
+            <span class="text-[10px] uppercase font-semibold tracking-wider text-gray-500">Student Facility Portal</span>
+          </div>
+        </div>
+
+        <nav class="hidden lg:flex items-center bg-white/70 p-1.5 rounded-full border border-white/80 shadow-sm backdrop-blur-md" aria-label="Navigasi mahasiswa">
+          <button type="button" class="seg-tab is-active" data-student-tab="dashboard">Dashboard</button>
+          <button type="button" class="seg-tab" data-student-tab="complaints">Pengaduan Fasilitas</button>
+          <button type="button" class="seg-tab" data-student-tab="timeline">Timeline Status</button>
+          <button type="button" class="seg-tab" data-student-tab="campus">Area Kampus</button>
+        </nav>
+
+        <div class="flex items-center gap-2 sm:gap-3">
+          <button type="button" class="hidden sm:flex items-center gap-2 bg-brand-orange text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-lg shadow-orange-500/30 hover:bg-orange-600 transition-transform active:scale-95" data-action="open-complaint">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+              <line x1="12" x2="12" y1="5" y2="19"></line>
+              <line x1="5" x2="19" y1="12" y2="12"></line>
+            </svg>
+            Lapor Masalah
+          </button>
+          <button type="button" class="w-10 h-10 rounded-full bg-white/80 hover:bg-white text-gray-700 flex items-center justify-center border border-white shadow-sm transition" title="Pusat Arsip Fasilitas" data-action="notify" data-note="Pusat arsip fasilitas dibuka.">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+              <rect height="14" rx="2" ry="2" width="20" x="2" y="7"></rect>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+            </svg>
+          </button>
+          <button type="button" class="w-10 h-10 rounded-full bg-white/80 hover:bg-white text-gray-700 flex items-center justify-center border border-white shadow-sm relative transition" title="Notifikasi" data-action="notify" data-note="3 notifikasi baru: 1 tiket selesai, 2 pembaruan status.">
+            <span class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-brand-orange ring-2 ring-white"></span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+          </button>
+
+          <div class="relative">
+            <button type="button" class="w-10 h-10 rounded-full ring-2 ring-white bg-gradient-to-tr from-amber-400 to-indigo-600 p-[2px] shadow-sm flex items-center justify-center overflow-hidden" data-action="toggle-menu" data-menu="student-user-menu" aria-haspopup="true" aria-expanded="false" aria-label="Menu akun mahasiswa">
+              <span class="w-full h-full rounded-full bg-slate-800 flex items-center justify-center text-white text-xs font-bold">AR</span>
+            </button>
+            <div class="cc-menu" id="student-user-menu" hidden>
+              <div class="cc-menu__head">
+                <p class="cc-menu__name">Ahmad Rizki</p>
+                <p class="cc-menu__role">Mahasiswa • Teknik Informatika</p>
+              </div>
+              <button type="button" class="cc-menu__item" data-action="switch-role" data-role="admin">
+                <span class="material-symbols-outlined text-base">admin_panel_settings</span>
+                Buka Dashboard Admin
+              </button>
+              <button type="button" class="cc-menu__item" data-action="open-sso-help">
+                <span class="material-symbols-outlined text-base">help</span>
+                Pusat Bantuan SSO
+              </button>
+              <button type="button" class="cc-menu__item cc-menu__item--danger" data-action="logout">
+                <span class="material-symbols-outlined text-base">logout</span>
+                Keluar Portal
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Body -->
+      <section class="grid grid-cols-12 gap-5 relative z-20 my-2">
+
+        <!-- Floating dock -->
+        <aside class="student-dock col-span-12 lg:col-span-1 flex lg:flex-col items-center justify-between gap-3 lg:gap-0 bg-white/75 backdrop-blur-md rounded-full py-3 px-3 lg:py-4 border border-white/80 shadow-sm self-start lg:max-h-[580px]" aria-label="Dock navigasi cepat">
+          <div class="flex lg:flex-col items-center gap-3 lg:gap-4 w-full justify-center lg:justify-start">
+            <button type="button" class="dock-btn is-active" data-student-tab="dashboard" title="Dashboard Fasilitas">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+              </svg>
+            </button>
+            <button type="button" class="dock-btn" data-student-tab="complaints" title="Pengaduan Fasilitas">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" x2="8" y1="13" y2="13"></line>
+                <line x1="16" x2="8" y1="17" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+            </button>
+            <button type="button" class="dock-btn" data-student-tab="campus" title="Peta Kampus &amp; Sensor">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+              </svg>
+            </button>
+            <button type="button" class="dock-btn" data-student-tab="timeline" title="Timeline Status">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            </button>
+            <button type="button" class="dock-btn" title="Hak Akses" data-action="show-lock-info">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <rect height="11" rx="2" ry="2" width="18" x="3" y="11"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </button>
+          </div>
+          <div class="flex lg:flex-col items-center gap-2 lg:gap-3 lg:pt-5 lg:border-t border-gray-200/60">
+            <button type="button" class="dock-btn dock-btn--sm" title="Pusat Bantuan" data-action="open-sso-help">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                <line x1="12" x2="12.01" y1="17" y2="17"></line>
+              </svg>
+            </button>
+            <button type="button" class="dock-btn dock-btn--sm hover:text-red-500" title="Keluar" data-action="logout">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" x2="9" y1="12" y2="12"></line>
+              </svg>
+            </button>
+          </div>
+        </aside>
+
+        <div class="col-span-12 lg:col-span-11">
+
+          <!-- PANEL: DASHBOARD -->
+          <div class="cc-panel is-active" id="panel-student-dashboard">
+            <div class="grid grid-cols-12 gap-5">
+
+              <!-- Hero + histogram -->
+              <section class="col-span-12 xl:col-span-8 flex flex-col justify-between">
+                <div class="max-w-lg pt-1">
+                  <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#111417] tracking-tight leading-none">
+                    Smart Facility<br>CampusCare
+                  </h1>
+                  <p class="text-xs md:text-sm text-gray-500 mt-2.5 font-medium leading-relaxed">
+                    Sistem pengaduan dan pemantauan infrastruktur kampus otomatis dengan IoT &amp; AI terpadu untuk efisiensi ruang kuliah, laboratorium, dan fasilitas publik.
+                  </p>
+                </div>
+
+                <!-- Campus visualization -->
+                <div class="relative w-full h-[320px] md:h-[360px] my-3 rounded-3xl overflow-hidden flex items-center justify-center">
+                  <div class="absolute inset-0 z-0 overflow-hidden">
+                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnzWXJyAd3oshKlzpoP-AhMYSTJYMWjHFiiP-wcZf0NTVxletrGMmH4ewoREl7kBkRPid9p9rdJ3GMduzphzgr6A6rbypOZbO8TniiK6P5oomopbcJQ18Q4ulG-KhsoAMOhehifjPTLOhuPF8HRhJYwFH5Y3wDZBQjSZaLjbKX79Q6v4Xspyo4gvCjdSe7jaj4-umI8HXMWnZah3Sf8RGsbA3pLku_KXaDP6qkBxWSJDCURMtglboy" alt="Gedung Rektorat Universitas Siliwangi" class="w-full h-full object-cover object-center" loading="lazy">
+                    <div class="absolute inset-0 bg-slate-900/30 backdrop-blur-[1px]"></div>
+                  </div>
+                  <div class="absolute inset-x-4 bottom-4 z-10 frosted-badge rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 text-white">
+                    <div>
+                      <p class="text-[10px] uppercase tracking-[0.16em] text-white/70 font-semibold">Zona Terpantau Real-Time</p>
+                      <p class="font-display text-lg font-bold leading-tight">Gedung Rektorat UNSIL</p>
+                      <p class="text-[11px] text-white/70">142 sensor IoT • 6 gedung • pembaruan tiap 30 detik</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                      <div class="text-right">
+                        <p class="font-display text-2xl font-bold leading-none">99.0%</p>
+                        <p class="text-[10px] text-white/70">Kesiapan Sarana</p>
+                      </div>
+                      <span class="w-10 h-10 rounded-full bg-brand-orange text-white flex items-center justify-center shadow-lg shadow-orange-500/40">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+                          <line x1="7" x2="17" y1="17" y2="7"></line>
+                          <polyline points="7 7 17 7 17 17"></polyline>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Histogram -->
+                <div class="glass-panel rounded-3xl p-5 shadow-sm border border-white/90 relative">
+                  <div class="flex flex-wrap items-start justify-between gap-3 mb-2">
+                    <div>
+                      <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Frekuensi Kerusakan Ruang (Zona A - F)</p>
+                      <div class="flex items-baseline gap-2 mt-0.5">
+                        <span class="text-2xl font-black text-[#14171A]">96.5%</span>
+                        <span class="text-xs font-bold text-black flex items-center gap-0.5">
+                          +2.4%
+                          <svg class="w-3 h-3 text-black inline" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l-8 8h16z"></path></svg>
+                        </span>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                      <div class="flex items-center gap-2">
+                        <span class="w-8 h-2.5 rounded-full bg-brand-orange"></span>
+                        <span class="text-xs font-bold text-gray-700">Zona Kritis (Z)</span>
+                      </div>
+                      <button type="button" class="w-7 h-7 rounded-full bg-white hover:bg-gray-100 border border-gray-200 flex items-center justify-center transition" title="Perbesar Grafik" data-action="demo" data-note="Mode grafik diperbesar disiapkan pada versi backend.">
+                        <svg class="w-3.5 h-3.5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+                          <line x1="7" x2="17" y1="17" y2="7"></line>
+                          <polyline points="7 7 17 7 17 17"></polyline>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="h-28 w-full flex items-end justify-between gap-1 pt-4 pb-2 px-1 relative" id="histogram-container">
+                    <div class="w-1.5 bg-gray-300 rounded-t h-[35%] opacity-60"></div>
+                    <div class="w-1.5 bg-gray-300 rounded-t h-[50%] opacity-60"></div>
+                    <div class="w-1.5 bg-gray-300 rounded-t h-[40%] opacity-60"></div>
+                    <div class="w-1.5 bg-gray-300 rounded-t h-[70%] opacity-70"></div>
+                    <div class="w-1.5 bg-gray-300 rounded-t h-[60%] opacity-70"></div>
+                    <div class="w-1.5 bg-gray-300 rounded-t h-[75%] opacity-70"></div>
+                    <div class="w-1.5 bg-gray-300 rounded-t h-[80%] opacity-80"></div>
+                    <div class="w-1.5 bg-gray-300 rounded-t h-[65%] opacity-70"></div>
+                    <div class="w-1.5 bg-brand-orange rounded-t h-[95%] transition hover:scale-y-110"></div>
+                    <div class="w-1.5 bg-brand-orange rounded-t h-[85%] transition hover:scale-y-110"></div>
+                    <div class="w-1.5 bg-brand-orange rounded-t h-[90%] transition hover:scale-y-110"></div>
+                    <div class="w-1.5 bg-brand-orange rounded-t h-[88%] transition hover:scale-y-110"></div>
+                    <div class="w-1.5 bg-brand-orange rounded-t h-[72%] transition hover:scale-y-110"></div>
+                    <div class="w-1.5 bg-brand-orange rounded-t h-[78%] transition hover:scale-y-110"></div>
+                    <div class="w-1.5 bg-brand-orange rounded-t h-[64%] transition hover:scale-y-110"></div>
+                    <div class="w-1.5 bg-brand-orange rounded-t h-[70%] transition hover:scale-y-110"></div>
+                    <div class="w-1.5 bg-brand-orange rounded-t h-[55%] transition hover:scale-y-110"></div>
+                    <div class="w-1.5 bg-brand-orange rounded-t h-[68%] transition hover:scale-y-110"></div>
+                    <div class="w-1.5 bg-brand-orange rounded-t h-[60%] transition hover:scale-y-110"></div>
+                    <div class="w-1.5 bg-brand-orange rounded-t h-[52%] transition hover:scale-y-110"></div>
+                    <div class="w-1.5 bg-brand-orange rounded-t h-[45%] transition hover:scale-y-110"></div>
+                    <div class="w-1.5 bg-gray-300 rounded-t h-[65%] opacity-60"></div>
+                    <div class="w-1.5 bg-gray-300 rounded-t h-[55%] opacity-60"></div>
+                    <div class="w-1.5 bg-gray-300 rounded-t h-[48%] opacity-60"></div>
+                    <div class="w-1.5 bg-gray-300 rounded-t h-[72%] opacity-70"></div>
+                    <div class="w-1.5 bg-gray-300 rounded-t h-[68%] opacity-70"></div>
+                    <div class="w-1.5 bg-gray-300 rounded-t h-[58%] opacity-60"></div>
+                    <div class="w-1.5 bg-gray-300 rounded-t h-[42%] opacity-60"></div>
+                    <div class="w-1.5 bg-gray-300 rounded-t h-[35%] opacity-50"></div>
+                    <div class="w-1.5 bg-gray-300 rounded-t h-[25%] opacity-40"></div>
+                  </div>
+
+                  <div class="flex justify-between text-[10px] text-gray-400 font-semibold px-2 py-1">
+                    <span>0</span><span>10</span><span>20</span><span>40</span>
+                    <span class="text-brand-orange font-bold">60</span>
+                    <span class="text-brand-orange font-bold">80</span>
+                    <span>100</span><span>120</span><span>140</span>
+                  </div>
+
+                  <div class="relative w-full h-7 bg-gray-200/70 rounded-full p-1 mt-1 flex items-center">
+                    <div class="absolute left-[28%] w-[38%] h-5 bg-brand-orange rounded-full slider-orange-glow flex items-center justify-between px-2 cursor-pointer transition">
+                      <div class="w-1 h-3 bg-white/70 rounded"></div>
+                      <span class="text-[9px] text-white font-extrabold tracking-wider uppercase">Fasilitas Prioritas</span>
+                      <div class="w-1 h-3 bg-white/70 rounded"></div>
+                    </div>
+                  </div>
+
+                  <div class="flex justify-end items-center gap-2 mt-2">
+                    <span class="w-6 h-1.5 rounded-full bg-brand-orange"></span>
+                    <span class="text-[11px] font-bold text-gray-500">Indeks Keparahan Kerusakan</span>
+                  </div>
+                </div>
+              </section>
+
+              <!-- KPI column -->
+              <section class="col-span-12 xl:col-span-4 flex flex-col gap-3.5">
+                <div class="flex items-center justify-end gap-2 px-1">
+                  <div class="relative">
+                    <select class="appearance-none bg-white/80 hover:bg-white text-xs font-semibold text-gray-700 py-1.5 pl-3 pr-7 rounded-full border border-gray-200 focus:outline-none focus:ring-1 focus:ring-black cursor-pointer shadow-sm" aria-label="Filter fakultas">
+                      <option>Semua Fakultas</option>
+                      <option>Fakultas Teknik</option>
+                      <option>Fakultas Kedokteran</option>
+                      <option>Gedung Perpustakaan</option>
+                    </select>
+                    <div class="pointer-events-none absolute right-2.5 top-2.5 text-gray-500">
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                  </div>
+                  <button type="button" class="w-8 h-8 rounded-full bg-white/80 hover:bg-white text-gray-600 flex items-center justify-center border border-gray-200 shadow-sm transition" title="Pengaturan" data-action="demo" data-note="Pengaturan tampilan telemetri dibuka.">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle><circle cx="5" cy="12" r="1.6"></circle></svg>
+                  </button>
+                </div>
+
+                <!-- KPI 1 -->
+                <div class="glass-panel p-4 rounded-3xl relative overflow-hidden transition-all hover:shadow-md border border-white">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-1.5 text-gray-600">
+                      <span class="material-symbols-outlined text-base">settings_suggest</span>
+                      <span class="text-xs font-bold text-gray-800">Kesiapan Fasilitas</span>
+                    </div>
+                    <button type="button" class="w-6 h-6 rounded-full bg-white/70 hover:bg-white text-gray-500 flex items-center justify-center transition" data-action="demo" data-note="Detail kesiapan fasilitas.">
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" x2="17" y1="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+                    </button>
+                  </div>
+                  <div class="flex items-center justify-between mt-2">
+                    <div>
+                      <span class="text-[11px] font-bold text-black flex items-center gap-0.5">
+                        +2.4%
+                        <svg class="w-2.5 h-2.5 text-black" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l-8 8h16z"></path></svg>
+                      </span>
+                      <p class="text-3xl font-black text-[#14171A] tracking-tight">96.5%</p>
+                    </div>
+                    <div class="w-28 h-14 relative overflow-hidden flex items-end justify-center">
+                      <svg class="w-28 h-28 -rotate-90 transform" viewBox="0 0 100 100" aria-hidden="true">
+                        <circle cx="50" cy="50" fill="none" r="38" stroke="#E2E8F0" stroke-dasharray="119 119" stroke-linecap="round" stroke-width="7"></circle>
+                        <circle cx="50" cy="50" fill="none" r="38" stroke="#3B82F6" stroke-dasharray="115 119" stroke-linecap="round" stroke-width="7"></circle>
+                        <circle cx="50" cy="50" fill="none" r="38" stroke="#FF661F" stroke-dasharray="18 119" stroke-dashoffset="-90" stroke-linecap="round" stroke-width="9"></circle>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- KPI 2 -->
+                <div class="glass-panel p-4 rounded-3xl relative overflow-hidden transition-all hover:shadow-md border border-white">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-1.5 text-gray-600">
+                      <span class="material-symbols-outlined text-base">speed</span>
+                      <span class="text-xs font-bold text-gray-800">Tingkat Penanganan Cepat</span>
+                    </div>
+                    <button type="button" class="w-6 h-6 rounded-full bg-white/70 hover:bg-white text-gray-500 flex items-center justify-center transition" data-action="demo" data-note="Detail tingkat penanganan.">
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" x2="17" y1="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+                    </button>
+                  </div>
+                  <div class="flex items-center justify-between mt-2">
+                    <div>
+                      <span class="text-[11px] font-bold text-rose-500 flex items-center gap-0.5">
+                        -1.9%
+                        <svg class="w-2.5 h-2.5 text-rose-500 rotate-180" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l-8 8h16z"></path></svg>
+                      </span>
+                      <p class="text-3xl font-black text-[#14171A] tracking-tight">63%</p>
+                    </div>
+                    <div class="w-28 h-14 relative overflow-hidden flex items-end justify-center">
+                      <svg class="w-28 h-28 -rotate-90 transform" viewBox="0 0 100 100" aria-hidden="true">
+                        <circle cx="50" cy="50" fill="none" r="38" stroke="#E2E8F0" stroke-dasharray="119 119" stroke-linecap="round" stroke-width="7"></circle>
+                        <circle cx="50" cy="50" fill="none" r="38" stroke="#F43F5E" stroke-dasharray="75 119" stroke-linecap="round" stroke-width="7"></circle>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- KPI 3 -->
+                <div class="glass-panel p-4 rounded-3xl relative overflow-hidden transition-all hover:shadow-md border border-white">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-1.5 text-gray-600">
+                      <span class="material-symbols-outlined text-base">pending_actions</span>
+                      <span class="text-xs font-bold text-gray-800">Tiket On-Progress</span>
+                    </div>
+                    <button type="button" class="w-6 h-6 rounded-full bg-white/70 hover:bg-white text-gray-500 flex items-center justify-center transition" data-action="demo" data-note="Detail tiket on-progress.">
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" x2="17" y1="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+                    </button>
+                  </div>
+                  <div class="flex items-center justify-between mt-2">
+                    <div>
+                      <span class="text-[11px] font-bold text-emerald-600 flex items-center gap-0.5">
+                        +7.5%
+                        <svg class="w-2.5 h-2.5 text-emerald-600" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l-8 8h16z"></path></svg>
+                      </span>
+                      <p class="text-3xl font-black text-[#14171A] tracking-tight">27%</p>
+                    </div>
+                    <div class="w-28 h-14 relative overflow-hidden flex items-end justify-center">
+                      <svg class="w-28 h-28 -rotate-90 transform" viewBox="0 0 100 100" aria-hidden="true">
+                        <circle cx="50" cy="50" fill="none" r="38" stroke="#E2E8F0" stroke-dasharray="119 119" stroke-linecap="round" stroke-width="7"></circle>
+                        <circle cx="50" cy="50" fill="none" r="38" stroke="#10B981" stroke-dasharray="32 119" stroke-linecap="round" stroke-width="7"></circle>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Rekap kategori -->
+                <div class="glass-panel p-4 rounded-3xl border border-white">
+                  <div class="flex items-center justify-between pb-2 border-b border-gray-200/60">
+                    <div>
+                      <h3 class="text-xs font-bold text-gray-900">Rekapitulasi Kategori</h3>
+                      <p class="text-[10px] text-gray-400">Diperbarui: 04 Nov 2026 • 10:46 WIB</p>
+                    </div>
+                    <button type="button" class="text-gray-400 hover:text-black" data-action="demo" data-note="Rekap lengkap dibuka." aria-label="Buka rekap">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                  </div>
+                  <div class="grid grid-cols-5 gap-1 text-center pt-3 pb-1">
+                    <div><span class="text-[9px] font-semibold text-gray-400 block">AC/Listrik</span><span class="text-xs font-bold text-gray-800">14</span></div>
+                    <div><span class="text-[9px] font-semibold text-gray-400 block">Jaringan</span><span class="text-xs font-bold text-gray-800">9</span></div>
+                    <div><span class="text-[9px] font-semibold text-gray-400 block">Proyektor</span><span class="text-xs font-bold text-gray-800">8</span></div>
+                    <div><span class="text-[9px] font-semibold text-gray-400 block">Sanitasi</span><span class="text-xs font-bold text-gray-800">6</span></div>
+                    <div><span class="text-[9px] font-semibold text-gray-400 block">Lift/Pintu</span><span class="text-xs font-bold text-brand-orange">3</span></div>
+                  </div>
+                  <div class="grid grid-cols-5 gap-1 text-center pt-1 border-t border-gray-100">
+                    <div><span class="text-[10px] font-semibold text-gray-500">5 aktif</span></div>
+                    <div><span class="text-[10px] font-semibold text-gray-500">3 aktif</span></div>
+                    <div><span class="text-[10px] font-semibold text-gray-500">4 aktif</span></div>
+                    <div><span class="text-[10px] font-semibold text-gray-500">2 aktif</span></div>
+                    <div><span class="text-[10px] font-semibold text-gray-500">1 aktif</span></div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <!-- PANEL: PENGADUAN -->
+          <div class="cc-panel" id="panel-student-complaints">
+            <div class="glass-panel rounded-3xl p-5 sm:p-6 border border-white/90">
+              <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div>
+                  <h2 class="font-display text-xl sm:text-2xl font-extrabold text-[#111417] tracking-tight">Pengaduan Fasilitas Saya</h2>
+                  <p class="text-xs text-gray-500 mt-1">Pantau seluruh laporan, status verifikasi, dan progres penanganan teknisi.</p>
+                </div>
+                <button type="button" class="inline-flex items-center justify-center gap-2 bg-brand-orange text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-lg shadow-orange-500/30 hover:bg-orange-600 transition" data-action="open-complaint">
+                  <span class="material-symbols-outlined text-base">add</span>
+                  Buat Pengaduan Baru
+                </button>
+              </div>
+
+              <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3 mt-5">
+                <div class="relative flex-1">
+                  <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none">search</span>
+                  <input type="search" id="student-search" class="w-full h-11 pl-11 pr-4 rounded-full bg-white/85 border border-white text-xs font-medium text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-orange/40" placeholder="Cari kode tiket, fasilitas, atau lokasi...">
+                </div>
+                <div class="flex items-center gap-1 p-1 bg-white/70 rounded-full overflow-x-auto no-scrollbar border border-white">
+                  <button type="button" class="filter-chip is-active" data-student-filter="all">Semua <span data-student-count="all">0</span></button>
+                  <button type="button" class="filter-chip" data-student-filter="review">Verifikasi <span data-student-count="review">0</span></button>
+                  <button type="button" class="filter-chip" data-student-filter="progress">Diproses <span data-student-count="progress">0</span></button>
+                  <button type="button" class="filter-chip" data-student-filter="done">Selesai <span data-student-count="done">0</span></button>
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-3.5 mt-5" id="student-report-list"></div>
+            </div>
+          </div>
+
+          <!-- PANEL: TIMELINE -->
+          <div class="cc-panel" id="panel-student-timeline">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+              <div class="xl:col-span-2 glass-panel rounded-3xl p-5 sm:p-6 border border-white/90">
+                <div class="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-gray-200/70">
+                  <div>
+                    <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400">Pelacakan Tiket</p>
+                    <h2 class="font-display text-lg sm:text-xl font-extrabold text-[#111417] mt-0.5" id="timeline-ticket-id">#CC-2024-0912</h2>
+                    <p class="text-xs text-gray-500 mt-0.5" id="timeline-ticket-title">AC Bocor &amp; Air Menetes di Lab Komputer 3 Gedung F</p>
+                  </div>
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-fixed text-[#591b00] text-xs font-bold">
+                    <span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span>
+                    Menunggu Disposisi
+                  </span>
+                </div>
+
+                <div class="cc-timeline mt-5">
+                  <div class="cc-timeline__item">
+                    <span class="cc-timeline__dot is-done"><span class="material-symbols-outlined text-[15px]">check</span></span>
+                    <div>
+                      <p class="cc-timeline__title">Laporan diterima sistem</p>
+                      <p class="cc-timeline__meta">Kategori Kelistrikan &amp; AC • Hari ini, 08:42 WIB</p>
+                    </div>
+                  </div>
+                  <div class="cc-timeline__item">
+                    <span class="cc-timeline__dot is-done"><span class="material-symbols-outlined text-[15px]">verified</span></span>
+                    <div>
+                      <p class="cc-timeline__title">Verifikasi otomatis AI &amp; validasi lokasi</p>
+                      <p class="cc-timeline__meta">Foto bukti terverifikasi • Hari ini, 08:44 WIB</p>
+                    </div>
+                  </div>
+                  <div class="cc-timeline__item">
+                    <span class="cc-timeline__dot is-current"><span class="material-symbols-outlined text-[15px]">engineering</span></span>
+                    <div>
+                      <p class="cc-timeline__title">Menunggu disposisi admin Sarpras</p>
+                      <p class="cc-timeline__meta">Prioritas tinggi • SLA penugasan maksimal 20 menit</p>
+                    </div>
+                  </div>
+                  <div class="cc-timeline__item">
+                    <span class="cc-timeline__dot"><span class="material-symbols-outlined text-[15px]">handyman</span></span>
+                    <div>
+                      <p class="cc-timeline__title">Pengerjaan teknisi lapangan</p>
+                      <p class="cc-timeline__meta">Belum dimulai • menunggu penugasan tim kelistrikan</p>
+                    </div>
+                  </div>
+                  <div class="cc-timeline__item">
+                    <span class="cc-timeline__dot"><span class="material-symbols-outlined text-[15px]">task_alt</span></span>
+                    <div>
+                      <p class="cc-timeline__title">Validasi SLA &amp; penutupan tiket</p>
+                      <p class="cc-timeline__meta">Berita acara perbaikan akan diunggah oleh teknisi</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-4">
+                <div class="glass-panel rounded-3xl p-5 border border-white/90">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-9 h-9 rounded-full bg-orange-100 text-primary-container flex items-center justify-center">
+                      <span class="material-symbols-outlined text-lg">timer</span>
+                    </span>
+                    <div>
+                      <p class="font-display text-sm font-bold text-gray-900">Target SLA</p>
+                      <p class="text-[11px] text-gray-500">Respon &amp; perbaikan</p>
+                    </div>
+                  </div>
+                  <div class="mt-4 flex items-end justify-between">
+                    <span class="font-display text-3xl font-black text-[#14171A]">1.8<span class="text-sm font-semibold text-gray-500 ml-1">jam</span></span>
+                    <span class="text-[11px] font-bold text-emerald-600">Di bawah target 2 jam</span>
+                  </div>
+                  <div class="w-full h-2 rounded-full bg-gray-200 overflow-hidden mt-3">
+                    <div class="h-full w-[78%] rounded-full bg-brand-orange"></div>
+                  </div>
+                  <p class="text-[11px] text-gray-500 mt-2">Rata-rata penyelesaian 142 tiket bulan ini.</p>
+                </div>
+
+                <div class="glass-panel rounded-3xl p-5 border border-white/90">
+                  <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400">Lokasi &amp; Pelapor</p>
+                  <div class="mt-3 space-y-2.5 text-xs text-gray-600">
+                    <p class="flex items-start gap-2"><span class="material-symbols-outlined text-base text-brand-orange">location_on</span><span>Dekanat Fakultas Teknik Lt. 2<br>Lab Komputer 3 • Gedung F</span></p>
+                    <p class="flex items-start gap-2"><span class="material-symbols-outlined text-base text-gray-400">person</span><span>Ahmad Fauzi<br>Mahasiswa • 217006045</span></p>
+                    <p class="flex items-start gap-2"><span class="material-symbols-outlined text-base text-gray-400">photo_camera</span><span>2 foto bukti terlampir</span></p>
+                  </div>
+                </div>
+
+                <button type="button" class="w-full py-3 rounded-full bg-inverse-surface text-white text-xs font-bold hover:bg-black transition" data-action="open-sso-help">
+                  Butuh bantuan tiket?
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANEL: AREA KAMPUS -->
+          <div class="cc-panel" id="panel-student-campus">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-4">
+              <div>
+                <h2 class="font-display text-xl sm:text-2xl font-extrabold text-[#111417] tracking-tight">Area &amp; Zona Kampus</h2>
+                <p class="text-xs text-gray-500 mt-1">Kesiapan sarana tiap gedung berdasarkan telemetri sensor IoT dan laporan aktif.</p>
+              </div>
+              <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold w-fit">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                142 Node Sensor Online
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3.5">
+              <article class="glass-panel rounded-3xl p-5 border border-white/90 flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                  <span class="w-10 h-10 rounded-full bg-primary-fixed text-primary flex items-center justify-center"><span class="material-symbols-outlined">account_balance</span></span>
+                  <span class="text-[10px] font-bold px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">OPTIMAL</span>
+                </div>
+                <div>
+                  <h3 class="font-display text-sm font-bold text-gray-900">Gedung Rektorat</h3>
+                  <p class="text-[11px] text-gray-500">Administrasi pusat • Lt. 1-4</p>
+                </div>
+                <div class="flex items-end justify-between"><span class="font-display text-2xl font-black">99.0%</span><span class="text-[11px] font-bold text-gray-400">2 tiket aktif</span></div>
+                <div class="w-full h-2 rounded-full bg-gray-200 overflow-hidden"><div class="h-full w-[99%] rounded-full bg-emerald-500"></div></div>
+              </article>
+
+              <article class="glass-panel rounded-3xl p-5 border border-white/90 flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                  <span class="w-10 h-10 rounded-full bg-tertiary-fixed text-tertiary flex items-center justify-center"><span class="material-symbols-outlined">engineering</span></span>
+                  <span class="text-[10px] font-bold px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">OPTIMAL</span>
+                </div>
+                <div>
+                  <h3 class="font-display text-sm font-bold text-gray-900">Fakultas Teknik</h3>
+                  <p class="text-[11px] text-gray-500">Lab terpadu • Gedung F</p>
+                </div>
+                <div class="flex items-end justify-between"><span class="font-display text-2xl font-black">98.2%</span><span class="text-[11px] font-bold text-gray-400">5 tiket aktif</span></div>
+                <div class="w-full h-2 rounded-full bg-gray-200 overflow-hidden"><div class="h-full w-[98.2%] rounded-full bg-inverse-surface"></div></div>
+              </article>
+
+              <article class="glass-panel rounded-3xl p-5 border border-white/90 flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                  <span class="w-10 h-10 rounded-full bg-orange-100 text-primary-container flex items-center justify-center"><span class="material-symbols-outlined">meeting_room</span></span>
+                  <span class="text-[10px] font-bold px-2 py-1 rounded-full bg-orange-100 text-primary">PERHATIAN</span>
+                </div>
+                <div>
+                  <h3 class="font-display text-sm font-bold text-gray-900">Gedung Kuliah Bersama</h3>
+                  <p class="text-[11px] text-gray-500">Ruang 201-210 • Proyektor</p>
+                </div>
+                <div class="flex items-end justify-between"><span class="font-display text-2xl font-black">91.4%</span><span class="text-[11px] font-bold text-primary">7 tiket aktif</span></div>
+                <div class="w-full h-2 rounded-full bg-gray-200 overflow-hidden"><div class="h-full w-[91.4%] rounded-full bg-brand-orange"></div></div>
+              </article>
+
+              <article class="glass-panel rounded-3xl p-5 border border-white/90 flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                  <span class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center"><span class="material-symbols-outlined">local_library</span></span>
+                  <span class="text-[10px] font-bold px-2 py-1 rounded-full bg-sky-100 text-sky-700">STABIL</span>
+                </div>
+                <div>
+                  <h3 class="font-display text-sm font-bold text-gray-900">Perpustakaan Pusat</h3>
+                  <p class="text-[11px] text-gray-500">Reading room • Wi-Fi zone</p>
+                </div>
+                <div class="flex items-end justify-between"><span class="font-display text-2xl font-black">94.6%</span><span class="text-[11px] font-bold text-gray-400">3 tiket aktif</span></div>
+                <div class="w-full h-2 rounded-full bg-gray-200 overflow-hidden"><div class="h-full w-[94.6%] rounded-full bg-sky-500"></div></div>
+              </article>
+            </div>
+
+            <div class="glass-panel rounded-3xl p-5 border border-white/90 mt-4 flex flex-wrap items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <span class="w-10 h-10 rounded-full bg-inverse-surface text-white flex items-center justify-center"><span class="material-symbols-outlined">sensors</span></span>
+                <div>
+                  <p class="font-display text-sm font-bold text-gray-900">Telemetri Lingkungan Kampus</p>
+                  <p class="text-[11px] text-gray-500">Suhu, kelembapan, kualitas udara, dan konsumsi listrik terpantau otomatis.</p>
+                </div>
+              </div>
+              <div class="flex flex-wrap items-center gap-2 text-[11px] font-bold">
+                <span class="px-3 py-1.5 rounded-full bg-white/80 border border-white text-gray-700">26.4°C Rata-rata</span>
+                <span class="px-3 py-1.5 rounded-full bg-white/80 border border-white text-gray-700">58% Kelembapan</span>
+                <span class="px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700">Kualitas Udara Baik</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Status bar -->
+      <footer class="pt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="font-medium">Sistem Sensor IoT Kampus: 142 Node Aktif (Koneksi Optimal)</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-4 text-[11px] font-semibold text-gray-400">
+          <span>Server Rektorat Cloud: Latensi 18ms</span>
+          <span>•</span>
+          <span>Protokol Keamanan: Terverifikasi SSO Kampus</span>
+        </div>
+      </footer>
+    </main>
+
+    <!-- MODAL: BUAT PENGADUAN -->
+    <div class="cc-modal" id="modal-complaint" role="dialog" aria-modal="true" aria-labelledby="complaint-modal-title" hidden>
+      <div class="cc-modal__card">
+        <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-lg bg-orange-100 text-brand-orange flex items-center justify-center">
+              <span class="material-symbols-outlined text-xl">add</span>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-gray-900" id="complaint-modal-title">Buat Laporan Fasilitas</h3>
+              <p class="text-xs text-gray-400">Ajukan pengaduan perbaikan sarana perkuliahan</p>
+            </div>
+          </div>
+          <button type="button" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center transition" data-action="close-modal" aria-label="Tutup">
+            <span class="material-symbols-outlined text-base">close</span>
+          </button>
+        </div>
+
+        <form class="mt-4 space-y-3.5" id="complaint-form">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1" for="complaint-title">Judul Singkat Laporan</label>
+            <input class="w-full text-xs font-semibold rounded-xl border-gray-200 focus:border-brand-orange focus:ring-brand-orange bg-gray-50 p-2.5" id="complaint-title" placeholder="Cth: AC tidak dingin di Lab AI" required type="text" maxlength="90">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1" for="complaint-category">Kategori Fasilitas</label>
+            <select class="w-full text-xs font-semibold rounded-xl border-gray-200 focus:border-brand-orange focus:ring-brand-orange bg-gray-50 p-2.5" id="complaint-category" required>
+              <option value="">Pilih kategori kerusakan...</option>
+              <option value="Kelistrikan &amp; AC">Air Conditioner (AC) &amp; Kelistrikan</option>
+              <option value="Proyektor &amp; Audio">Proyektor / LCD &amp; Sound System</option>
+              <option value="Jaringan Wi-Fi">Koneksi Internet &amp; Router Wi-Fi Kampus</option>
+              <option value="Sanitasi / Toilet">Sanitasi, Kran Air &amp; Toilet</option>
+              <option value="Meja / Kursi Kuliah">Meja, Kursi &amp; Fasilitas Ruang Kuliah</option>
+              <option value="Lift / Akses Gedung">Lift / Pintu Otomatis / Fasilitas Disabilitas</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1" for="complaint-building">Gedung Kampus</label>
+              <select class="w-full text-xs font-semibold rounded-xl border-gray-200 focus:border-brand-orange focus:ring-brand-orange bg-gray-50 p-2.5" id="complaint-building" required>
+                <option>Gedung A (Rektorat)</option>
+                <option>Gedung B (Teknik Sipil)</option>
+                <option>Gedung C (Fakultas Ilmu Komputer)</option>
+                <option>Gedung D (Perpustakaan Pusat)</option>
+                <option>Gedung E (Laboratorium Bersama)</option>
+                <option>Gedung F (Fakultas Teknik)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1" for="complaint-room">Ruang / Nomor Lantai</label>
+              <input class="w-full text-xs font-semibold rounded-xl border-gray-200 focus:border-brand-orange focus:ring-brand-orange bg-gray-50 p-2.5" id="complaint-room" placeholder="Cth: Lab AI - Lt. 3" required type="text">
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1" for="complaint-priority">Tingkat Prioritas</label>
+            <select class="w-full text-xs font-semibold rounded-xl border-gray-200 focus:border-brand-orange focus:ring-brand-orange bg-gray-50 p-2.5" id="complaint-priority">
+              <option value="Sedang">Sedang — mengganggu tetapi masih bisa digunakan</option>
+              <option value="Tinggi">Tinggi — menghentikan aktivitas perkuliahan</option>
+              <option value="Rendah">Rendah — perbaikan terjadwal</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1" for="complaint-desc">Deskripsi Kerusakan</label>
+            <textarea class="w-full text-xs font-medium rounded-xl border-gray-200 focus:border-brand-orange focus:ring-brand-orange bg-gray-50 p-2.5" id="complaint-desc" placeholder="Jelaskan detail kendala (Cth: AC berbunyi bising dan tidak dingin saat perkuliahan jam 08.00)..." required rows="3"></textarea>
+          </div>
+          <button type="button" class="w-full border-2 border-dashed border-gray-200 rounded-2xl p-3 text-center hover:border-brand-orange transition cursor-pointer bg-gray-50/50" data-action="demo" data-note="Unggah foto: fitur unggah akan terhubung ke object storage.">
+            <span class="material-symbols-outlined text-2xl text-gray-400">add_photo_alternate</span>
+            <span class="block text-[11px] font-semibold text-gray-600 mt-1">Klik untuk lampirkan foto fasilitas rusak</span>
+            <span class="block text-[9px] text-gray-400">Format PNG, JPG maks 5MB</span>
+          </button>
+          <div class="flex items-center justify-end gap-2 pt-2">
+            <button type="button" class="px-4 py-2 rounded-full text-xs font-semibold text-gray-600 hover:bg-gray-100 transition" data-action="close-modal">Batal</button>
+            <button type="submit" class="px-5 py-2 rounded-full text-xs font-bold bg-brand-orange hover:bg-orange-600 text-white shadow-lg shadow-orange-500/25 transition">Kirim Pengaduan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- VIEW 3 — DASHBOARD ADMIN SARPRAS                                      -->
+  <!-- ===================================================================== -->
+  <section class="app-view" id="view-admin" aria-label="Dashboard Admin Sarpras">
+
+    <!-- Floating dock -->
+    <aside class="admin-dock fixed left-6 top-6 bottom-6 w-20 bg-surface-container-lowest/90 backdrop-blur-xl rounded-full shadow-[0_12px_32px_-4px_rgba(20,23,26,0.06),0_4px_12px_rgba(166,175,189,0.2)] z-50 flex flex-col items-center py-6 justify-between border border-white/60" aria-label="Dock admin">
+      <div class="flex flex-col items-center gap-6">
+        <button type="button" class="w-12 h-12 rounded-full bg-primary-container text-white flex items-center justify-center shadow-[0_8px_24px_-2px_rgba(255,102,31,0.4)] hover:scale-105 transition-transform" data-admin-tab="dashboard" title="CampusCare Sarpras">
+          <span class="material-symbols-outlined text-2xl font-bold">school</span>
+        </button>
+        <div class="admin-dock__divider w-8 h-px bg-surface-container-high"></div>
+        <nav class="flex flex-col items-center gap-3.5">
+          <button type="button" class="dock-btn dock-btn--lg is-active" data-admin-tab="dashboard" title="Dashboard Sarpras">
+            <span class="material-symbols-outlined text-2xl">grid_view</span>
+          </button>
+          <button type="button" class="dock-btn dock-btn--lg" data-admin-tab="dispatches" title="Daftar Disposisi">
+            <span class="material-symbols-outlined text-2xl">inbox</span>
+          </button>
+          <button type="button" class="dock-btn dock-btn--lg" data-admin-tab="techs" title="Personil &amp; Teknisi">
+            <span class="material-symbols-outlined text-2xl">engineering</span>
+          </button>
+          <button type="button" class="dock-btn dock-btn--lg" data-admin-tab="inventory" title="Inventaris Sarana">
+            <span class="material-symbols-outlined text-2xl">domain</span>
+          </button>
+          <button type="button" class="dock-btn dock-btn--lg" data-admin-tab="sla" title="Laporan &amp; SLA">
+            <span class="material-symbols-outlined text-2xl">analytics</span>
+          </button>
+        </nav>
+      </div>
+      <div class="admin-dock__bottom flex flex-col items-center gap-3">
+        <button type="button" class="dock-btn dock-btn--sm" title="Panduan Operasional" data-action="demo" data-note="Panduan operasional Sarpras dibuka.">
+          <span class="material-symbols-outlined text-xl">help_outline</span>
+        </button>
+        <button type="button" class="dock-btn dock-btn--sm hover:text-red-500" title="Keluar Portal" data-action="logout">
+          <span class="material-symbols-outlined text-xl">logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="admin-shell pl-32 pr-6">
+
+      <!-- Header -->
+      <header class="admin-header fixed top-0 left-32 right-6 h-20 z-40 flex items-center">
+        <div class="w-full h-16 bg-surface-container-lowest/90 backdrop-blur-xl rounded-full shadow-[0_8px_30px_rgba(20,23,26,0.05)] px-4 flex items-center justify-between gap-4 border border-white/70">
+          <div class="flex items-center gap-3 pl-2">
+            <div class="flex flex-col">
+              <span class="text-xl font-bold tracking-tight text-on-surface leading-none font-display">CampusCare</span>
+              <span class="text-[11px] tracking-wider uppercase text-secondary font-semibold mt-0.5">UNIVERSITAS SILIWANGI</span>
+            </div>
+          </div>
+
+          <nav class="hidden xl:flex items-center p-1 bg-surface-container rounded-full gap-1" aria-label="Navigasi admin">
+            <button type="button" class="seg-tab is-active" data-admin-tab="dashboard">Dashboard Admin</button>
+            <button type="button" class="seg-tab" data-admin-tab="dispatches">Disposisi Penugasan</button>
+            <button type="button" class="seg-tab" data-admin-tab="techs">Manajemen Teknisi</button>
+            <button type="button" class="seg-tab" data-admin-tab="inventory">Inventaris Sarpras</button>
+            <button type="button" class="seg-tab" data-admin-tab="sla">Laporan &amp; SLA</button>
+          </nav>
+
+          <div class="flex items-center gap-3 pr-1">
+            <button type="button" class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-all relative" data-action="notify" data-note="4 pengaduan baru menunggu verifikasi." aria-label="Notifikasi pengaduan masuk">
+              <span class="material-symbols-outlined text-xl">notifications</span>
+              <span class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-error ring-2 ring-surface-container-lowest"></span>
+            </button>
+            <div class="h-6 w-px bg-surface-container-high hidden sm:block"></div>
+
+            <div class="relative">
+              <button type="button" class="flex items-center gap-3 pl-1 pr-3 py-1 bg-surface-container-low rounded-full hover:bg-surface-container transition" data-action="toggle-menu" data-menu="admin-user-menu" aria-haspopup="true" aria-expanded="false" aria-label="Menu akun admin">
+                <span class="w-8 h-8 rounded-full bg-primary-container text-white font-bold text-xs flex items-center justify-center shadow-sm">IH</span>
+                <span class="hidden md:flex flex-col text-left">
+                  <span class="text-xs font-bold text-on-surface leading-tight">Ir. Hendrawan, M.T.</span>
+                  <span class="text-[11px] text-secondary leading-tight">Kepala Biro Sarpras</span>
+                </span>
+                <span class="material-symbols-outlined text-base text-secondary hidden md:inline">expand_more</span>
+              </button>
+              <div class="cc-menu" id="admin-user-menu" hidden>
+                <div class="cc-menu__head">
+                  <p class="cc-menu__name">Ir. Hendrawan, M.T.</p>
+                  <p class="cc-menu__role">Kepala Biro Sarana &amp; Prasarana</p>
+                </div>
+                <button type="button" class="cc-menu__item" data-action="switch-role" data-role="student">
+                  <span class="material-symbols-outlined text-base">school</span>
+                  Buka Portal Mahasiswa
+                </button>
+                <button type="button" class="cc-menu__item" data-action="demo" data-note="Pengaturan akun admin dibuka.">
+                  <span class="material-symbols-outlined text-base">settings</span>
+                  Pengaturan Akun
+                </button>
+                <button type="button" class="cc-menu__item cc-menu__item--danger" data-action="logout">
+                  <span class="material-symbols-outlined text-base">logout</span>
+                  Keluar Portal
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content -->
+      <main class="admin-content w-full pt-24 pb-16">
+        <div class="flex flex-col w-full max-w-[1520px] mx-auto">
+
+          <!-- Welcome -->
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 pt-2">
+            <div class="flex flex-col gap-2 max-w-3xl">
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-lowest text-on-surface border border-surface-container-high w-fit shadow-sm">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="text-xs font-medium text-secondary">Mode Siaga Aktif • Semester Genap 2026/2027 • Biro Sarana &amp; Prasarana (Kampus 1 Mugarsari)</span>
+              </div>
+              <h1 class="text-3xl lg:text-4xl font-bold text-on-surface tracking-tight font-display">Selamat Bertugas Kembali, Ir. Hendrawan, M.T.</h1>
+              <p class="text-sm text-secondary leading-relaxed">Pantau arus aduan civitas akademika, disposisi teknisi lapangan real-time, dan monitor SLA pemeliharaan fasilitas Universitas Siliwangi.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3 shrink-0">
+              <button type="button" class="h-12 px-6 rounded-full bg-surface-container-lowest text-on-surface shadow-[0_8px_24px_rgba(20,23,26,0.06)] hover:bg-surface-container-high transition-all flex items-center gap-2 text-sm font-semibold border border-white" data-action="export">
+                <span class="material-symbols-outlined text-lg text-secondary">download</span>
+                <span>Export Rekap (PDF/XLS)</span>
+              </button>
+              <button type="button" class="h-12 px-7 rounded-full bg-primary-container text-white text-sm font-semibold shadow-[0_12px_28px_-4px_rgba(255,102,31,0.4)] hover:shadow-[0_16px_36px_-4px_rgba(255,102,31,0.55)] hover:scale-[1.02] active:scale-[0.99] transition-all flex items-center gap-2" data-action="open-dispatch">
+                <span class="material-symbols-outlined text-xl font-bold">bolt</span>
+                <span>+ Disposisi Cepat</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- PANEL: DASHBOARD -->
+          <div class="cc-panel is-active" id="panel-admin-dashboard">
+
+            <!-- Metric pods -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
+              <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.04),0_4px_12px_rgba(166,175,189,0.12)] border border-white/80 flex flex-col justify-between relative overflow-hidden group hover:-translate-y-0.5 transition-all">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-on-surface">
+                      <span class="material-symbols-outlined text-lg">inbox</span>
+                    </div>
+                    <span class="text-xs font-semibold text-secondary">Total Pengaduan Masuk</span>
+                  </div>
+                  <div class="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-secondary group-hover:text-primary-container transition-colors">
+                    <span class="material-symbols-outlined text-base">north_east</span>
+                  </div>
+                </div>
+                <div class="flex items-baseline justify-between mt-5">
+                  <div>
+                    <span class="text-3xl font-bold text-on-surface font-display tracking-tight">48</span>
+                    <span class="text-xs text-secondary ml-1.5 font-medium">Laporan</span>
+                  </div>
+                  <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-primary px-2.5 py-1 rounded-full bg-primary-fixed">
+                    <span class="material-symbols-outlined text-xs">trending_up</span>
+                    +12% vs mggu lalu
+                  </span>
+                </div>
+                <div class="w-full bg-surface-container h-1.5 rounded-full mt-4 overflow-hidden">
+                  <div class="bg-primary-container h-full rounded-full w-[82%]"></div>
+                </div>
+              </div>
+
+              <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.04),0_4px_12px_rgba(166,175,189,0.12)] border border-white/80 flex flex-col justify-between relative overflow-hidden group hover:-translate-y-0.5 transition-all">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-full bg-primary-fixed flex items-center justify-center text-primary">
+                      <span class="material-symbols-outlined text-lg">emergency_home</span>
+                    </div>
+                    <span class="text-xs font-semibold text-secondary">Butuh Verifikasi &amp; Disposisi</span>
+                  </div>
+                  <div class="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-secondary group-hover:text-primary-container transition-colors">
+                    <span class="material-symbols-outlined text-base">north_east</span>
+                  </div>
+                </div>
+                <div class="flex items-baseline justify-between mt-5">
+                  <div>
+                    <span class="text-3xl font-bold text-primary font-display tracking-tight">9</span>
+                    <span class="text-xs text-secondary ml-1.5 font-medium">Tiket</span>
+                  </div>
+                  <div class="w-14 h-9 relative flex items-center justify-center">
+                    <svg class="w-14 h-9 overflow-visible" viewBox="0 0 56 32" aria-hidden="true">
+                      <path d="M 4 28 A 24 24 0 0 1 52 28" fill="none" stroke="#E2E5EA" stroke-linecap="round" stroke-width="5"></path>
+                      <path d="M 4 28 A 24 24 0 0 1 24 9" fill="none" stroke="#ff661f" stroke-linecap="round" stroke-width="5"></path>
+                    </svg>
+                  </div>
+                </div>
+                <div class="inline-flex items-center gap-1.5 mt-3 text-secondary text-xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-ping"></span>
+                  4 Urgent • Antrean &lt; 20 Mnt
+                </div>
+              </div>
+
+              <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.04),0_4px_12px_rgba(166,175,189,0.12)] border border-white/80 flex flex-col justify-between relative overflow-hidden group hover:-translate-y-0.5 transition-all">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-full bg-tertiary-fixed flex items-center justify-center text-tertiary">
+                      <span class="material-symbols-outlined text-lg">engineering</span>
+                    </div>
+                    <span class="text-xs font-semibold text-secondary">Sedang Dikerjakan Lapangan</span>
+                  </div>
+                  <div class="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-secondary group-hover:text-tertiary transition-colors">
+                    <span class="material-symbols-outlined text-base">north_east</span>
+                  </div>
+                </div>
+                <div class="flex items-baseline justify-between mt-5">
+                  <div>
+                    <span class="text-3xl font-bold text-tertiary font-display tracking-tight">15</span>
+                    <span class="text-xs text-secondary ml-1.5 font-medium">Tiket</span>
+                  </div>
+                  <div class="w-14 h-9 relative flex items-center justify-center">
+                    <svg class="w-14 h-9 overflow-visible" viewBox="0 0 56 32" aria-hidden="true">
+                      <path d="M 4 28 A 24 24 0 0 1 52 28" fill="none" stroke="#E2E5EA" stroke-linecap="round" stroke-width="5"></path>
+                      <path d="M 4 28 A 24 24 0 0 1 38 6" fill="none" stroke="#0053db" stroke-linecap="round" stroke-width="5"></path>
+                    </svg>
+                  </div>
+                </div>
+                <div class="inline-flex items-center gap-1.5 mt-3 text-secondary text-xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                  12 Teknisi aktif di lokasi
+                </div>
+              </div>
+
+              <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.04),0_4px_12px_rgba(166,175,189,0.12)] border border-white/80 flex flex-col justify-between relative overflow-hidden group hover:-translate-y-0.5 transition-all">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700">
+                      <span class="material-symbols-outlined text-lg">task_alt</span>
+                    </div>
+                    <span class="text-xs font-semibold text-secondary">Selesai &amp; Validasi SLA</span>
+                  </div>
+                  <div class="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-secondary group-hover:text-emerald-700 transition-colors">
+                    <span class="material-symbols-outlined text-base">north_east</span>
+                  </div>
+                </div>
+                <div class="flex items-baseline justify-between mt-5">
+                  <div>
+                    <span class="text-3xl font-bold text-on-surface font-display tracking-tight">24</span>
+                    <span class="text-xs text-secondary ml-1.5 font-medium">Tiket</span>
+                  </div>
+                  <div class="w-14 h-9 relative flex items-center justify-center">
+                    <svg class="w-14 h-9 overflow-visible" viewBox="0 0 56 32" aria-hidden="true">
+                      <path d="M 4 28 A 24 24 0 0 1 52 28" fill="none" stroke="#E2E5EA" stroke-linecap="round" stroke-width="5"></path>
+                      <path d="M 4 28 A 24 24 0 0 1 49 22" fill="none" stroke="#059669" stroke-linecap="round" stroke-width="5"></path>
+                    </svg>
+                  </div>
+                </div>
+                <div class="inline-flex items-center gap-1.5 mt-3 text-secondary text-xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                  97.2% SLA tercapai (Avg 1.8 Jam)
+                </div>
+              </div>
+            </div>
+
+            <!-- Two column content -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+              <!-- Left -->
+              <div class="lg:col-span-8 flex flex-col gap-6">
+                <div class="bg-surface-container-lowest rounded-2xl p-4 shadow-[0_8px_30px_rgba(20,23,26,0.04)] border border-white flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                  <div class="relative flex-1">
+                    <span class="material-symbols-outlined text-secondary absolute left-4 top-1/2 -translate-y-1/2 text-lg">search</span>
+                    <input class="w-full h-11 pl-11 pr-4 rounded-full bg-surface-container text-on-surface placeholder:text-secondary text-xs focus:outline-none focus:bg-surface-container-high transition-colors" id="admin-search" placeholder="Cari kode tiket, pelapor, atau fasilitas..." type="search">
+                  </div>
+                  <div class="flex items-center gap-1.5 p-1 bg-surface-container rounded-full overflow-x-auto no-scrollbar shrink-0">
+                    <button type="button" class="filter-chip is-active" data-admin-filter="all">Semua <span data-admin-count="all">0</span></button>
+                    <button type="button" class="filter-chip" data-admin-filter="urgent">Urgent <span data-admin-count="urgent">0</span></button>
+                    <button type="button" class="filter-chip" data-admin-filter="review">Verifikasi <span data-admin-count="review">0</span></button>
+                    <button type="button" class="filter-chip" data-admin-filter="progress">Diproses <span data-admin-count="progress">0</span></button>
+                    <button type="button" class="filter-chip" data-admin-filter="done">Selesai <span data-admin-count="done">0</span></button>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between px-2">
+                  <div class="flex items-center gap-2">
+                    <h2 class="text-xl font-bold text-on-surface tracking-tight font-display">Daftar Pengaduan &amp; Disposisi Sarpras</h2>
+                    <span class="w-6 h-6 rounded-full bg-surface-container text-secondary flex items-center justify-center text-xs font-bold" id="visible-count">0</span>
+                  </div>
+                  <button type="button" class="text-xs font-bold text-primary hover:underline flex items-center gap-1" data-action="demo" data-note="Arsip lengkap pengaduan dibuka.">
+                    Lihat Semua Arsip →
+                  </button>
+                </div>
+
+                <div class="flex flex-col gap-4" id="admin-ticket-list"></div>
+
+                <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.04)] border border-[#e2e8f0] flex flex-col gap-4">
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <h3 class="text-lg font-bold text-on-surface font-display">Inspeksi &amp; Densitas Operasional Kampus</h3>
+                      <p class="text-xs text-secondary">Pemantauan visual gedung rektorat dan distribusi beban aduan aktif</p>
+                    </div>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold">
+                      <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                      Gedung Terpadu Mugarsari
+                    </span>
+                  </div>
+                  <div class="relative w-full h-56 rounded-xl overflow-hidden bg-surface-container">
+                    <img alt="Gedung Rektorat Universitas Siliwangi" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-BZZIIS-waQYeeQhMEth3N8gAe2V-uUnRcVIg6xDV7ouN68SWgEyAn9Es9xmgpdH0gENrqIQAEhhriLvZs2jFOKJzkMfGBdwlgigPtdCfRwVoH8jQ97lXzr4fNCzVXazOv8EQlsy7rtNcSzi_X4Rstmd0oau0vW7AOrepgH7ouefE0HEgmFE1P6UqTH7onr2znsm-_trigifO693IWVOG4-4BXZD4Yg8cw_ET4hls2AcpUmMCJV_B" loading="lazy">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                    <div class="absolute bottom-4 left-4 right-4 md:right-auto md:w-80 p-3.5 rounded-xl bg-white/90 backdrop-blur-md shadow-lg border border-white/60 flex items-center justify-between">
+                      <div>
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-secondary">Zona Utama Aktif</span>
+                        <p class="text-sm font-bold text-on-surface font-display leading-tight">Gedung Rektorat UNSIL</p>
+                        <p class="text-xs text-emerald-600 font-semibold mt-0.5">• 99.0% Kesiapan Sarpras</p>
+                      </div>
+                      <div class="w-10 h-10 rounded-full bg-primary-container text-white flex items-center justify-center font-bold text-sm font-display shadow-sm">02</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right -->
+              <aside class="lg:col-span-4 flex flex-col gap-6">
+                <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05),0_4px_12px_rgba(166,175,189,0.12)] border border-[#e2e8f0] flex flex-col gap-6">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                      <div class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-on-surface">
+                        <span class="material-symbols-outlined text-lg">tune</span>
+                      </div>
+                      <div>
+                        <span class="text-sm font-bold text-on-surface block leading-tight font-display">Kesiapan Sarana Kampus</span>
+                        <span class="text-[11px] text-secondary">Monitoring Real-Time UNSIL</span>
+                      </div>
+                    </div>
+                    <button type="button" class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-secondary hover:text-on-surface" data-action="demo" data-note="Detail kesiapan sarana dibuka." aria-label="Detail Sarpras">
+                      <span class="material-symbols-outlined text-base">north_east</span>
+                    </button>
+                  </div>
+                  <div class="p-5 rounded-xl bg-surface-container-low flex items-center justify-between">
+                    <div class="flex flex-col">
+                      <div class="flex items-center gap-1.5 text-xs text-primary font-bold mb-1">
+                        <span class="material-symbols-outlined text-sm font-bold">arrow_upward</span>
+                        +2.4% Optimal
+                      </div>
+                      <span class="text-3xl font-bold text-on-surface tracking-tight font-display">96.5%</span>
+                      <span class="text-xs text-secondary mt-0.5">Indeks Kesiapan Sarpras</span>
+                    </div>
+                    <div class="relative w-28 h-20 flex items-end justify-center">
+                      <svg class="w-28 h-20" viewBox="0 0 110 65" aria-hidden="true">
+                        <path d="M 10 55 A 45 45 0 0 1 100 55" fill="none" stroke="#D8DADE" stroke-linecap="round" stroke-width="9"></path>
+                        <path d="M 10 55 A 45 45 0 0 1 92 30" fill="none" stroke="#ff661f" stroke-linecap="round" stroke-width="9"></path>
+                        <circle cx="92" cy="30" fill="#ffffff" r="4.5" stroke="#ff661f" stroke-width="3"></circle>
+                      </svg>
+                      <div class="absolute bottom-0 text-center">
+                        <span class="text-xs font-bold text-on-surface">A+ Unggul</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div class="p-3.5 rounded-xl bg-surface-container flex flex-col">
+                      <span class="text-xs text-secondary">Rata-rata Penanganan</span>
+                      <span class="text-xl font-bold text-on-surface font-display mt-1">1.8 Jam</span>
+                      <span class="text-[11px] text-primary font-semibold mt-0.5">Respon Cepat</span>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-surface-container flex flex-col">
+                      <span class="text-xs text-secondary">Teknisi Siaga</span>
+                      <span class="text-xl font-bold text-on-surface font-display mt-1">14 Personil</span>
+                      <span class="text-[11px] text-secondary mt-0.5">4 Zona Kampus</span>
+                    </div>
+                  </div>
+                  <div class="flex flex-col gap-3 pt-1 border-t border-surface-container-high">
+                    <div>
+                      <div class="flex items-center justify-between text-xs mb-1">
+                        <span class="text-on-surface font-medium">Fakultas Teknik &amp; Lab Terpadu</span>
+                        <span class="font-bold text-on-surface">98.2%</span>
+                      </div>
+                      <div class="w-full bg-surface-container h-2 rounded-full overflow-hidden"><div class="bg-inverse-surface h-full rounded-full" style="width: 98.2%"></div></div>
+                    </div>
+                    <div>
+                      <div class="flex items-center justify-between text-xs mb-1">
+                        <span class="text-on-surface font-medium">Gedung Kuliah Bersama (GKB)</span>
+                        <span class="font-bold text-primary">91.4%</span>
+                      </div>
+                      <div class="w-full bg-surface-container h-2 rounded-full overflow-hidden"><div class="bg-primary-container h-full rounded-full" style="width: 91.4%"></div></div>
+                    </div>
+                    <div>
+                      <div class="flex items-center justify-between text-xs mb-1">
+                        <span class="text-on-surface font-medium">Rektorat &amp; Administrasi Pusat</span>
+                        <span class="font-bold text-emerald-700">99.0%</span>
+                      </div>
+                      <div class="w-full bg-surface-container h-2 rounded-full overflow-hidden"><div class="bg-emerald-500 h-full rounded-full" style="width: 99%"></div></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05),0_4px_12px_rgba(166,175,189,0.12)] border border-[#e2e8f0] flex flex-col gap-4">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                      <div class="w-9 h-9 rounded-full bg-primary-fixed flex items-center justify-center text-primary">
+                        <span class="material-symbols-outlined text-lg">groups</span>
+                      </div>
+                      <h3 class="text-sm font-bold text-on-surface font-display">Beban Kerja Tim Lapangan</h3>
+                    </div>
+                    <span class="text-[11px] text-secondary font-semibold">Real-Time</span>
+                  </div>
+                  <div class="space-y-3.5 pt-1">
+                    <div>
+                      <div class="flex justify-between items-center mb-1 text-xs">
+                        <span class="font-medium text-on-surface flex items-center gap-1.5"><span class="material-symbols-outlined text-base text-primary">hvac</span>Kelistrikan &amp; Tata Udara</span>
+                        <span class="text-primary font-bold">4/5 Bertugas</span>
+                      </div>
+                      <div class="w-full h-2 rounded-full bg-surface-container overflow-hidden"><div class="h-full rounded-full bg-primary-container" style="width: 80%"></div></div>
+                      <span class="text-[11px] text-secondary mt-0.5 block">Kapasitas 80% (Tinggi)</span>
+                    </div>
+                    <div>
+                      <div class="flex justify-between items-center mb-1 text-xs">
+                        <span class="font-medium text-on-surface flex items-center gap-1.5"><span class="material-symbols-outlined text-base text-tertiary">videocam</span>Multimedia &amp; Audio Visual</span>
+                        <span class="text-on-surface font-bold">2/3 Bertugas</span>
+                      </div>
+                      <div class="w-full h-2 rounded-full bg-surface-container overflow-hidden"><div class="h-full rounded-full bg-tertiary" style="width: 66%"></div></div>
+                      <span class="text-[11px] text-secondary mt-0.5 block">Kapasitas 66% (Optimal)</span>
+                    </div>
+                    <div>
+                      <div class="flex justify-between items-center mb-1 text-xs">
+                        <span class="font-medium text-on-surface flex items-center gap-1.5"><span class="material-symbols-outlined text-base text-secondary">plumbing</span>Sanitasi &amp; Konstruksi Sipil</span>
+                        <span class="text-on-surface font-bold">3/4 Bertugas</span>
+                      </div>
+                      <div class="w-full h-2 rounded-full bg-surface-container overflow-hidden"><div class="h-full rounded-full bg-secondary" style="width: 75%"></div></div>
+                      <span class="text-[11px] text-secondary mt-0.5 block">Kapasitas 75% (Normal)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05),0_4px_12px_rgba(166,175,189,0.12)] border border-[#e2e8f0] flex flex-col gap-4">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                      <div class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-on-surface">
+                        <span class="material-symbols-outlined text-lg">history</span>
+                      </div>
+                      <h3 class="text-sm font-bold text-on-surface font-display">Log Penanganan Terkini</h3>
+                    </div>
+                    <span class="text-[11px] text-secondary font-semibold">Audit Stream</span>
+                  </div>
+                  <div class="space-y-4 text-xs relative before:absolute before:inset-0 before:left-2.5 before:w-0.5 before:bg-surface-container before:h-full pt-1">
+                    <div class="relative flex items-start gap-3 pl-1">
+                      <div class="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center z-10 shrink-0"><span class="material-symbols-outlined text-xs">check</span></div>
+                      <div>
+                        <p class="font-bold text-on-surface">Perbaikan AC R.102 Selesai</p>
+                        <p class="text-secondary text-[11px]">Teknisi Hendra menandatangani BAP perbaikan</p>
+                        <span class="text-[10px] text-primary font-bold">12 Menit lalu</span>
+                      </div>
+                    </div>
+                    <div class="relative flex items-start gap-3 pl-1">
+                      <div class="w-5 h-5 rounded-full bg-primary-container text-white flex items-center justify-center z-10 shrink-0"><span class="material-symbols-outlined text-xs">assignment</span></div>
+                      <div>
+                        <p class="font-bold text-on-surface">Disposisi #CC-2024-0912</p>
+                        <p class="text-secondary text-[11px]">Kepala Biro meneruskan tiket ke Tim Kelistrikan</p>
+                        <span class="text-[10px] text-secondary font-medium">28 Menit lalu</span>
+                      </div>
+                    </div>
+                    <div class="relative flex items-start gap-3 pl-1">
+                      <div class="w-5 h-5 rounded-full bg-surface-container-high text-on-surface flex items-center justify-center z-10 shrink-0"><span class="material-symbols-outlined text-xs">notifications</span></div>
+                      <div>
+                        <p class="font-bold text-on-surface">Pengaduan Baru Terdaftar</p>
+                        <p class="text-secondary text-[11px]">Fasilitas Wi-Fi Perpustakaan Lt.2 gangguan</p>
+                        <span class="text-[10px] text-secondary font-medium">45 Menit lalu</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05),0_4px_12px_rgba(166,175,189,0.12)] border border-[#e2e8f0] flex flex-col gap-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface">
+                      <span class="material-symbols-outlined text-xl">support_agent</span>
+                    </div>
+                    <div class="flex flex-col">
+                      <span class="text-sm font-bold text-on-surface font-display leading-tight">Bantuan Cepat Sarpras</span>
+                      <span class="text-xs text-secondary">Universitas Siliwangi Tasikmalaya</span>
+                    </div>
+                  </div>
+                  <div class="flex flex-col gap-2.5 pt-1">
+                    <a class="p-3 rounded-full bg-surface-container flex items-center justify-between hover:bg-surface-container-high transition-colors" href="tel:+628211234">
+                      <div class="flex items-center gap-3 pl-2">
+                        <span class="material-symbols-outlined text-xl text-primary-container">chat</span>
+                        <span class="text-xs font-semibold text-on-surface">Hotline WhatsApp Sarpras</span>
+                      </div>
+                      <span class="text-xs text-secondary pr-2">+62 821-1234</span>
+                    </a>
+                    <a class="p-3 rounded-full bg-surface-container flex items-center justify-between hover:bg-surface-container-high transition-colors" href="mailto:sarpras@unsil.ac.id">
+                      <div class="flex items-center gap-3 pl-2">
+                        <span class="material-symbols-outlined text-xl text-secondary">mail</span>
+                        <span class="text-xs font-semibold text-on-surface">Email Pengaduan Resmi</span>
+                      </div>
+                      <span class="text-xs text-secondary pr-2">sarpras@unsil.ac.id</span>
+                    </a>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </div>
+
+          <!-- PANEL: DISPOSISI -->
+          <div class="cc-panel" id="panel-admin-dispatches">
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+              <div class="xl:col-span-8 flex flex-col gap-4">
+                <div class="bg-surface-container-lowest rounded-2xl p-5 border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)] flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h2 class="text-xl font-bold text-on-surface font-display tracking-tight">Antrean Disposisi Penugasan</h2>
+                    <p class="text-xs text-secondary mt-1">Tiket yang membutuhkan verifikasi dan penugasan teknisi lapangan.</p>
+                  </div>
+                  <button type="button" class="h-11 px-5 rounded-full bg-primary-container text-white text-xs font-bold shadow-[0_12px_28px_-4px_rgba(255,102,31,0.45)] hover:brightness-110 transition flex items-center gap-2" data-action="open-dispatch">
+                    <span class="material-symbols-outlined text-base">bolt</span>
+                    Disposisi Cepat
+                  </button>
+                </div>
+                <div class="flex flex-col gap-4" id="admin-dispatch-list"></div>
+              </div>
+
+              <aside class="xl:col-span-4 flex flex-col gap-4">
+                <div class="bg-surface-container-lowest rounded-2xl p-6 border border-[#e2e8f0] shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)]">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-9 h-9 rounded-full bg-primary-fixed text-primary flex items-center justify-center"><span class="material-symbols-outlined text-lg">priority_high</span></span>
+                    <h3 class="text-sm font-bold text-on-surface font-display">Ringkasan Antrean</h3>
+                  </div>
+                  <div class="mt-4 space-y-3 text-xs">
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-red-50">
+                      <span class="font-semibold text-red-700">Prioritas Urgent</span>
+                      <span class="font-display font-bold text-red-700" data-admin-count="urgent">0</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-orange-50">
+                      <span class="font-semibold text-primary">Butuh Verifikasi</span>
+                      <span class="font-display font-bold text-primary" data-admin-count="review">0</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-sky-50">
+                      <span class="font-semibold text-sky-700">Sedang Dikerjakan</span>
+                      <span class="font-display font-bold text-sky-700" data-admin-count="progress">0</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-emerald-50">
+                      <span class="font-semibold text-emerald-700">Selesai</span>
+                      <span class="font-display font-bold text-emerald-700" data-admin-count="done">0</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-inverse-surface rounded-2xl p-6 text-white shadow-[0_16px_40px_-12px_rgba(20,23,26,0.5)]">
+                  <span class="text-[10px] uppercase tracking-wider font-bold text-white/60">SLA Penugasan</span>
+                  <p class="font-display text-3xl font-bold mt-1">20 menit</p>
+                  <p class="text-xs text-white/70 mt-1 leading-relaxed">Tiket prioritas tinggi wajib mendapat teknisi sebelum 20 menit sejak verifikasi.</p>
+                  <div class="w-full h-2 rounded-full bg-white/15 mt-4 overflow-hidden">
+                    <div class="h-full w-[64%] rounded-full bg-primary-container"></div>
+                  </div>
+                  <p class="text-[11px] text-white/60 mt-2">64% antrean masih dalam batas aman.</p>
+                </div>
+
+                <div class="bg-surface-container-lowest rounded-2xl p-5 border border-[#e2e8f0]">
+                  <p class="text-[11px] font-bold uppercase tracking-wider text-secondary">Tips Operasional</p>
+                  <ul class="mt-3 space-y-2 text-xs text-secondary leading-relaxed">
+                    <li class="flex gap-2"><span class="material-symbols-outlined text-base text-primary-container">check_circle</span>Gunakan tim kelistrikan untuk keluhan AC dan daya.</li>
+                    <li class="flex gap-2"><span class="material-symbols-outlined text-base text-primary-container">check_circle</span>Sertakan lokasi detail dan foto agar teknisi tidak kembali.</li>
+                    <li class="flex gap-2"><span class="material-symbols-outlined text-base text-primary-container">check_circle</span>Validasi BAP sebelum tiket ditutup.</li>
+                  </ul>
+                </div>
+              </aside>
+            </div>
+          </div>
+
+          <!-- PANEL: TEKNISI -->
+          <div class="cc-panel" id="panel-admin-techs">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-5">
+              <div>
+                <h2 class="text-xl sm:text-2xl font-bold text-on-surface font-display tracking-tight">Manajemen Teknisi Lapangan</h2>
+                <p class="text-xs text-secondary mt-1">Distribusi personil, beban kerja, dan penugasan aktif per tim.</p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">14 Personil Siaga</span>
+                <span class="px-3 py-1.5 rounded-full bg-surface-container-lowest border border-white text-secondary text-xs font-bold">4 Tim Spesialis</span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <article class="bg-surface-container-lowest rounded-2xl p-6 border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)]">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex items-center gap-3">
+                    <span class="w-11 h-11 rounded-full bg-primary-fixed text-primary flex items-center justify-center"><span class="material-symbols-outlined">hvac</span></span>
+                    <div>
+                      <h3 class="font-display text-base font-bold text-on-surface">Tim Kelistrikan &amp; Tata Udara</h3>
+                      <p class="text-[11px] text-secondary">Koordinator: Pak Hendra</p>
+                    </div>
+                  </div>
+                  <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-primary-fixed text-primary">80%</span>
+                </div>
+                <div class="mt-4 flex flex-wrap gap-1.5">
+                  <span class="px-2.5 py-1 rounded-full bg-surface-container text-[11px] font-semibold text-on-surface">Hendra</span>
+                  <span class="px-2.5 py-1 rounded-full bg-surface-container text-[11px] font-semibold text-on-surface">Rian</span>
+                  <span class="px-2.5 py-1 rounded-full bg-surface-container text-[11px] font-semibold text-on-surface">Agus</span>
+                  <span class="px-2.5 py-1 rounded-full bg-surface-container text-[11px] font-semibold text-on-surface">Dedi</span>
+                  <span class="px-2.5 py-1 rounded-full bg-surface-container-high text-[11px] font-semibold text-secondary">1 standby</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between text-xs mb-1"><span class="text-secondary">Beban kerja</span><span class="font-bold text-on-surface">4 dari 5 personil</span></div>
+                <div class="w-full h-2 rounded-full bg-surface-container overflow-hidden"><div class="h-full rounded-full bg-primary-container" style="width: 80%"></div></div>
+                <div class="mt-4 flex items-center justify-between text-[11px] text-secondary"><span>Zona: Rektorat • FT • GKB</span><span class="font-semibold text-primary">6 tiket aktif</span></div>
+              </article>
+
+              <article class="bg-surface-container-lowest rounded-2xl p-6 border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)]">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex items-center gap-3">
+                    <span class="w-11 h-11 rounded-full bg-tertiary-fixed text-tertiary flex items-center justify-center"><span class="material-symbols-outlined">videocam</span></span>
+                    <div>
+                      <h3 class="font-display text-base font-bold text-on-surface">Tim Multimedia &amp; AV</h3>
+                      <p class="text-[11px] text-secondary">Koordinator: Pak Yudi</p>
+                    </div>
+                  </div>
+                  <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-tertiary-fixed text-tertiary">66%</span>
+                </div>
+                <div class="mt-4 flex flex-wrap gap-1.5">
+                  <span class="px-2.5 py-1 rounded-full bg-surface-container text-[11px] font-semibold text-on-surface">Yudi</span>
+                  <span class="px-2.5 py-1 rounded-full bg-surface-container text-[11px] font-semibold text-on-surface">Fajar</span>
+                  <span class="px-2.5 py-1 rounded-full bg-surface-container-high text-[11px] font-semibold text-secondary">1 standby</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between text-xs mb-1"><span class="text-secondary">Beban kerja</span><span class="font-bold text-on-surface">2 dari 3 personil</span></div>
+                <div class="w-full h-2 rounded-full bg-surface-container overflow-hidden"><div class="h-full rounded-full bg-tertiary" style="width: 66%"></div></div>
+                <div class="mt-4 flex items-center justify-between text-[11px] text-secondary"><span>Zona: GKB • Perpustakaan</span><span class="font-semibold text-tertiary">4 tiket aktif</span></div>
+              </article>
+
+              <article class="bg-surface-container-lowest rounded-2xl p-6 border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)]">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex items-center gap-3">
+                    <span class="w-11 h-11 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center"><span class="material-symbols-outlined">plumbing</span></span>
+                    <div>
+                      <h3 class="font-display text-base font-bold text-on-surface">Tim Sanitasi &amp; Sipil</h3>
+                      <p class="text-[11px] text-secondary">Koordinator: Pak Dadi</p>
+                    </div>
+                  </div>
+                  <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800">75%</span>
+                </div>
+                <div class="mt-4 flex flex-wrap gap-1.5">
+                  <span class="px-2.5 py-1 rounded-full bg-surface-container text-[11px] font-semibold text-on-surface">Dadi</span>
+                  <span class="px-2.5 py-1 rounded-full bg-surface-container text-[11px] font-semibold text-on-surface">Nanang</span>
+                  <span class="px-2.5 py-1 rounded-full bg-surface-container text-[11px] font-semibold text-on-surface">Iwan</span>
+                  <span class="px-2.5 py-1 rounded-full bg-surface-container-high text-[11px] font-semibold text-secondary">1 standby</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between text-xs mb-1"><span class="text-secondary">Beban kerja</span><span class="font-bold text-on-surface">3 dari 4 personil</span></div>
+                <div class="w-full h-2 rounded-full bg-surface-container overflow-hidden"><div class="h-full rounded-full bg-amber-500" style="width: 75%"></div></div>
+                <div class="mt-4 flex items-center justify-between text-[11px] text-secondary"><span>Zona: Rektorat • Gor • Taman</span><span class="font-semibold text-amber-700">3 tiket aktif</span></div>
+              </article>
+
+              <article class="bg-surface-container-lowest rounded-2xl p-6 border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)]">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex items-center gap-3">
+                    <span class="w-11 h-11 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center"><span class="material-symbols-outlined">router</span></span>
+                    <div>
+                      <h3 class="font-display text-base font-bold text-on-surface">Tim Jaringan &amp; IT</h3>
+                      <p class="text-[11px] text-secondary">Koordinator: Bu Rina</p>
+                    </div>
+                  </div>
+                  <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-sky-100 text-sky-700">60%</span>
+                </div>
+                <div class="mt-4 flex flex-wrap gap-1.5">
+                  <span class="px-2.5 py-1 rounded-full bg-surface-container text-[11px] font-semibold text-on-surface">Rina</span>
+                  <span class="px-2.5 py-1 rounded-full bg-surface-container text-[11px] font-semibold text-on-surface">Bayu</span>
+                  <span class="px-2.5 py-1 rounded-full bg-surface-container-high text-[11px] font-semibold text-secondary">1 standby</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between text-xs mb-1"><span class="text-secondary">Beban kerja</span><span class="font-bold text-on-surface">2 dari 3 personil</span></div>
+                <div class="w-full h-2 rounded-full bg-surface-container overflow-hidden"><div class="h-full rounded-full bg-sky-500" style="width: 60%"></div></div>
+                <div class="mt-4 flex items-center justify-between text-[11px] text-secondary"><span>Zona: Seluruh kampus</span><span class="font-semibold text-sky-700">2 tiket aktif</span></div>
+              </article>
+            </div>
+          </div>
+
+          <!-- PANEL: INVENTARIS -->
+          <div class="cc-panel" id="panel-admin-inventory">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-5">
+              <div>
+                <h2 class="text-xl sm:text-2xl font-bold text-on-surface font-display tracking-tight">Inventaris Sarana &amp; Prasarana</h2>
+                <p class="text-xs text-secondary mt-1">Daftar aset kritis, kondisi terakhir, dan jadwal pemeliharaan.</p>
+              </div>
+              <button type="button" class="h-11 px-5 rounded-full bg-surface-container-lowest border border-white text-xs font-bold text-on-surface shadow-sm hover:bg-surface-container-high transition flex items-center gap-2" data-action="export">
+                <span class="material-symbols-outlined text-base">download</span>
+                Unduh Data Aset
+              </button>
+            </div>
+
+            <div class="bg-surface-container-lowest rounded-2xl border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)] overflow-hidden">
+              <div class="p-5 flex flex-wrap items-center justify-between gap-3 border-b border-surface-container-high">
+                <div class="flex items-center gap-2">
+                  <span class="w-9 h-9 rounded-full bg-surface-container text-on-surface flex items-center justify-center"><span class="material-symbols-outlined text-lg">inventory_2</span></span>
+                  <div>
+                    <p class="font-display text-sm font-bold text-on-surface">Aset Terdaftar</p>
+                    <p class="text-[11px] text-secondary">Total 1.284 unit • 38 aset perlu perhatian</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 text-[11px] font-semibold">
+                  <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700">Baik 1.102</span>
+                  <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-800">Perlu Servis 144</span>
+                  <span class="px-3 py-1 rounded-full bg-red-100 text-red-700">Rusak 38</span>
+                </div>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs min-w-[720px]">
+                  <thead>
+                    <tr class="text-[10px] uppercase tracking-wider text-secondary border-b border-surface-container-high">
+                      <th class="py-3 px-5 font-bold">Kode Aset</th>
+                      <th class="py-3 px-5 font-bold">Nama Fasilitas</th>
+                      <th class="py-3 px-5 font-bold">Lokasi</th>
+                      <th class="py-3 px-5 font-bold">Kondisi</th>
+                      <th class="py-3 px-5 font-bold">Servis Terakhir</th>
+                      <th class="py-3 px-5 font-bold text-right">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-surface-container">
+                    <tr class="hover:bg-surface-container-low transition">
+                      <td class="py-3.5 px-5 font-bold text-on-surface">AST-AC-0312</td>
+                      <td class="py-3.5 px-5 text-on-surface">AC Split 2 PK — Lab Komputer 3</td>
+                      <td class="py-3.5 px-5 text-secondary">Gedung F • Lt. 2</td>
+                      <td class="py-3.5 px-5"><span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-bold text-[10px]">PERLU SERVIS</span></td>
+                      <td class="py-3.5 px-5 text-secondary">12 Okt 2026</td>
+                      <td class="py-3.5 px-5 text-right"><button type="button" class="text-primary font-bold hover:underline" data-action="demo" data-note="Detail aset AST-AC-0312 dibuka.">Detail</button></td>
+                    </tr>
+                    <tr class="hover:bg-surface-container-low transition">
+                      <td class="py-3.5 px-5 font-bold text-on-surface">AST-PRJ-0087</td>
+                      <td class="py-3.5 px-5 text-on-surface">Proyektor Laser 5000 Lumens</td>
+                      <td class="py-3.5 px-5 text-secondary">GKB • R.204</td>
+                      <td class="py-3.5 px-5"><span class="px-2.5 py-1 rounded-full bg-red-100 text-red-700 font-bold text-[10px]">RUSAK</span></td>
+                      <td class="py-3.5 px-5 text-secondary">02 Sep 2026</td>
+                      <td class="py-3.5 px-5 text-right"><button type="button" class="text-primary font-bold hover:underline" data-action="demo" data-note="Detail aset AST-PRJ-0087 dibuka.">Detail</button></td>
+                    </tr>
+                    <tr class="hover:bg-surface-container-low transition">
+                      <td class="py-3.5 px-5 font-bold text-on-surface">AST-WIFI-0145</td>
+                      <td class="py-3.5 px-5 text-on-surface">Access Point Wi-Fi 6</td>
+                      <td class="py-3.5 px-5 text-secondary">Perpustakaan • Lt. 2</td>
+                      <td class="py-3.5 px-5"><span class="px-2.5 py-1 rounded-full bg-orange-100 text-primary font-bold text-[10px]">GANGGUAN</span></td>
+                      <td class="py-3.5 px-5 text-secondary">18 Okt 2026</td>
+                      <td class="py-3.5 px-5 text-right"><button type="button" class="text-primary font-bold hover:underline" data-action="demo" data-note="Detail aset AST-WIFI-0145 dibuka.">Detail</button></td>
+                    </tr>
+                    <tr class="hover:bg-surface-container-low transition">
+                      <td class="py-3.5 px-5 font-bold text-on-surface">AST-LFT-0004</td>
+                      <td class="py-3.5 px-5 text-on-surface">Lift Penumpang 8 Orang</td>
+                      <td class="py-3.5 px-5 text-secondary">Rektorat • Gedung A</td>
+                      <td class="py-3.5 px-5"><span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 font-bold text-[10px]">BAIK</span></td>
+                      <td class="py-3.5 px-5 text-secondary">28 Okt 2026</td>
+                      <td class="py-3.5 px-5 text-right"><button type="button" class="text-primary font-bold hover:underline" data-action="demo" data-note="Detail aset AST-LFT-0004 dibuka.">Detail</button></td>
+                    </tr>
+                    <tr class="hover:bg-surface-container-low transition">
+                      <td class="py-3.5 px-5 font-bold text-on-surface">AST-MJR-0210</td>
+                      <td class="py-3.5 px-5 text-on-surface">Meja Dosen Ergonomis</td>
+                      <td class="py-3.5 px-5 text-secondary">Fakultas Teknik • R.301</td>
+                      <td class="py-3.5 px-5"><span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 font-bold text-[10px]">BAIK</span></td>
+                      <td class="py-3.5 px-5 text-secondary">05 Okt 2026</td>
+                      <td class="py-3.5 px-5 text-right"><button type="button" class="text-primary font-bold hover:underline" data-action="demo" data-note="Detail aset AST-MJR-0210 dibuka.">Detail</button></td>
+                    </tr>
+                    <tr class="hover:bg-surface-container-low transition">
+                      <td class="py-3.5 px-5 font-bold text-on-surface">AST-SAN-0063</td>
+                      <td class="py-3.5 px-5 text-on-surface">Pintu Geser Otomatis Toilet</td>
+                      <td class="py-3.5 px-5 text-secondary">Rektorat • Lt. 1</td>
+                      <td class="py-3.5 px-5"><span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-bold text-[10px]">PERLU SERVIS</span></td>
+                      <td class="py-3.5 px-5 text-secondary">21 Sep 2026</td>
+                      <td class="py-3.5 px-5 text-right"><button type="button" class="text-primary font-bold hover:underline" data-action="demo" data-note="Detail aset AST-SAN-0063 dibuka.">Detail</button></td>
+                    </tr>
+                    <tr class="hover:bg-surface-container-low transition">
+                      <td class="py-3.5 px-5 font-bold text-on-surface">AST-LMP-0455</td>
+                      <td class="py-3.5 px-5 text-on-surface">Lampu Sorot LED 200W</td>
+                      <td class="py-3.5 px-5 text-secondary">Gelanggang Olahraga</td>
+                      <td class="py-3.5 px-5"><span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 font-bold text-[10px]">BAIK</span></td>
+                      <td class="py-3.5 px-5 text-secondary">24 Apr 2026</td>
+                      <td class="py-3.5 px-5 text-right"><button type="button" class="text-primary font-bold hover:underline" data-action="demo" data-note="Detail aset AST-LMP-0455 dibuka.">Detail</button></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANEL: LAPORAN & SLA -->
+          <div class="cc-panel" id="panel-admin-sla">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-5">
+              <div>
+                <h2 class="text-xl sm:text-2xl font-bold text-on-surface font-display tracking-tight">Laporan Kinerja &amp; SLA</h2>
+                <p class="text-xs text-secondary mt-1">Rekap performa pemeliharaan sarana kampus periode November 2026.</p>
+              </div>
+              <button type="button" class="h-11 px-5 rounded-full bg-primary-container text-white text-xs font-bold shadow-[0_12px_28px_-4px_rgba(255,102,31,0.45)] hover:brightness-110 transition flex items-center gap-2" data-action="export">
+                <span class="material-symbols-outlined text-base">picture_as_pdf</span>
+                Unduh Laporan Bulanan
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-5">
+              <div class="bg-surface-container-lowest rounded-2xl p-5 border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)]">
+                <p class="text-xs text-secondary">Rata-rata Respon</p>
+                <p class="font-display text-3xl font-bold text-on-surface mt-1">1.8 <span class="text-sm font-semibold text-secondary">jam</span></p>
+                <p class="text-[11px] font-semibold text-emerald-600 mt-1">Turun 0.3 jam dari bulan lalu</p>
+              </div>
+              <div class="bg-surface-container-lowest rounded-2xl p-5 border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)]">
+                <p class="text-xs text-secondary">SLA Tercapai</p>
+                <p class="font-display text-3xl font-bold text-emerald-600 mt-1">97.2%</p>
+                <div class="w-full h-1.5 rounded-full bg-surface-container mt-3 overflow-hidden"><div class="h-full w-[97.2%] rounded-full bg-emerald-500"></div></div>
+              </div>
+              <div class="bg-surface-container-lowest rounded-2xl p-5 border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)]">
+                <p class="text-xs text-secondary">Tiket Selesai</p>
+                <p class="font-display text-3xl font-bold text-on-surface mt-1">142</p>
+                <p class="text-[11px] font-semibold text-primary mt-1">+18% dibanding bulan lalu</p>
+              </div>
+              <div class="bg-surface-container-lowest rounded-2xl p-5 border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)]">
+                <p class="text-xs text-secondary">Backlog Aktif</p>
+                <p class="font-display text-3xl font-bold text-primary mt-1">15</p>
+                <p class="text-[11px] font-semibold text-secondary mt-1">4 di antaranya prioritas tinggi</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
+              <div class="xl:col-span-8 bg-surface-container-lowest rounded-2xl p-6 border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)]">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h3 class="text-sm font-bold text-on-surface font-display">Tren Penyelesaian Tiket</h3>
+                    <p class="text-[11px] text-secondary">Enam bulan terakhir • dalam jumlah tiket</p>
+                  </div>
+                  <span class="inline-flex items-center gap-2 text-[11px] font-semibold text-secondary"><span class="w-2.5 h-2.5 rounded-full bg-primary-container"></span>Selesai</span>
+                </div>
+                <div class="h-52 flex items-end gap-3 sm:gap-5 pt-6 px-1">
+                  <div class="flex-1 flex flex-col items-center gap-2"><div class="w-full max-w-[46px] rounded-t-xl bg-surface-container-high" style="height: 58%"></div><span class="text-[10px] font-semibold text-secondary">Jun</span></div>
+                  <div class="flex-1 flex flex-col items-center gap-2"><div class="w-full max-w-[46px] rounded-t-xl bg-surface-container-high" style="height: 66%"></div><span class="text-[10px] font-semibold text-secondary">Jul</span></div>
+                  <div class="flex-1 flex flex-col items-center gap-2"><div class="w-full max-w-[46px] rounded-t-xl bg-surface-container-high" style="height: 74%"></div><span class="text-[10px] font-semibold text-secondary">Agu</span></div>
+                  <div class="flex-1 flex flex-col items-center gap-2"><div class="w-full max-w-[46px] rounded-t-xl bg-primary-container/30" style="height: 82%"></div><span class="text-[10px] font-semibold text-secondary">Sep</span></div>
+                  <div class="flex-1 flex flex-col items-center gap-2"><div class="w-full max-w-[46px] rounded-t-xl bg-primary-container/60" style="height: 90%"></div><span class="text-[10px] font-semibold text-secondary">Okt</span></div>
+                  <div class="flex-1 flex flex-col items-center gap-2"><div class="w-full max-w-[46px] rounded-t-xl bg-primary-container" style="height: 97%"></div><span class="text-[10px] font-bold text-primary">Nov</span></div>
+                </div>
+              </div>
+
+              <div class="xl:col-span-4 bg-surface-container-lowest rounded-2xl p-6 border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)]">
+                <h3 class="text-sm font-bold text-on-surface font-display">Target SLA per Kategori</h3>
+                <div class="mt-4 space-y-3.5 text-xs">
+                  <div>
+                    <div class="flex justify-between mb-1"><span class="font-medium text-on-surface">Kelistrikan &amp; AC</span><span class="font-bold text-emerald-600">98%</span></div>
+                    <div class="w-full h-2 rounded-full bg-surface-container overflow-hidden"><div class="h-full w-[98%] rounded-full bg-emerald-500"></div></div>
+                  </div>
+                  <div>
+                    <div class="flex justify-between mb-1"><span class="font-medium text-on-surface">Jaringan &amp; IT</span><span class="font-bold text-emerald-600">96%</span></div>
+                    <div class="w-full h-2 rounded-full bg-surface-container overflow-hidden"><div class="h-full w-[96%] rounded-full bg-emerald-500"></div></div>
+                  </div>
+                  <div>
+                    <div class="flex justify-between mb-1"><span class="font-medium text-on-surface">Multimedia</span><span class="font-bold text-primary">91%</span></div>
+                    <div class="w-full h-2 rounded-full bg-surface-container overflow-hidden"><div class="h-full w-[91%] rounded-full bg-primary-container"></div></div>
+                  </div>
+                  <div>
+                    <div class="flex justify-between mb-1"><span class="font-medium text-on-surface">Sanitasi &amp; Sipil</span><span class="font-bold text-primary">88%</span></div>
+                    <div class="w-full h-2 rounded-full bg-surface-container overflow-hidden"><div class="h-full w-[88%] rounded-full bg-primary-container"></div></div>
+                  </div>
+                  <div>
+                    <div class="flex justify-between mb-1"><span class="font-medium text-on-surface">Lift &amp; Akses Gedung</span><span class="font-bold text-amber-600">84%</span></div>
+                    <div class="w-full h-2 rounded-full bg-surface-container overflow-hidden"><div class="h-full w-[84%] rounded-full bg-amber-500"></div></div>
+                  </div>
+                </div>
+                <p class="text-[11px] text-secondary leading-relaxed mt-4">Kategori lift dan akses gedung menjadi fokus peningkatan karena ketergantungan suku cadang impor.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- MODAL: DISPOSISI CEPAT -->
+    <div class="cc-modal" id="modal-dispatch" role="dialog" aria-modal="true" aria-labelledby="dispatch-modal-title" hidden>
+      <div class="cc-modal__card">
+        <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-lg bg-orange-100 text-primary-container flex items-center justify-center">
+              <span class="material-symbols-outlined text-xl font-bold">bolt</span>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-gray-900 font-display" id="dispatch-modal-title">Disposisi Penugasan Cepat</h3>
+              <p class="text-xs text-gray-500">Tugaskan teknisi lapangan ke tiket prioritas</p>
+            </div>
+          </div>
+          <button type="button" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center transition" data-action="close-modal" aria-label="Tutup">
+            <span class="material-symbols-outlined text-base">close</span>
+          </button>
+        </div>
+
+        <form class="mt-4 space-y-3.5" id="dispatch-form">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1" for="ticket-select">Tiket Masuk</label>
+            <select class="w-full text-xs font-semibold rounded-xl border-gray-200 focus:border-primary-container focus:ring-primary-container bg-gray-50 p-2.5" id="ticket-select" required></select>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1" for="dispatch-team">Tim Teknisi</label>
+              <select class="w-full text-xs font-semibold rounded-xl border-gray-200 focus:border-primary-container focus:ring-primary-container bg-gray-50 p-2.5" id="dispatch-team" required>
+                <option>Tim Kelistrikan &amp; AC</option>
+                <option>Tim Multimedia &amp; Proyektor</option>
+                <option>Tim Sanitasi &amp; Bangunan</option>
+                <option>Tim Jaringan &amp; IT Sarpras</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1" for="dispatch-priority">Tingkat Prioritas</label>
+              <select class="w-full text-xs font-semibold rounded-xl border-gray-200 focus:border-primary-container focus:ring-primary-container bg-gray-50 p-2.5" id="dispatch-priority" required>
+                <option value="Tinggi">Tinggi (SLA &lt; 2 Jam)</option>
+                <option value="Sedang">Sedang (SLA &lt; 6 Jam)</option>
+                <option value="Rendah">Rendah (SLA 24 Jam)</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1" for="dispatch-note">Instruksi Khusus untuk Teknisi</label>
+            <textarea class="w-full text-xs font-medium rounded-xl border-gray-200 focus:border-primary-container focus:ring-primary-container bg-gray-50 p-2.5" id="dispatch-note" placeholder="Bawa tangga lipat dan periksa unit kondensor AC luar gedung..." rows="3"></textarea>
+          </div>
+          <div class="flex items-center justify-end gap-2 pt-2">
+            <button type="button" class="px-4 py-2 rounded-full text-xs font-semibold text-gray-600 hover:bg-gray-100 transition" data-action="close-modal">Batal</button>
+            <button type="submit" class="px-5 py-2.5 rounded-full text-xs font-bold bg-primary-container hover:brightness-110 text-white shadow-lg shadow-orange-500/25 transition">Kirim Disposisi Tugas</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- KOMPONEN GLOBAL — MODAL BANTUAN SSO                                   -->
+  <!-- ===================================================================== -->
+  <div class="cc-modal" id="modal-sso-help" role="dialog" aria-modal="true" aria-labelledby="sso-help-title" hidden>
+    <div class="cc-modal__card max-w-md">
+      <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-full bg-orange-100 text-primary-container flex items-center justify-center">
+            <span class="material-symbols-outlined text-xl">help</span>
+          </div>
+          <div>
+            <h3 class="font-display font-bold text-base text-gray-900" id="sso-help-title">Bantuan Akun SSO UNSIL</h3>
+            <p class="font-body text-xs text-gray-500">Prosedur Pemulihan Kata Sandi</p>
+          </div>
+        </div>
+        <button type="button" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition" data-action="close-modal" aria-label="Tutup">
+          <span class="material-symbols-outlined text-base">close</span>
+        </button>
+      </div>
+      <div class="mt-4 space-y-3 font-body text-xs text-gray-600 leading-relaxed">
+        <p>Akun CampusCare menggunakan autentikasi tunggal <strong>Single Sign-On (SSO) Universitas Siliwangi</strong>.</p>
+        <div class="p-3.5 bg-gray-50 rounded-xl space-y-2.5 border border-gray-100">
+          <div class="flex items-start gap-2.5">
+            <span class="material-symbols-outlined text-primary-container text-base mt-0.5">mail</span>
+            <span>Kirim permohonan reset sandi via email resmi ke <strong>helpdesk@unsil.ac.id</strong> dengan melampirkan foto Kartu Tanda Mahasiswa (KTM).</span>
+          </div>
+          <div class="flex items-start gap-2.5">
+            <span class="material-symbols-outlined text-primary-container text-base mt-0.5">apartment</span>
+            <span>Atau kunjungi layanan fisik di <strong>Unit Pelaksana Teknis TIK (Gedung Rektorat Lt. 2)</strong> pada jam kerja.</span>
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end pt-4">
+        <button type="button" class="px-5 py-2.5 rounded-full text-xs font-display font-bold bg-primary-container hover:bg-primary-hover text-white shadow-md transition" data-action="close-modal">
+          Mengerti &amp; Kembali
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- KOMPONEN GLOBAL — TOAST NOTIFIKASI                                    -->
+  <!-- ===================================================================== -->
+  <div class="cc-toast" id="toast" data-variant="success" role="status" aria-live="polite">
+    <span class="cc-toast__icon material-symbols-outlined" id="toast-icon">check</span>
+    <div>
+      <p class="cc-toast__title" id="toast-title">Autentikasi Berhasil</p>
+      <p class="cc-toast__msg" id="toast-message">Memverifikasi kredensial...</p>
+    </div>
+  </div>
+
+  <!-- JavaScript aplikasi (dipisah dari HTML) -->
+  <script src="js/app.js"></script>
+</body>
+</html>
