@@ -2,7 +2,7 @@
    main.js — Titik masuk aplikasi
    1. Muat semua partial HTML (views/**)
    2. Jalankan inisialisasi modul
-   3. Tampilkan antarmuka setelah Tailwind selesai memproses kelas di partial
+   3. Tampilkan antarmuka setelah stylesheet & partial siap
    ========================================================================== */
 
 import { loadPartials } from "./core/partials.js";
@@ -31,8 +31,7 @@ async function boot() {
     await loadPartials();
     init();
 
-    // Dua frame agar Tailwind Play CDN sempat memindai kelas dari partial.
-    await nextFrame();
+    // Satu frame agar browser sempat menghitung layout sebelum animasi masuk.
     await nextFrame();
     revealApp();
   } catch (error) {

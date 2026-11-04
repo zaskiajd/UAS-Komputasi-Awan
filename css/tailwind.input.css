@@ -1,0 +1,4 @@
+/* Sumber kompilasi Tailwind. Jalankan `npm run build:css` setelah mengubah markup/JS. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
