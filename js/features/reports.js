@@ -194,7 +194,7 @@ export function renderStudentSummary() {
 
   if (!recent.length) {
     container.innerHTML = `
-      <div class="cc-empty">
+      <div class="cc-empty flex-1">
         <span class="material-symbols-outlined text-3xl text-gray-300">receipt_long</span>
         <p class="font-display text-sm font-bold text-gray-700">Belum ada pengaduan</p>
         <p class="text-xs text-gray-500">Kirim laporan pertama Anda untuk mulai dipantau tim Sarpras.</p>

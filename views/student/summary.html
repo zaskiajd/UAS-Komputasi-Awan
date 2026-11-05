@@ -75,10 +75,11 @@
               </div>
             </div>
 
-            <!-- Dua kolom -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <!-- Dua kolom: Pengaduan terbaru (8 kol) + Aside bantuan (4 kol) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+              <!-- Kolom kiri: Pengaduan terbaru (diperlebar, tanpa alur penanganan) -->
               <div class="lg:col-span-8 flex flex-col gap-6">
-                <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.04)] border border-[#e2e8f0]">
+                <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.04)] border border-[#e2e8f0] flex-1 flex flex-col">
                   <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
                     <div>
                       <h2 class="text-lg font-bold text-on-surface font-display">Pengaduan terbaru</h2>
@@ -89,38 +90,11 @@
                       <span class="material-symbols-outlined text-base">arrow_forward</span>
                     </button>
                   </div>
-                  <div class="flex flex-col gap-3" id="student-recent-list"></div>
-                </div>
-
-                <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.04)] border border-[#e2e8f0]">
-                  <div class="flex items-center gap-2.5 mb-4">
-                    <span class="w-9 h-9 rounded-full bg-surface-container text-on-surface flex items-center justify-center"><span class="material-symbols-outlined text-lg">route</span></span>
-                    <div>
-                      <h3 class="text-sm font-bold text-on-surface font-display">Alur penanganan pengaduan</h3>
-                      <p class="text-[11px] text-secondary">Dari laporan sampai tiket ditutup.</p>
-                    </div>
-                  </div>
-                  <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                    <div class="p-3.5 rounded-xl bg-surface-container-low flex flex-col gap-1">
-                      <span class="text-[10px] uppercase tracking-wider font-bold text-secondary">1. Laporan</span>
-                      <span class="text-xs font-semibold text-on-surface leading-snug">Terkirim ke antrean Sarpras</span>
-                    </div>
-                    <div class="p-3.5 rounded-xl bg-surface-container-low flex flex-col gap-1">
-                      <span class="text-[10px] uppercase tracking-wider font-bold text-secondary">2. Verifikasi</span>
-                      <span class="text-xs font-semibold text-on-surface leading-snug">Lokasi &amp; prioritas dicek</span>
-                    </div>
-                    <div class="p-3.5 rounded-xl bg-surface-container-low flex flex-col gap-1">
-                      <span class="text-[10px] uppercase tracking-wider font-bold text-secondary">3. Teknisi</span>
-                      <span class="text-xs font-semibold text-on-surface leading-snug">Ditugaskan ke tim lapangan</span>
-                    </div>
-                    <div class="p-3.5 rounded-xl bg-surface-container-low flex flex-col gap-1">
-                      <span class="text-[10px] uppercase tracking-wider font-bold text-secondary">4. Selesai</span>
-                      <span class="text-xs font-semibold text-on-surface leading-snug">Divalidasi lalu ditutup</span>
-                    </div>
-                  </div>
+                  <div class="flex flex-col gap-3 flex-1" id="student-recent-list"></div>
                 </div>
               </div>
 
+              <!-- Kolom kanan: Tips + Bantuan cepat (sejajar dengan pengaduan terbaru) -->
               <aside class="lg:col-span-4 flex flex-col gap-6">
                 <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.04)] border border-[#e2e8f0]">
                   <div class="flex items-center gap-2.5">
