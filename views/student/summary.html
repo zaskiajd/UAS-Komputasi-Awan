@@ -1,0 +1,177 @@
+<div class="cc-panel is-active" id="panel-student-summary">
+
+            <!-- Sapaan -->
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 pt-2">
+              <div class="flex flex-col gap-2 max-w-3xl">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-lowest text-on-surface border border-surface-container-high w-fit shadow-sm">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span class="text-xs font-medium text-secondary">Sesi mahasiswa aktif • Semester Genap 2026/2027</span>
+                </div>
+                <h1 class="text-3xl lg:text-4xl font-bold text-on-surface tracking-tight font-display">Selamat datang, <span data-student-name>Ahmad Rizki</span>.</h1>
+                <p class="text-sm text-secondary leading-relaxed">
+                  Pantau pengaduan fasilitas Anda, lihat progres penanganan teknisi, dan buat laporan baru dari satu tempat.
+                </p>
+              </div>
+              <div class="flex flex-wrap items-center gap-3 shrink-0">
+                <div class="h-12 px-5 rounded-full bg-surface-container-lowest text-on-surface shadow-[0_8px_24px_rgba(20,23,26,0.06)] hover:bg-surface-container-high transition-all flex flex-col justify-center border border-white">
+                  <span class="text-[10px] uppercase tracking-wider text-secondary font-bold leading-none">NIM</span>
+                  <span class="text-xs font-bold leading-tight mt-0.5" data-student-nim>217006120</span>
+                </div>
+                <button type="button" class="h-12 px-7 rounded-full bg-primary-container text-white text-sm font-semibold shadow-[0_12px_28px_-4px_rgba(255,102,31,0.4)] hover:shadow-[0_16px_36px_-4px_rgba(255,102,31,0.55)] hover:scale-[1.02] active:scale-[0.99] transition-all flex items-center gap-2" data-action="open-complaint">
+                  <span class="material-symbols-outlined text-xl font-bold">add</span>
+                  <span>Buat Pengaduan</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Statistik pribadi -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
+              <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.04),0_4px_12px_rgba(166,175,189,0.12)] border border-white/80">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-9 h-9 rounded-full bg-surface-container text-on-surface flex items-center justify-center"><span class="material-symbols-outlined text-lg">receipt_long</span></span>
+                  <span class="text-xs font-semibold text-secondary">Laporan Saya</span>
+                </div>
+                <div class="flex items-baseline gap-1.5 mt-5">
+                  <span class="text-3xl font-bold text-on-surface font-display tracking-tight" data-student-count="all">0</span>
+                  <span class="text-xs text-secondary font-medium">pengaduan</span>
+                </div>
+                <p class="text-[11px] text-secondary mt-1">Total sejak awal semester</p>
+              </div>
+
+              <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.04),0_4px_12px_rgba(166,175,189,0.12)] border border-white/80">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-9 h-9 rounded-full bg-primary-fixed text-primary flex items-center justify-center"><span class="material-symbols-outlined text-lg">fact_check</span></span>
+                  <span class="text-xs font-semibold text-secondary">Menunggu Verifikasi</span>
+                </div>
+                <div class="flex items-baseline gap-1.5 mt-5">
+                  <span class="text-3xl font-bold text-primary font-display tracking-tight" data-student-count="review">0</span>
+                  <span class="text-xs text-secondary font-medium">tiket</span>
+                </div>
+                <p class="text-[11px] text-secondary mt-1">Belum didisposisikan teknisi</p>
+              </div>
+
+              <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.04),0_4px_12px_rgba(166,175,189,0.12)] border border-white/80">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-9 h-9 rounded-full bg-tertiary-fixed text-tertiary flex items-center justify-center"><span class="material-symbols-outlined text-lg">engineering</span></span>
+                  <span class="text-xs font-semibold text-secondary">Sedang Diproses</span>
+                </div>
+                <div class="flex items-baseline gap-1.5 mt-5">
+                  <span class="text-3xl font-bold text-tertiary font-display tracking-tight" data-student-count="progress">0</span>
+                  <span class="text-xs text-secondary font-medium">tiket</span>
+                </div>
+                <p class="text-[11px] text-secondary mt-1">Termasuk menunggu suku cadang</p>
+              </div>
+
+              <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.04),0_4px_12px_rgba(166,175,189,0.12)] border border-white/80">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-9 h-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center"><span class="material-symbols-outlined text-lg">task_alt</span></span>
+                  <span class="text-xs font-semibold text-secondary">Selesai</span>
+                </div>
+                <div class="flex items-baseline gap-1.5 mt-5">
+                  <span class="text-3xl font-bold text-emerald-700 font-display tracking-tight" data-student-count="done">0</span>
+                  <span class="text-xs text-secondary font-medium">tiket</span>
+                </div>
+                <p class="text-[11px] text-secondary mt-1">Sudah divalidasi oleh Sarpras</p>
+              </div>
+            </div>
+
+            <!-- Dua kolom -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              <div class="lg:col-span-8 flex flex-col gap-6">
+                <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.04)] border border-[#e2e8f0]">
+                  <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+                    <div>
+                      <h2 class="text-lg font-bold text-on-surface font-display">Pengaduan terbaru</h2>
+                      <p class="text-xs text-secondary mt-1">Tiga laporan terakhir milik Anda.</p>
+                    </div>
+                    <button type="button" class="text-xs font-bold text-primary hover:underline flex items-center gap-1" data-student-tab="complaints">
+                      Lihat semua pengaduan
+                      <span class="material-symbols-outlined text-base">arrow_forward</span>
+                    </button>
+                  </div>
+                  <div class="flex flex-col gap-3" id="student-recent-list"></div>
+                </div>
+
+                <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.04)] border border-[#e2e8f0]">
+                  <div class="flex items-center gap-2.5 mb-4">
+                    <span class="w-9 h-9 rounded-full bg-surface-container text-on-surface flex items-center justify-center"><span class="material-symbols-outlined text-lg">route</span></span>
+                    <div>
+                      <h3 class="text-sm font-bold text-on-surface font-display">Alur penanganan pengaduan</h3>
+                      <p class="text-[11px] text-secondary">Dari laporan sampai tiket ditutup.</p>
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                    <div class="p-3.5 rounded-xl bg-surface-container-low flex flex-col gap-1">
+                      <span class="text-[10px] uppercase tracking-wider font-bold text-secondary">1. Laporan</span>
+                      <span class="text-xs font-semibold text-on-surface leading-snug">Terkirim ke antrean Sarpras</span>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-surface-container-low flex flex-col gap-1">
+                      <span class="text-[10px] uppercase tracking-wider font-bold text-secondary">2. Verifikasi</span>
+                      <span class="text-xs font-semibold text-on-surface leading-snug">Lokasi &amp; prioritas dicek</span>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-surface-container-low flex flex-col gap-1">
+                      <span class="text-[10px] uppercase tracking-wider font-bold text-secondary">3. Teknisi</span>
+                      <span class="text-xs font-semibold text-on-surface leading-snug">Ditugaskan ke tim lapangan</span>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-surface-container-low flex flex-col gap-1">
+                      <span class="text-[10px] uppercase tracking-wider font-bold text-secondary">4. Selesai</span>
+                      <span class="text-xs font-semibold text-on-surface leading-snug">Divalidasi lalu ditutup</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <aside class="lg:col-span-4 flex flex-col gap-6">
+                <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.04)] border border-[#e2e8f0]">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-9 h-9 rounded-full bg-primary-fixed text-primary flex items-center justify-center"><span class="material-symbols-outlined text-lg">lightbulb</span></span>
+                    <h3 class="text-sm font-bold text-on-surface font-display">Tips laporan cepat ditangani</h3>
+                  </div>
+                  <ul class="mt-4 space-y-3 text-xs text-secondary">
+                    <li class="flex gap-2.5">
+                      <span class="material-symbols-outlined text-base text-primary mt-0.5">check_circle</span>
+                      <span>Tuliskan judul singkat dan lokasi ruang yang jelas.</span>
+                    </li>
+                    <li class="flex gap-2.5">
+                      <span class="material-symbols-outlined text-base text-primary mt-0.5">check_circle</span>
+                      <span>Pilih prioritas <b>Tinggi</b> hanya bila aktivitas kuliah terhenti.</span>
+                    </li>
+                    <li class="flex gap-2.5">
+                      <span class="material-symbols-outlined text-base text-primary mt-0.5">check_circle</span>
+                      <span>Cek menu Pengaduan Saya untuk melihat progres teknisi.</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.04)] border border-[#e2e8f0]">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-9 h-9 rounded-full bg-surface-container text-on-surface flex items-center justify-center"><span class="material-symbols-outlined text-lg">support_agent</span></span>
+                    <div>
+                      <h3 class="text-sm font-bold text-on-surface font-display">Bantuan cepat</h3>
+                      <p class="text-[11px] text-secondary">Biro Sarana &amp; Prasarana UNSIL</p>
+                    </div>
+                  </div>
+                  <div class="flex flex-col gap-2.5 mt-4">
+                    <a class="p-3 rounded-full bg-surface-container flex items-center justify-between hover:bg-surface-container-high transition-colors" href="tel:+6282112345678">
+                      <span class="flex items-center gap-3 pl-2">
+                        <span class="material-symbols-outlined text-lg text-primary-container">call</span>
+                        <span class="text-xs font-semibold text-on-surface">Hotline Sarpras</span>
+                      </span>
+                      <span class="text-[11px] text-secondary pr-2">+62 821-1234-5678</span>
+                    </a>
+                    <a class="p-3 rounded-full bg-surface-container flex items-center justify-between hover:bg-surface-container-high transition-colors" href="mailto:sarpras@unsil.ac.id">
+                      <span class="flex items-center gap-3 pl-2">
+                        <span class="material-symbols-outlined text-lg text-secondary">mail</span>
+                        <span class="text-xs font-semibold text-on-surface">Email resmi</span>
+                      </span>
+                      <span class="text-[11px] text-secondary pr-2">sarpras@unsil.ac.id</span>
+                    </a>
+                    <button type="button" class="w-full h-10 rounded-full bg-inverse-surface hover:bg-black text-white text-xs font-bold transition-colors flex items-center justify-center gap-2" data-student-tab="help">
+                      <span class="material-symbols-outlined text-base">help</span>
+                      Bantuan &amp; Kontak
+                    </button>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </div>

@@ -78,7 +78,7 @@ body[data-view="public"] {
 }
 
 body[data-view="student"] {
-  background-color: var(--cc-canvas-student);
+  background-color: var(--cc-canvas);
 }
 
 body[data-view="admin"] {

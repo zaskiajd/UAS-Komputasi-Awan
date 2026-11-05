@@ -19,6 +19,16 @@ export const state = {
   selectedTicket: null,
 };
 
+/** Profil mahasiswa aktif. Sebelum sesi login memakai akun demo pemilik tiket seed. */
+export const DEMO_STUDENT = {
+  name: "Ahmad Rizki",
+  nim: "217006120",
+  faculty: "Teknik Informatika",
+  email: "217006120@student.unsil.ac.id",
+};
+
+export const activeStudent = () => state.student || DEMO_STUDENT;
+
 let reportSequence = 916;
 
 export function nextReportId() {

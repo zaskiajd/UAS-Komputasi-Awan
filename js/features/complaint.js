@@ -3,7 +3,7 @@
    ========================================================================== */
 
 import { byId, nowLabel } from "../core/dom.js";
-import { nextReportId, state } from "../core/state.js";
+import { activeStudent, nextReportId, state } from "../core/state.js";
 import { closeModal } from "../ui/modal.js";
 import { showToast } from "../ui/toast.js";
 import { renderReports } from "./reports.js";
@@ -27,11 +27,13 @@ export function handleComplaintSubmit(event) {
   const room = byId("complaint-room").value.trim();
   const priority = byId("complaint-priority").value;
   const description = byId("complaint-desc").value.trim();
+  const student = activeStudent();
 
   const newReport = {
     id: nextReportId(),
     title: title || description.slice(0, 80),
-    reporter: "Ahmad Rizki (Mhs • 217006120)",
+    reporter: `${student.name} (Mhs • ${student.nim})`,
+    owner: student.nim,
     location: `${building} • ${room}`,
     cat: CATEGORY_MAP[categoryLabel] || "ac",
     status: "review",

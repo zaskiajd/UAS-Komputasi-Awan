@@ -13,7 +13,7 @@ import { init } from "./core/init.js";
 /** View dan panel wajib ada; kalau hilang, dashboard tampil kosong tanpa pesan. */
 const REQUIRED_VIEWS = ["view-public", "view-auth", "view-student", "view-admin"];
 const REQUIRED_PANELS = {
-  student: ["dashboard", "complaints", "timeline", "campus"],
+  student: ["summary", "complaints", "help"],
   admin: ["dashboard", "dispatches", "techs", "inventory", "sla"],
 };
 const REQUIRED_MODALS = ["modal-complaint", "modal-dispatch", "modal-sso-help", "toast"];

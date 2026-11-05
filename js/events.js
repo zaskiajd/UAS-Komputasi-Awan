@@ -8,7 +8,7 @@ import { setView } from "./core/router.js";
 import { STATUS_META } from "./data/reports.js";
 import { closeMenus } from "./ui/menu.js";
 import { closeModal, openModal } from "./ui/modal.js";
-import { toggleSidebar } from "./ui/sidebar.js";
+import { closeDrawers, toggleSidebar, toggleStudentSidebar } from "./ui/sidebar.js";
 import { showToast } from "./ui/toast.js";
 import {
   clearFieldError,
@@ -146,7 +146,7 @@ function handleAction(actionElement) {
       break;
 
     case "logout":
-      toggleSidebar(false);
+      closeDrawers();
       logout();
       break;
 
@@ -156,6 +156,14 @@ function handleAction(actionElement) {
 
     case "close-sidebar":
       toggleSidebar(false);
+      break;
+
+    case "toggle-student-sidebar":
+      toggleStudentSidebar(true);
+      break;
+
+    case "close-student-sidebar":
+      toggleStudentSidebar(false);
       break;
 
     case "demo":
@@ -230,7 +238,7 @@ export function bindEvents() {
   /* Escape */
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
-    toggleSidebar(false);
+    closeDrawers();
     const openModals = $$(".cc-modal.is-open");
     if (openModals.length) {
       closeModal(openModals[openModals.length - 1]);

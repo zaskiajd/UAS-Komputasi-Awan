@@ -1,25 +1,39 @@
 /* ==========================================================================
-   ui/sidebar.js — Drawer navigasi admin (mobile & desktop)
+   ui/sidebar.js — Drawer navigasi (admin & mahasiswa)
    ========================================================================== */
 
 import { byId } from "../core/dom.js";
 
-export function toggleSidebar(open) {
-  const drawer = byId("sidebar-drawer");
-  const backdrop = byId("sidebar-backdrop");
+const DRAWERS = {
+  admin: { drawer: "sidebar-drawer", backdrop: "sidebar-backdrop" },
+  student: { drawer: "student-drawer", backdrop: "student-backdrop" },
+};
+
+function setDrawer(scope, open) {
+  const ids = DRAWERS[scope];
+  const drawer = byId(ids.drawer);
+  const backdrop = byId(ids.backdrop);
   if (!drawer || !backdrop) return;
 
-  if (open) {
-    drawer.classList.remove("-translate-x-full");
-    drawer.classList.add("translate-x-0");
-    backdrop.classList.remove("opacity-0", "pointer-events-none");
-    backdrop.classList.add("opacity-100", "pointer-events-auto");
-    document.body.style.overflow = "hidden";
-  } else {
-    drawer.classList.remove("translate-x-0");
-    drawer.classList.add("-translate-x-full");
-    backdrop.classList.remove("opacity-100", "pointer-events-auto");
-    backdrop.classList.add("opacity-0", "pointer-events-none");
-    document.body.style.overflow = "";
-  }
+  drawer.classList.toggle("-translate-x-full", !open);
+  drawer.classList.toggle("translate-x-0", open);
+  backdrop.classList.toggle("opacity-0", !open);
+  backdrop.classList.toggle("pointer-events-none", !open);
+  backdrop.classList.toggle("opacity-100", open);
+  backdrop.classList.toggle("pointer-events-auto", open);
+  document.body.style.overflow = open ? "hidden" : "";
+}
+
+export function toggleSidebar(open) {
+  setDrawer("admin", open);
+}
+
+export function toggleStudentSidebar(open) {
+  setDrawer("student", open);
+}
+
+/** Menutup semua drawer sekaligus (Escape, logout, ganti tampilan). */
+export function closeDrawers() {
+  setDrawer("admin", false);
+  setDrawer("student", false);
 }

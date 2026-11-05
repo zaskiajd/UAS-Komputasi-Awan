@@ -43,7 +43,7 @@
   min-height: 100dvh;
 }
 
-#view-student.is-active > main {
+#view-student.is-active > .view-body {
   flex: 1;
   min-height: 0;
 }

@@ -1,11 +1,15 @@
 <div class="cc-panel" id="panel-student-complaints">
-            <div class="glass-panel rounded-3xl p-5 sm:p-6 border border-white/90">
+
+            <!-- Detail tiket (diisi JS) -->
+            <div id="student-detail-card" class="mb-6" hidden></div>
+
+            <div class="bg-surface-container-lowest rounded-2xl p-5 sm:p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.04)] border border-[#e2e8f0]">
               <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <div>
-                  <h2 class="font-display text-xl sm:text-2xl font-extrabold text-[#111417] tracking-tight">Pengaduan Fasilitas Saya</h2>
-                  <p class="text-xs text-gray-500 mt-1">Pantau seluruh laporan, status verifikasi, dan progres penanganan teknisi.</p>
+                  <h2 class="text-xl sm:text-2xl font-bold text-on-surface font-display tracking-tight">Pengaduan Saya</h2>
+                  <p class="text-xs text-secondary mt-1">Seluruh laporan fasilitas atas nama Anda, lengkap dengan detail dan timeline penanganan.</p>
                 </div>
-                <button type="button" class="inline-flex items-center justify-center gap-2 bg-brand-orange text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-lg shadow-orange-500/30 hover:bg-orange-600 transition" data-action="open-complaint">
+                <button type="button" class="h-11 px-5 rounded-full bg-primary-container hover:bg-primary-hover text-white text-xs font-bold shadow-[0_10px_24px_-8px_rgba(255,102,31,0.6)] transition-all flex items-center justify-center gap-2" data-action="open-complaint">
                   <span class="material-symbols-outlined text-base">add</span>
                   Buat Pengaduan Baru
                 </button>
@@ -13,10 +17,10 @@
 
               <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3 mt-5">
                 <div class="relative flex-1">
-                  <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none">search</span>
-                  <input type="search" id="student-search" class="w-full h-11 pl-11 pr-4 rounded-full bg-white/85 border border-white text-xs font-medium text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-orange/40" placeholder="Cari kode tiket, fasilitas, atau lokasi...">
+                  <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-secondary text-lg pointer-events-none">search</span>
+                  <input type="search" id="student-search" class="w-full h-11 pl-11 pr-4 rounded-full bg-surface-container border border-transparent text-xs font-medium text-on-surface placeholder:text-secondary focus:outline-none focus:bg-surface-container-high transition-colors" placeholder="Cari kode tiket, fasilitas, atau lokasi...">
                 </div>
-                <div class="flex items-center gap-1 p-1 bg-white/70 rounded-full overflow-x-auto no-scrollbar border border-white">
+                <div class="flex items-center gap-1 p-1 bg-surface-container rounded-full overflow-x-auto no-scrollbar shrink-0">
                   <button type="button" class="filter-chip is-active" data-student-filter="all">Semua <span data-student-count="all">0</span></button>
                   <button type="button" class="filter-chip" data-student-filter="review">Verifikasi <span data-student-count="review">0</span></button>
                   <button type="button" class="filter-chip" data-student-filter="progress">Diproses <span data-student-count="progress">0</span></button>

@@ -1,167 +1,154 @@
-<section class="app-view p-2 sm:p-4 md:p-6" id="view-student" aria-label="Dashboard Mahasiswa">
+<section class="app-view" id="view-student" aria-label="Portal Mahasiswa CampusCare">
 
-    <main class="w-full max-w-[1440px] mx-auto bg-[#EEF1F5] rounded-[36px] shadow-2xl p-4 sm:p-5 md:p-7 relative border border-white/60 flex flex-col" style="isolation: isolate;">
+    <!-- Backdrop drawer -->
+    <div class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 transition-opacity duration-300 opacity-0 pointer-events-none" id="student-backdrop" data-action="close-student-sidebar"></div>
 
-      <!-- Top navigation -->
-      <header class="flex flex-wrap items-center justify-between gap-3 relative z-30 pb-4">
+    <!-- Drawer menu mahasiswa -->
+    <aside class="fixed top-0 left-0 bottom-0 w-80 bg-surface-container-lowest shadow-2xl z-50 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col border-r border-surface-container-high" id="student-drawer" aria-label="Menu mahasiswa">
+      <div class="h-20 px-6 flex items-center justify-between border-b border-surface-container-high shrink-0">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-brand-orange flex items-center justify-center shadow-lg shadow-orange-500/25">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true">
-              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-              <polyline points="2 17 12 22 22 17"></polyline>
-              <polyline points="2 12 12 17 22 12"></polyline>
-            </svg>
+          <div class="w-10 h-10 rounded-xl bg-primary-container text-white flex items-center justify-center font-bold shadow-sm">
+            <span class="material-symbols-outlined text-xl">school</span>
           </div>
           <div class="flex flex-col">
-            <span class="text-xl font-extrabold tracking-tight text-[#111417] leading-tight">CampusCare</span>
-            <span class="text-[10px] uppercase font-semibold tracking-wider text-gray-500">Student Facility Portal</span>
+            <span class="text-base font-bold text-on-surface leading-tight font-display">CampusCare</span>
+            <span class="text-[11px] text-secondary font-medium">Menu Mahasiswa</span>
           </div>
         </div>
+        <button type="button" class="w-9 h-9 rounded-full bg-surface-container hover:bg-surface-container-high text-secondary hover:text-on-surface flex items-center justify-center transition-all" data-action="close-student-sidebar" aria-label="Tutup menu">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
 
-        <nav class="hidden lg:flex items-center bg-white/70 p-1.5 rounded-full border border-white/80 shadow-sm backdrop-blur-md" aria-label="Navigasi mahasiswa">
-          <button type="button" class="seg-tab is-active" data-student-tab="dashboard">Dashboard</button>
-          <button type="button" class="seg-tab" data-student-tab="complaints">Pengaduan Fasilitas</button>
-          <button type="button" class="seg-tab" data-student-tab="timeline">Timeline Status</button>
-          <button type="button" class="seg-tab" data-student-tab="campus">Area Kampus</button>
-        </nav>
-
-        <div class="flex items-center gap-2 sm:gap-3">
-          <button type="button" class="hidden sm:flex items-center gap-2 bg-brand-orange text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-lg shadow-orange-500/30 hover:bg-orange-600 transition-transform active:scale-95" data-action="open-complaint">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
-              <line x1="12" x2="12" y1="5" y2="19"></line>
-              <line x1="5" x2="19" y1="12" y2="12"></line>
-            </svg>
-            Lapor Masalah
-          </button>
-          <button type="button" class="w-10 h-10 rounded-full bg-white/80 hover:bg-white text-gray-700 flex items-center justify-center border border-white shadow-sm transition" title="Pusat Arsip Fasilitas" data-action="notify" data-note="Pusat arsip fasilitas dibuka.">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-              <rect height="14" rx="2" ry="2" width="20" x="2" y="7"></rect>
-              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-            </svg>
-          </button>
-          <button type="button" class="w-10 h-10 rounded-full bg-white/80 hover:bg-white text-gray-700 flex items-center justify-center border border-white shadow-sm relative transition" title="Notifikasi" data-action="notify" data-note="3 notifikasi baru: 1 tiket selesai, 2 pembaruan status.">
-            <span class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-brand-orange ring-2 ring-white"></span>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-            </svg>
-          </button>
-
-          <div class="relative">
-            <button type="button" class="w-10 h-10 rounded-full ring-2 ring-white bg-gradient-to-tr from-amber-400 to-indigo-600 p-[2px] shadow-sm flex items-center justify-center overflow-hidden" data-action="toggle-menu" data-menu="student-user-menu" aria-haspopup="true" aria-expanded="false" aria-label="Menu akun mahasiswa">
-              <span class="w-full h-full rounded-full bg-slate-800 flex items-center justify-center text-white text-xs font-bold">AR</span>
-            </button>
-            <div class="cc-menu" id="student-user-menu" hidden>
-              <div class="cc-menu__head">
-                <p class="cc-menu__name">Ahmad Rizki</p>
-                <p class="cc-menu__role">Mahasiswa • Teknik Informatika</p>
+      <div class="flex-1 overflow-y-auto px-4 py-5 space-y-6">
+        <div>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-secondary px-3 mb-2 block">Portal Mahasiswa</span>
+          <div class="space-y-1">
+            <button type="button" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-secondary hover:bg-surface-container hover:text-on-surface text-xs font-semibold transition-all group is-active" data-student-tab="summary">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-xl">dashboard</span>
+                <span>Ringkasan</span>
               </div>
-              <button type="button" class="cc-menu__item" data-action="switch-role" data-role="admin">
-                <span class="material-symbols-outlined text-base">admin_panel_settings</span>
-                Buka Dashboard Admin
-              </button>
-              <button type="button" class="cc-menu__item" data-action="open-sso-help">
-                <span class="material-symbols-outlined text-base">help</span>
-                Pusat Bantuan SSO
-              </button>
-              <button type="button" class="cc-menu__item cc-menu__item--danger" data-action="logout">
-                <span class="material-symbols-outlined text-base">logout</span>
-                Keluar Portal
-              </button>
-            </div>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-surface-container-high text-secondary font-bold">Utama</span>
+            </button>
+            <button type="button" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-secondary hover:bg-surface-container hover:text-on-surface text-xs font-semibold transition-all group" data-student-tab="complaints">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-xl">receipt_long</span>
+                <span>Pengaduan Saya</span>
+              </div>
+              <span class="text-[11px] px-2 py-0.5 rounded-full bg-primary-fixed text-primary font-bold" data-student-count="all">0</span>
+            </button>
+            <button type="button" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-secondary hover:bg-surface-container hover:text-on-surface text-xs font-semibold transition-all group" data-student-tab="help">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-xl">help</span>
+                <span>Bantuan &amp; Kontak</span>
+              </div>
+            </button>
           </div>
         </div>
-      </header>
 
-      <!-- Body -->
-      <section class="grid grid-cols-12 gap-5 relative z-20 my-2 flex-1">
+        <div class="p-4 rounded-2xl bg-surface-container-low border border-surface-container-high flex flex-col gap-2">
+          <div class="flex items-center gap-2 text-xs font-bold text-on-surface font-display">
+            <span class="material-symbols-outlined text-primary-container text-lg">support_agent</span>
+            <span>Butuh bantuan akun?</span>
+          </div>
+          <p class="text-[11px] text-secondary">Pelajari prosedur pemulihan kata sandi SSO kampus.</p>
+          <button type="button" class="text-xs font-bold text-primary hover:underline flex items-center gap-1 mt-1" data-action="open-sso-help">
+            <span>Buka panduan SSO</span>
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </button>
+        </div>
+      </div>
 
-        <!-- Floating dock -->
-        <aside class="student-dock col-span-12 lg:col-span-1 flex lg:flex-col items-center justify-between gap-3 lg:gap-0 bg-white/75 backdrop-blur-md rounded-full py-3 px-3 lg:py-4 border border-white/80 shadow-sm self-start lg:max-h-[580px]" aria-label="Dock navigasi cepat">
-          <div class="flex lg:flex-col items-center gap-3 lg:gap-4 w-full justify-center lg:justify-start">
-            <button type="button" class="dock-btn is-active" data-student-tab="dashboard" title="Dashboard Fasilitas">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                <polyline points="2 17 12 22 22 17"></polyline>
-                <polyline points="2 12 12 17 22 12"></polyline>
-              </svg>
+      <div class="p-4 border-t border-surface-container-high bg-surface-container-lowest flex flex-col gap-2 shrink-0">
+        <button type="button" class="w-full h-11 rounded-2xl bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-bold flex items-center justify-center gap-2 transition-colors" data-action="logout">
+          <span class="material-symbols-outlined text-lg text-primary">logout</span>
+          <span>Keluar Portal</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Header tetap -->
+    <header class="student-header fixed top-0 left-0 right-0 h-20 bg-surface-container-lowest/95 backdrop-blur-xl border-b border-surface-container-high z-40 px-4 lg:px-8 flex items-center justify-between shadow-[0_4px_20px_rgba(20,23,26,0.04)]">
+      <div class="flex items-center gap-3 sm:gap-4">
+        <button type="button" class="w-11 h-11 rounded-2xl bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-sm" id="student-sidebar-toggle" data-action="toggle-student-sidebar" aria-label="Buka menu navigasi">
+          <span class="material-symbols-outlined text-2xl font-bold">menu</span>
+        </button>
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-primary-container text-white flex items-center justify-center shadow-[0_6px_18px_rgba(255,102,31,0.35)] shrink-0">
+            <span class="material-symbols-outlined text-2xl font-bold">school</span>
+          </div>
+          <div class="flex flex-col">
+            <div class="flex items-center gap-2">
+              <span class="text-xl font-bold tracking-tight text-on-surface leading-none font-display">CampusCare</span>
+              <span class="text-[10px] tracking-wider uppercase text-primary font-bold px-2 py-0.5 rounded-full bg-primary-fixed hidden sm:inline-block">Mahasiswa</span>
+            </div>
+            <span class="text-[11px] text-secondary font-medium tracking-tight mt-0.5 hidden md:block">Portal Pengaduan Sarana &amp; Prasarana UNSIL</span>
+          </div>
+        </div>
+      </div>
+
+      <nav class="hidden xl:flex items-center p-1 bg-surface-container rounded-full gap-1" aria-label="Navigasi mahasiswa">
+        <button type="button" class="seg-tab is-active" data-student-tab="summary">Ringkasan</button>
+        <button type="button" class="seg-tab" data-student-tab="complaints">Pengaduan Saya</button>
+        <button type="button" class="seg-tab" data-student-tab="help">Bantuan &amp; Kontak</button>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <div class="relative">
+          <button type="button" class="flex items-center gap-3 pl-1 pr-3 py-1 bg-surface-container-low rounded-full hover:bg-surface-container transition border border-white/70 shadow-xs" data-action="toggle-menu" data-menu="student-user-menu" aria-haspopup="true" aria-expanded="false" aria-label="Menu akun mahasiswa">
+            <span class="w-8 h-8 rounded-full bg-primary-container text-white font-bold text-xs flex items-center justify-center shadow-sm" data-student-initials>AR</span>
+            <span class="hidden md:flex flex-col text-left">
+              <span class="text-xs font-bold text-on-surface leading-tight font-display" data-student-name>Ahmad Rizki</span>
+              <span class="text-[11px] text-secondary leading-tight" data-student-meta>Mahasiswa • Teknik Informatika</span>
+            </span>
+            <span class="material-symbols-outlined text-base text-secondary hidden md:inline">expand_more</span>
+          </button>
+          <div class="cc-menu" id="student-user-menu" hidden>
+            <div class="cc-menu__head">
+              <p class="cc-menu__name" data-student-name>Ahmad Rizki</p>
+              <p class="cc-menu__role" data-student-meta>Mahasiswa • Teknik Informatika</p>
+            </div>
+            <button type="button" class="cc-menu__item" data-student-tab="help">
+              <span class="material-symbols-outlined text-base">help</span>
+              Bantuan &amp; Kontak
             </button>
-            <button type="button" class="dock-btn" data-student-tab="complaints" title="Pengaduan Fasilitas">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="16" x2="8" y1="13" y2="13"></line>
-                <line x1="16" x2="8" y1="17" y2="17"></line>
-                <polyline points="10 9 9 9 8 9"></polyline>
-              </svg>
+            <button type="button" class="cc-menu__item" data-action="open-sso-help">
+              <span class="material-symbols-outlined text-base">support_agent</span>
+              Pusat Bantuan SSO
             </button>
-            <button type="button" class="dock-btn" data-student-tab="campus" title="Peta Kampus &amp; Sensor">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                <circle cx="12" cy="10" r="3"></circle>
-              </svg>
-            </button>
-            <button type="button" class="dock-btn" data-student-tab="timeline" title="Timeline Status">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
-              </svg>
-            </button>
-            <button type="button" class="dock-btn" title="Hak Akses" data-action="show-lock-info">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                <rect height="11" rx="2" ry="2" width="18" x="3" y="11"></rect>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-              </svg>
+            <button type="button" class="cc-menu__item cc-menu__item--danger" data-action="logout">
+              <span class="material-symbols-outlined text-base">logout</span>
+              Keluar Portal
             </button>
           </div>
-          <div class="flex lg:flex-col items-center gap-2 lg:gap-3 lg:pt-5 lg:border-t border-gray-200/60">
-            <button type="button" class="dock-btn dock-btn--sm" title="Pusat Bantuan" data-action="open-sso-help">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                <line x1="12" x2="12.01" y1="17" y2="17"></line>
-              </svg>
-            </button>
-            <button type="button" class="dock-btn dock-btn--sm hover:text-red-500" title="Keluar" data-action="logout">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                <polyline points="16 17 21 12 16 7"></polyline>
-                <line x1="21" x2="9" y1="12" y2="12"></line>
-              </svg>
-            </button>
-          </div>
-        </aside>
+        </div>
+      </div>
+    </header>
 
-        <div class="col-span-12 lg:col-span-11">
+    <!-- Konten -->
+    <div class="view-body w-full px-4 sm:px-6 lg:px-8 transition-all duration-300">
+      <main class="student-content w-full pt-28 pb-16">
+        <div class="flex flex-col w-full max-w-[1520px] mx-auto">
 
-          <!-- PANEL: DASHBOARD -->
-          <div data-include="views/student/dashboard.html"></div>
+          <!-- PANEL: RINGKASAN -->
+          <div data-include="views/student/summary.html"></div>
 
-          <!-- PANEL: PENGADUAN -->
+          <!-- PANEL: PENGADUAN SAYA -->
           <div data-include="views/student/complaints.html"></div>
 
-          <!-- PANEL: TIMELINE -->
-          <div data-include="views/student/timeline.html"></div>
-
-          <!-- PANEL: AREA KAMPUS -->
-          <div data-include="views/student/campus.html"></div>
-
+          <!-- PANEL: BANTUAN & KONTAK -->
+          <div data-include="views/student/help.html"></div>
         </div>
-      </section>
+      </main>
+    </div>
 
-      <!-- Status bar -->
-      <footer class="pt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
-        <div class="flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span class="font-medium">Sistem Sensor IoT Kampus: 142 Node Aktif (Koneksi Optimal)</span>
-        </div>
-        <div class="flex flex-wrap items-center gap-4 text-[11px] font-semibold text-gray-400">
-          <span>Server Rektorat Cloud: Latensi 18ms</span>
-          <span>•</span>
-          <span>Protokol Keamanan: Terverifikasi SSO Kampus</span>
-        </div>
-      </footer>
-    </main>
+    <footer class="border-t border-surface-container-high bg-surface-container-lowest">
+      <div class="max-w-[1520px] mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-secondary">
+        <span>© 2026 CampusCare • Biro Sarana &amp; Prasarana Universitas Siliwangi</span>
+        <span>Sesi mahasiswa aktif • data disimpan selama halaman terbuka</span>
+      </div>
+    </footer>
 
     <!-- MODAL: BUAT PENGADUAN -->
     <div data-include="views/modals/complaint.html"></div>
