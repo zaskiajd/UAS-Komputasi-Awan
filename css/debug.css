@@ -1,0 +1,340 @@
+/* ==========================================================================
+   CampusCare — Mode Debug
+   Panel log, hasil diagnosa, tombol DEBUG, dan peringatan tampilan kosong.
+   Hanya aktif saat ?debug=1, Ctrl+Shift+D, atau localStorage "cc-debug".
+   ========================================================================== */
+
+.cc-debug {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 220;
+  display: flex;
+  flex-direction: column;
+  width: min(440px, 100vw);
+  max-height: 100vh;
+  background: #0b1220;
+  color: #e2e8f0;
+  border-left: 1px solid rgba(148, 163, 184, 0.25);
+  box-shadow: -18px 0 40px -20px rgba(2, 6, 23, 0.85);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.cc-debug[hidden] {
+  display: none;
+}
+
+.cc-debug__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  padding: 0.6rem 0.7rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(15, 23, 42, 0.96);
+}
+
+.cc-debug__dot {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 999px;
+  background: var(--cc-orange, #ff661f);
+  box-shadow: 0 0 0 3px rgba(255, 102, 31, 0.22);
+}
+
+.cc-debug__title {
+  font-family: var(--cc-font-display, system-ui), sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+  color: #ffffff;
+}
+
+.cc-debug__chip {
+  padding: 0.1rem 0.42rem;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 999px;
+  font-size: 0.62rem;
+  color: #cbd5e1;
+  white-space: nowrap;
+}
+
+.cc-debug__chip--error {
+  border-color: rgba(248, 113, 113, 0.6);
+  background: rgba(248, 113, 113, 0.16);
+  color: #fecaca;
+}
+
+.cc-debug__spacer {
+  flex: 1;
+}
+
+.cc-debug__btn {
+  padding: 0.28rem 0.55rem;
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  border-radius: 0.45rem;
+  background: rgba(30, 41, 59, 0.85);
+  color: #e2e8f0;
+  font: inherit;
+  font-size: 0.68rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.cc-debug__btn:hover {
+  background: rgba(51, 65, 85, 0.95);
+  border-color: rgba(203, 213, 225, 0.55);
+}
+
+.cc-debug__btn--accent {
+  border-color: transparent;
+  background: var(--cc-orange, #ff661f);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.cc-debug__btn--accent:hover {
+  background: var(--cc-orange-strong, #e55615);
+}
+
+.cc-debug__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.cc-debug__health {
+  padding: 0.55rem 0.7rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.cc-debug__health[hidden] {
+  display: none;
+}
+
+.cc-debug__health-summary {
+  margin: 0 0 0.45rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.cc-debug__check {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr);
+  gap: 0 0.35rem;
+  padding: 0.16rem 0;
+}
+
+.cc-debug__check-mark {
+  font-weight: 700;
+}
+
+.cc-debug__check.is-ok .cc-debug__check-mark {
+  color: #34d399;
+}
+
+.cc-debug__check.is-fail .cc-debug__check-mark {
+  color: #f87171;
+}
+
+.cc-debug__check-name {
+  color: #e2e8f0;
+  word-break: break-word;
+}
+
+.cc-debug__check-detail {
+  grid-column: 2;
+  color: #94a3b8;
+  font-size: 0.66rem;
+  word-break: break-word;
+}
+
+.cc-debug__log {
+  margin: 0;
+  padding: 0.35rem 0.7rem 0.9rem;
+  list-style: none;
+}
+
+.cc-debug__entry {
+  padding: 0.28rem 0;
+  border-bottom: 1px dashed rgba(148, 163, 184, 0.14);
+}
+
+.cc-debug__entry-head {
+  display: flex;
+  gap: 0.4rem;
+  align-items: baseline;
+}
+
+.cc-debug__time {
+  flex: none;
+  color: #64748b;
+  font-size: 0.64rem;
+}
+
+.cc-debug__level {
+  flex: none;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #93c5fd;
+}
+
+.cc-debug__entry--warn .cc-debug__level {
+  color: #fbbf24;
+}
+
+.cc-debug__entry--error .cc-debug__level {
+  color: #f87171;
+}
+
+.cc-debug__message {
+  color: #e2e8f0;
+  word-break: break-word;
+}
+
+.cc-debug__detail {
+  margin: 0.2rem 0 0;
+  padding: 0.3rem 0.45rem;
+  border-radius: 0.35rem;
+  background: rgba(148, 163, 184, 0.12);
+  color: #cbd5e1;
+  font-size: 0.66rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.cc-debug__hint {
+  padding: 0.45rem 0.7rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(15, 23, 42, 0.96);
+  color: #94a3b8;
+  font-size: 0.64rem;
+}
+
+.cc-debug__hint code {
+  padding: 0 0.25rem;
+  border-radius: 0.25rem;
+  background: rgba(148, 163, 184, 0.16);
+  color: #f1f5f9;
+}
+
+.cc-debug__clipboard {
+  position: fixed;
+  top: -1000px;
+  left: -1000px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+/* Tombol mengambang untuk membuka panel */
+.cc-debug-fab {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 210;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  background: #0b1220;
+  color: #ffd7c2;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  box-shadow: 0 12px 28px -12px rgba(2, 6, 23, 0.9);
+}
+
+.cc-debug-fab:hover {
+  background: #14203a;
+  color: #ffffff;
+}
+
+.cc-debug-fab[hidden] {
+  display: none;
+}
+
+/* Peringatan tampilan kosong */
+.cc-view-warning {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  z-index: 215;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: min(520px, calc(100vw - 24px));
+  padding: 0.7rem 0.85rem;
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  border-radius: 0.9rem;
+  background: #1f1315;
+  color: #fee2e2;
+  transform: translateX(-50%);
+  box-shadow: 0 18px 40px -18px rgba(2, 6, 23, 0.9);
+  font-family: var(--cc-font-body, system-ui), sans-serif;
+  font-size: 0.75rem;
+}
+
+.cc-view-warning__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.cc-view-warning__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.cc-view-warning__text strong {
+  color: #ffffff;
+  font-size: 0.78rem;
+}
+
+.cc-view-warning__btn {
+  flex: none;
+  padding: 0.28rem 0.55rem;
+  border: 1px solid rgba(254, 226, 226, 0.45);
+  border-radius: 0.5rem;
+  background: rgba(239, 68, 68, 0.22);
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.68rem;
+  cursor: pointer;
+}
+
+.cc-view-warning__btn:hover {
+  background: rgba(239, 68, 68, 0.38);
+}
+
+.cc-view-warning__btn--ghost {
+  border-color: transparent;
+  background: transparent;
+  padding: 0.28rem 0.4rem;
+}
+
+@media (max-width: 640px) {
+  .cc-debug {
+    width: 100vw;
+    border-left: none;
+  }
+
+  .cc-view-warning {
+    flex-wrap: wrap;
+  }
+}

@@ -40,17 +40,19 @@ Satu aplikasi web utuh yang menggabungkan tiga tampilan CampusCare (login/regist
 │   ├── admin.css              #   Header, drawer, dan konten admin
 │   ├── responsive.css         #   Aturan responsif lintas view
 │   ├── utilities.css          #   Kelas bantu & preferensi pengguna
+│   ├── debug.css              #   Panel mode debug & peringatan tampilan kosong
 │   ├── fonts.css              #   @font-face font lokal (Space Grotesk, Jakarta Sans, ikon)
 │   ├── tailwind.input.css     #   Sumber kompilasi Tailwind
 │   └── tailwind.css           #   Tailwind hasil kompilasi (statis, tanpa CDN)
 ├── js/                        # ES module (tanpa build step)
-│   ├── main.js                #   Titik masuk: muat partial → init → tampilkan UI
+│   ├── main.js                #   Titik masuk: muat partial → init → validasi shell → tampilkan UI
 │   ├── events.js              #   Delegasi klik/keydown & pemetaan data-action
 │   ├── core/
 │   │   ├── dom.js             #     Helper DOM & format tanggal
 │   │   ├── state.js           #     State aplikasi & penomoran tiket
-│   │   ├── router.js          #     Perpindahan view + sinkronisasi hash
-│   │   ├── partials.js        #     Pemuat partial HTML (fetch, rekursif)
+│   │   ├── router.js          #     Perpindahan view + audit tampilan
+│   │   ├── partials.js        #     Pemuat partial HTML (fetch, retry, validasi isi)
+│   │   ├── debug.js           #     Mode debug, log boot, diagnosa mandiri
 │   │   └── init.js            #     Inisialisasi state, event, dan render awal
 │   ├── data/
 │   │   └── reports.js         #     Metadata kategori/status & data contoh
@@ -93,9 +95,29 @@ Alternatif lain: `npx serve .`, ekstensi *Live Server* di VS Code, atau unggah f
 
 **Mengapa tidak bisa `file://`?** Partial dimuat dengan `fetch`, dan browser memblokir `fetch`/module script untuk protokol `file://`. Bila dibuka langsung, aplikasi menampilkan panel "Antarmuka tidak dapat dimuat" beserta instruksi server di atas.
 
-**Jika tampilan terlihat rusak setelah memperbarui file**, lakukan *hard refresh* (`Ctrl+F5`) agar browser tidak memakai CSS/JS lama dari cache. Bila modul JS gagal dimuat, aplikasi menampilkan panel peringatan otomatis setelah 8 detik, bukan layar "Memuat CampusCare…" yang menggantung.
+**Jika tampilan terlihat rusak setelah memperbarui file**, lakukan *hard refresh* (`Ctrl+F5`) agar browser tidak memakai CSS/JS lama dari cache. Bila modul JS gagal dimuat, aplikasi menampilkan panel peringatan otomatis setelah 8 detik, bukan layar "Memuat CampusCare…" yang menggantung. Panel itu punya tombol **Diagnosa cepat** dan **Muat ulang** yang tetap bekerja meski modul inti gagal dimuat.
 
 Tanpa koneksi internet aplikasi tetap berfungsi penuh: Tailwind sudah dikompilasi ke `css/tailwind.css`, JS disajikan lokal, dan seluruh font (termasuk ikon Material Symbols) di-*host* sendiri di `assets/fonts/`. Hanya foto kampus dari `lh3.googleusercontent.com` yang perlu internet; CSS menyediakan gradient sebagai fallback.
+
+---
+
+## Mode Debug
+
+Aktifkan bila tampilan terasa kosong atau ada perilaku aneh:
+
+| Cara | Keterangan |
+| --- | --- |
+| `?debug=1` | Tambahkan pada URL, mis. `http://localhost:8000/?debug=1#student` |
+| `Ctrl+Shift+D` | Buka/tutup panel debug kapan saja |
+| `localStorage` | `localStorage.setItem("cc-debug", "1")` lalu muat ulang |
+
+Saat aktif, muncul panel **CampusCare Debug** di kanan layar berisi log boot (durasi muat partial, inisialisasi, validasi shell), error runtime, dan tombol:
+
+- **Diagnosa** — memeriksa protokol, stylesheet, utilitas Tailwind, design token, font lokal, keberadaan view/panel/modal, ID duplikat, kartu tiket, gambar rusak, serta menyimulasikan klik setiap tab mahasiswa/admin.
+- **Salin** — menyalin seluruh laporan (diagnosa + log) ke clipboard.
+- **Bersihkan** — mengosongkan log.
+
+Dari console browser tersedia `ccDiagnose()` dan `ccDebug.report()`. Bila view aktif tidak punya konten terlihat, aplikasi menampilkan banner "Tampilan … terlihat kosong" dengan tombol diagnosa, tanpa menutupi seluruh halaman.
 
 ---
 
@@ -145,7 +167,9 @@ Registrasi baru juga tersedia (minimal 8 karakter, konfirmasi sandi harus sama, 
 
 ## Catatan Teknis
 
-- **Urutan impor bebas dari siklus**: `core → data → ui → features → views → events → main`. `js/main.js` menunggu partial selesai dimuat sebelum menjalankan `init()`.
+- **Urutan impor bebas dari siklus**: `core → data → ui → features → views → events → main`. `js/main.js` menunggu partial selesai dimuat sebelum menjalankan `init()`, lalu memvalidasi bahwa semua view, panel, dan modal benar-benar terpasang.
+- **Partial tahan gagal sesaat**: `core/partials.js` mencoba ulang sekali, menolak respons kosong atau dokumen HTML penuh (mis. fallback server), dan menyebutkan path bermasalah pada pesan galat.
+- **Audit tampilan otomatis**: setiap perpindahan view diaudit; bila panel aktif tidak terlihat, peringatan tampil dan detailnya dicatat di mode debug.
 - Semua interaksi memakai **event delegation** (`data-action`, `data-student-tab`, `data-admin-tab`, `data-student-filter`, `data-admin-filter`) — tidak ada `onclick` inline.
 - Partial boleh memuat partial lain (mis. modal di dalam `views/student.html`); `core/partials.js` menyelesaikannya secara rekursif.
 - Setelah injeksi, UI baru ditampilkan pada `requestAnimationFrame` berikutnya; stylesheet lokal sudah siap sebelum modul berjalan sehingga tidak ada kedipan gaya.

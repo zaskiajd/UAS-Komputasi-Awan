@@ -24,6 +24,9 @@
        Dimuat paling akhir agar utilitas tetap menimpa gaya komponen, sama seperti
        perilaku Tailwind Play CDN yang dulu menyuntik <style> di akhir <head>. -->
   <link rel="stylesheet" href="css/tailwind.css">
+
+  <!-- Gaya mode debug (panel log, tombol DEBUG, peringatan tampilan kosong). -->
+  <link rel="stylesheet" href="css/debug.css">
 </head>
 
 <body data-view="auth" class="antialiased cc-booting">
@@ -57,6 +60,11 @@
       <pre class="boot-code">python -m http.server 8000
 # lalu buka http://localhost:8000</pre>
       <p class="boot-detail" id="boot-error-detail"></p>
+      <pre class="boot-code boot-diag" id="boot-error-diag" hidden></pre>
+      <div class="boot-actions" id="boot-error-actions">
+        <button type="button" class="boot-btn boot-btn--primary" data-boot-action="debug">Diagnosa cepat</button>
+        <button type="button" class="boot-btn" data-boot-action="reload">Muat ulang</button>
+      </div>
     </div>
   </div>
 
@@ -83,6 +91,74 @@
         if (panel) panel.hidden = false;
       });
     }
+  </script>
+
+  <!-- Aksi pada panel galat boot. Ditangani inline (bukan di js/main.js) supaya
+       tombol tetap berfungsi ketika modul aplikasi sendiri gagal dimuat. -->
+  <script>
+    (function () {
+      var actions = document.getElementById("boot-error-actions");
+      if (actions) actions.dataset.bound = "inline";
+
+      function sheetsReport() {
+        var links = document.querySelectorAll('link[rel="stylesheet"]');
+        if (!links.length) return "  (tidak ada stylesheet tertaut)";
+        return Array.prototype.map
+          .call(links, function (link) {
+            var loaded = "?";
+            try {
+              loaded = link.sheet ? link.sheet.cssRules.length + " aturan" : "TIDAK termuat";
+            } catch (error) {
+              loaded = "tidak bisa dibaca";
+            }
+            return "  " + (link.getAttribute("href") || "?") + " → " + loaded;
+          })
+          .join("\n");
+      }
+
+      function quickDiagnose() {
+        if (window.ccDebug && typeof window.ccDebug.diagnose === "function") {
+          window.ccDebug.open();
+          return window.ccDebug.diagnose();
+        }
+
+        var views = ["auth", "student", "admin"].filter(function (name) {
+          return document.getElementById("view-" + name);
+        });
+
+        var lines = [
+          "Diagnosa cepat CampusCare",
+          "Waktu       : " + new Date().toLocaleString("id-ID"),
+          "URL         : " + window.location.href,
+          "Protokol    : " + window.location.protocol,
+          "Viewport    : " + window.innerWidth + "x" + window.innerHeight,
+          "Status boot : " + (document.body.classList.contains("cc-booting") ? "belum selesai" : "selesai"),
+          "Modul inti  : " + (window.__ccReady ? "aktif" : "TIDAK termuat"),
+          "",
+          "Stylesheet:",
+          sheetsReport(),
+          "",
+          "Partial belum dimuat : " + document.querySelectorAll("[data-include]").length,
+          "View ditemukan       : " + (views.length ? views.join(", ") : "tidak ada"),
+          "Panel terkumpul      : " + document.querySelectorAll(".cc-panel").length,
+          "Modul <script>       : " + document.querySelectorAll('script[type="module"]').length
+        ];
+
+        var diag = document.getElementById("boot-error-diag");
+        if (diag) {
+          diag.textContent = lines.join("\n");
+          diag.hidden = false;
+        }
+        console.log("[CampusCare] " + lines.join("\n"));
+      }
+
+      document.addEventListener("click", function (event) {
+        var button = event.target.closest("[data-boot-action]");
+        if (!button) return;
+        if (button.dataset.bootAction === "debug") quickDiagnose();
+        if (button.dataset.bootAction === "reload") window.location.reload();
+      });
+    })();
   </script>
 
   <!-- JavaScript aplikasi (ES module, dimuat setelah partial siap) -->

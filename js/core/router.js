@@ -4,6 +4,7 @@
 
 import { byId } from "./dom.js";
 import { state } from "./state.js";
+import { info, auditView } from "./debug.js";
 import { closeMenus } from "../ui/menu.js";
 import { closeAllModals } from "../ui/modal.js";
 
@@ -33,4 +34,11 @@ export function setView(view) {
   closeMenus();
   closeAllModals();
   window.scrollTo({ top: 0, behavior: "auto" });
+
+  info(`Tampilkan view: ${view}`);
+
+  // Audit setelah browser menghitung layout agar panel kosong cepat terdeteksi.
+  requestAnimationFrame(() => {
+    if (state.view === view) auditView(view);
+  });
 }
