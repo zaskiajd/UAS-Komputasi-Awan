@@ -17,6 +17,10 @@
   padding-bottom: 4rem;
 }
 
+#student-detail-card {
+  scroll-margin-top: 6.5rem;
+}
+
 /* Drawer menu mahasiswa — transisi sama halusnya dengan drawer admin. */
 #student-drawer {
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -87,6 +91,291 @@
   color: #667085;
 }
 
+/* --------------------------------------------------------------------------
+   Hapus riwayat — status tombol pemicu saat mode pilih aktif
+   -------------------------------------------------------------------------- */
+#btn-delete-history[aria-pressed="true"] {
+  background: #ffdad6;
+  color: #93000a;
+  border-color: #fecaca;
+  box-shadow: 0 8px 18px -10px rgba(185, 28, 28, 0.7);
+}
+
+/* --------------------------------------------------------------------------
+   Progress statistik pada detail pengaduan
+   Gauge besar, kartu tahapan interaktif, dan panel detail tahap.
+   -------------------------------------------------------------------------- */
+.cc-progress-dial {
+  position: relative;
+  flex: 0 0 auto;
+  width: 13.5rem;
+  height: 13.5rem;
+}
+
+.cc-progress-dial__svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform: rotate(-90deg);
+}
+
+.cc-progress-dial__track {
+  fill: none;
+  stroke: #e8ebef;
+  stroke-width: 10;
+}
+
+.cc-progress-dial__ring {
+  fill: none;
+  stroke: url(#ccProgressGradient);
+  stroke-width: 10;
+  stroke-linecap: round;
+  filter: drop-shadow(0 6px 10px rgba(255, 102, 31, 0.28));
+  transition: stroke-dashoffset 1.15s cubic-bezier(0.22, 0.9, 0.3, 1), filter 0.25s ease;
+}
+
+.cc-progress-dial:hover .cc-progress-dial__ring {
+  filter: drop-shadow(0 0 14px rgba(255, 102, 31, 0.5));
+}
+
+.cc-progress-dial__center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  padding: 1.75rem;
+  text-align: center;
+}
+
+.cc-progress-dial__value {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--cc-font-display);
+  font-size: 2.85rem;
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+  color: var(--cc-charcoal);
+}
+
+.cc-progress-dial__unit {
+  margin-left: 0.1rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--cc-orange-strong);
+}
+
+.cc-progress-dial__label {
+  max-width: 8.5rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--cc-secondary);
+}
+
+.cc-progress-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid #e8ebef;
+  border-radius: 0.85rem;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.cc-progress-metric__label {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cc-slate);
+}
+
+.cc-progress-metric__value {
+  overflow: hidden;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--cc-charcoal);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cc-stage-step {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  min-height: 7.5rem;
+  padding: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.cc-stage-step:hover {
+  border-color: #fdba74;
+  box-shadow: 0 12px 24px -14px rgba(255, 102, 31, 0.55);
+  transform: translateY(-3px);
+}
+
+.cc-stage-step:focus-visible {
+  outline: 2px solid rgba(255, 102, 31, 0.55);
+  outline-offset: 2px;
+}
+
+.cc-stage-step[data-status="done"] {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.cc-stage-step[data-status="current"] {
+  border-color: var(--cc-orange);
+  background: #fff7f2;
+  box-shadow: 0 12px 26px -16px rgba(255, 102, 31, 0.7);
+}
+
+.cc-stage-step[data-status="pending"] {
+  background: #f8fafc;
+}
+
+.cc-stage-step.is-focused {
+  outline: 2px solid rgba(255, 102, 31, 0.32);
+  outline-offset: 2px;
+}
+
+.cc-stage-step__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.cc-stage-step__index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  background: #e2e8f0;
+  color: #475569;
+  font-family: var(--cc-font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cc-stage-step[data-status="done"] .cc-stage-step__index {
+  background: var(--cc-emerald);
+  color: #ffffff;
+}
+
+.cc-stage-step[data-status="current"] .cc-stage-step__index {
+  background: var(--cc-orange);
+  color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(255, 102, 31, 0.14);
+}
+
+.cc-stage-step__status {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.cc-stage-step[data-status="done"] .cc-stage-step__status {
+  color: #047857;
+}
+
+.cc-stage-step[data-status="current"] .cc-stage-step__status {
+  color: #a73a00;
+}
+
+.cc-stage-step__title {
+  font-family: var(--cc-font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #0f172a;
+}
+
+.cc-stage-step__meta {
+  margin-top: auto;
+  font-size: 0.62rem;
+  line-height: 1.35;
+  color: #64748b;
+}
+
+.cc-stage-detail {
+  padding: 0.9rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  background: rgba(247, 249, 253, 0.85);
+}
+
+.cc-stage-detail__inner {
+  animation: cc-stage-detail-in 0.24s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+}
+
+@keyframes cc-stage-detail-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.cc-stage-detail__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--cc-orange-soft);
+  border-radius: 0.9rem;
+  background: #ffffff;
+  color: var(--cc-orange);
+}
+
+@media (max-width: 639px) {
+  .cc-progress-dial {
+    width: 11.5rem;
+    height: 11.5rem;
+  }
+
+  .cc-progress-dial__value {
+    font-size: 2.35rem;
+  }
+
+  .cc-stage-step {
+    min-height: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-progress-dial__ring,
+  .cc-stage-step,
+  .cc-stage-detail__inner {
+    animation: none;
+    transition: none;
+  }
+}
+
 @media (max-width: 1023px) {
   #view-student .student-content {
     padding-top: 6rem;
@@ -98,14 +387,4 @@
   #view-student .student-content {
     padding-top: 5.5rem;
   }
-}
-
-/* --------------------------------------------------------------------------
-   Hapus riwayat — status tombol pemicu saat mode pilih aktif
-   -------------------------------------------------------------------------- */
-#btn-delete-history[aria-pressed="true"] {
-  background: #ffdad6;
-  color: #93000a;
-  border-color: #fecaca;
-  box-shadow: 0 8px 18px -10px rgba(185, 28, 28, 0.7);
 }

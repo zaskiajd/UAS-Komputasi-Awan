@@ -110,6 +110,16 @@ function handleAction(actionElement) {
       trackReport(actionElement.dataset.ticket);
       break;
 
+    case "close-ticket-detail": {
+      const detail = byId("student-detail-card");
+      if (detail) {
+        detail.hidden = true;
+        delete detail.dataset.ticket;
+      }
+      state.selectedTicket = null;
+      break;
+    }
+
     case "delete-history":
       toggleHistoryDeleteMode();
       break;
