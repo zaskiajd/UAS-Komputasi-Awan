@@ -4,7 +4,7 @@
    ======================================================================== */
 
 import { byId, escapeHtml } from "../core/dom.js";
-import { state } from "../core/state.js";
+import { activeStudent, state } from "../core/state.js";
 import { STATUS_META } from "../data/reports.js";
 import { setStudentTab } from "../views/student.js";
 
@@ -85,7 +85,7 @@ function stageDetailMarkup(stage, stageStatus, isDone) {
 export function trackReport(ticketId) {
   const report = state.reports.find((item) => item.id === ticketId);
   const detail = byId("student-detail-card");
-  if (!report || !detail || report.owner !== state.student?.nim) return;
+  if (!report || !detail || report.owner !== activeStudent().nim) return;
 
   const status = STATUS_META[report.status] || STATUS_META.review;
   const isDone = report.status === "done";
