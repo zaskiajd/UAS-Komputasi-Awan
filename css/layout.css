@@ -25,6 +25,30 @@
   min-height: 100dvh;
 }
 
+#view-student.is-active {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+#view-student.is-active > main {
+  flex: 1;
+  min-height: 0;
+}
+
+#view-admin.is-active {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+#view-admin.is-active > main {
+  flex: 1;
+  min-height: 0;
+}
+
 @media (min-width: 640px) {
   #view-auth {
     padding: 1.25rem;

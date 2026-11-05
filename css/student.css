@@ -3,6 +3,22 @@
    Penyesuaian dock dan layout khusus portal mahasiswa.
    ========================================================================== */
 
+/* Pastikan main container mengisi seluruh tinggi view */
+#view-student > main {
+  min-height: calc(100vh - 3rem);
+  min-height: calc(100dvh - 3rem);
+  display: flex;
+  flex-direction: column;
+  overflow: clip; /* Modern: clip konten keluar tanpa memblokir scroll nested */
+  border-radius: 2.25rem; /* Tetap rounded meski overflow diubah */
+}
+
+/* Body section (dock + panel area) harus mengisi sisa ruang */
+#view-student > main > section.grid {
+  flex: 1;
+  min-height: 0;
+}
+
 
 /* Dock mahasiswa versi mobile — ringkas agar seluruh ikon muat */
 @media (max-width: 767px) {
