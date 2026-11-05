@@ -3,16 +3,20 @@
    ========================================================================== */
 
 export const state = {
-  view: "auth",
-  role: "student",
+  view: "public",
+  role: "public", // public | student | admin
+  authRole: "student", // peran yang sedang dipilih di gerbang login
   authTab: "login",
-  studentTab: "dashboard",
+  studentTab: "summary",
   adminTab: "dashboard",
   studentFilter: "all",
   adminFilter: "all",
   studentQuery: "",
   adminQuery: "",
   reports: [],
+  student: null, // { name, nim, faculty, email }
+  accounts: {}, // akun mahasiswa yang dibuat selama sesi berlangsung
+  selectedTicket: null,
 };
 
 let reportSequence = 916;
