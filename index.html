@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/public.css">
   <link rel="stylesheet" href="css/student.css">
   <link rel="stylesheet" href="css/admin.css">
   <link rel="stylesheet" href="css/responsive.css">
@@ -29,10 +30,11 @@
   <link rel="stylesheet" href="css/debug.css">
 </head>
 
-<body data-view="auth" class="antialiased cc-booting">
+<body data-view="public" class="antialiased cc-booting">
 
   <!-- Kontainer aplikasi — isinya dimuat dari partial HTML di folder views/ -->
   <div id="app">
+    <div data-include="views/public.html"></div>
     <div data-include="views/auth.html"></div>
     <div data-include="views/student.html"></div>
     <div data-include="views/admin.html"></div>
@@ -122,7 +124,7 @@
           return window.ccDebug.diagnose();
         }
 
-        var views = ["auth", "student", "admin"].filter(function (name) {
+        var views = ["public", "auth", "student", "admin"].filter(function (name) {
           return document.getElementById("view-" + name);
         });
 

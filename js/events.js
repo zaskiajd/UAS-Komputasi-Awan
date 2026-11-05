@@ -4,6 +4,7 @@
 
 import { $$, byId } from "./core/dom.js";
 import { state } from "./core/state.js";
+import { setView } from "./core/router.js";
 import { STATUS_META } from "./data/reports.js";
 import { closeMenus } from "./ui/menu.js";
 import { closeModal, openModal } from "./ui/modal.js";
@@ -30,6 +31,22 @@ function handleAction(actionElement) {
   const action = actionElement.dataset.action;
 
   switch (action) {
+    case "open-student-login":
+      setAuthRole("student");
+      setAuthTab("login");
+      setView("auth");
+      break;
+
+    case "open-admin-login":
+      setAuthRole("admin");
+      setAuthTab("login");
+      setView("auth");
+      break;
+
+    case "back-public":
+      setView("public");
+      break;
+
     case "auth-tab":
       setAuthTab(actionElement.dataset.tab);
       break;

@@ -25,6 +25,17 @@
   min-height: 100dvh;
 }
 
+#view-public.is-active {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+#view-public.is-active > main {
+  flex: 1;
+}
+
 #view-student.is-active {
   display: flex;
   flex-direction: column;

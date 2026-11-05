@@ -73,6 +73,10 @@ body[data-view="auth"] {
   background-attachment: fixed;
 }
 
+body[data-view="public"] {
+  background-color: var(--cc-canvas);
+}
+
 body[data-view="student"] {
   background-color: var(--cc-canvas-student);
 }

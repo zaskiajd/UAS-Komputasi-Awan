@@ -1,5 +1,5 @@
 /* ==========================================================================
-   core/router.js — Router tampilan (auth / mahasiswa / admin)
+   core/router.js — Router tampilan (publik / auth / mahasiswa / admin)
    ========================================================================== */
 
 import { byId } from "./dom.js";
@@ -8,23 +8,30 @@ import { info, auditView } from "./debug.js";
 import { closeMenus } from "../ui/menu.js";
 import { closeAllModals } from "../ui/modal.js";
 
+/** Peta hash yang stabil untuk deep link tanpa membocorkan sesi. */
+const HASH_BY_VIEW = {
+  public: "",
+  auth: "#masuk",
+  student: "#student",
+  admin: "#admin",
+};
+
 /** Menyimpan view aktif ke hash URL tanpa menambah riwayat. */
 export function syncHash(view) {
   try {
     const base = window.location.pathname + window.location.search;
-    const next = view === "auth" ? base : `${base}#${view}`;
-    window.history.replaceState(null, "", next);
+    window.history.replaceState(null, "", `${base}${HASH_BY_VIEW[view] || ""}`);
   } catch (error) {
     /* file:// atau lingkungan tanpa History API — abaikan */
   }
 }
 
-/** Menampilkan satu view dan menyembunyikan dua view lainnya. */
+/** Menampilkan satu view dan menyembunyikan view lainnya. */
 export function setView(view) {
   state.view = view;
   document.body.dataset.view = view;
 
-  ["auth", "student", "admin"].forEach((name) => {
+  ["public", "auth", "student", "admin"].forEach((name) => {
     const section = byId(`view-${name}`);
     if (!section) return;
     section.classList.toggle("is-active", name === view);

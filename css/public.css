@@ -1,0 +1,114 @@
+/* ==========================================================================
+   CampusCare — Dashboard Publik
+   Halaman awal untuk user biasa: header tetap, hero, ringkasan agregat,
+   daftar aduan tanpa identitas pelapor, dan sebaran kategori.
+   ========================================================================== */
+
+#view-public {
+  min-height: 100vh;
+  background-color: var(--cc-canvas);
+}
+
+#view-public .public-header {
+  height: 5rem;
+}
+
+#view-public .public-content {
+  padding-top: 7rem;
+  padding-bottom: 4rem;
+}
+
+.public-hero {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(255, 102, 31, 0.35), transparent 38%),
+    radial-gradient(circle at 86% 12%, rgba(37, 99, 235, 0.22), transparent 42%),
+    linear-gradient(135deg, #14171a 0%, #1b2026 48%, #2b1a10 100%);
+  box-shadow: 0 28px 60px -28px rgba(20, 23, 26, 0.65);
+}
+
+.public-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.35;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(circle at 50% 40%, #000 0%, transparent 78%);
+}
+
+.public-hero::after {
+  content: "";
+  position: absolute;
+  right: -120px;
+  bottom: -160px;
+  width: 420px;
+  height: 420px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 0 0 48px rgba(255, 255, 255, 0.025),
+    0 0 0 96px rgba(255, 255, 255, 0.02);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Kartu aduan publik: sengaja tanpa nama/NIM pelapor. */
+.public-ticket {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  background: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.public-ticket:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 12px 24px -18px rgba(20, 23, 26, 0.4);
+  transform: translateY(-1px);
+}
+
+.public-cat-row + .public-cat-row {
+  margin-top: 0.9rem;
+}
+
+.public-cat-track {
+  height: 7px;
+  border-radius: 9999px;
+  background: var(--cc-canvas);
+  overflow: hidden;
+}
+
+.public-cat-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #ff8a4c 0%, #ff661f 100%);
+  transition: width 0.45s cubic-bezier(0.22, 0.9, 0.3, 1);
+}
+
+@media (max-width: 1023px) {
+  #view-public .public-content {
+    padding-top: 6.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  #view-public .public-content {
+    padding-top: 6rem;
+  }
+
+  .public-hero {
+    border-radius: 24px;
+  }
+
+  .public-ticket {
+    align-items: flex-start;
+  }
+}

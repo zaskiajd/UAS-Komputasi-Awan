@@ -7,9 +7,9 @@ import { setView } from "./router.js";
 import { seedReports } from "../data/reports.js";
 import { bindEvents } from "../events.js";
 import { setAuthRole, setAuthTab } from "../views/auth.js";
-import { loginAs } from "../features/session.js";
 import { fillDispatchOptions } from "../features/dispatch.js";
 import { renderReports } from "../features/reports.js";
+import { renderPublicView } from "../views/public.js";
 
 export function init() {
   const initialHash = window.location.hash.replace("#", "").toLowerCase();
@@ -22,12 +22,13 @@ export function init() {
   setAuthRole("student");
   fillDispatchOptions();
   renderReports();
+  renderPublicView();
 
-  setView("auth");
-
-  if (initialHash === "admin") {
-    loginAs("admin");
-  } else if (initialHash === "student" || initialHash === "mahasiswa") {
-    loginAs("student");
+  if (["admin", "student", "mahasiswa", "masuk"].includes(initialHash)) {
+    setAuthRole(initialHash === "admin" ? "admin" : "student");
+    setView("auth");
+    return;
   }
+
+  setView("public");
 }

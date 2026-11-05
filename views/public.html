@@ -1,0 +1,264 @@
+<section class="app-view" id="view-public" aria-label="Dashboard publik CampusCare">
+
+  <!-- Header tetap -->
+  <header class="public-header fixed top-0 left-0 right-0 h-20 bg-surface-container-lowest/95 backdrop-blur-xl border-b border-surface-container-high z-40 px-4 lg:px-8 flex items-center justify-between shadow-[0_4px_20px_rgba(20,23,26,0.04)]">
+    <a class="flex items-center gap-3" href="#" data-action="back-public" aria-label="Beranda CampusCare">
+      <span class="w-11 h-11 rounded-2xl bg-primary-container text-white flex items-center justify-center shadow-[0_6px_18px_rgba(255,102,31,0.35)] shrink-0">
+        <span class="material-symbols-outlined text-2xl font-bold">school</span>
+      </span>
+      <span class="flex flex-col">
+        <span class="flex items-center gap-2">
+          <span class="text-xl font-bold tracking-tight text-on-surface leading-none font-display">CampusCare</span>
+          <span class="text-[10px] tracking-wider uppercase text-primary font-bold px-2 py-0.5 rounded-full bg-primary-fixed hidden sm:inline-block">UNSIL</span>
+        </span>
+        <span class="text-[11px] text-secondary font-medium tracking-tight mt-0.5 hidden md:block">Portal Pengaduan Sarana &amp; Prasarana</span>
+      </span>
+    </a>
+
+    <nav class="hidden lg:flex items-center gap-1 text-xs font-semibold text-secondary" aria-label="Navigasi publik">
+      <a class="px-4 py-2 rounded-full hover:bg-surface-container hover:text-on-surface transition-colors" href="#ringkasan">Ringkasan</a>
+      <a class="px-4 py-2 rounded-full hover:bg-surface-container hover:text-on-surface transition-colors" href="#panduan">Panduan</a>
+      <a class="px-4 py-2 rounded-full hover:bg-surface-container hover:text-on-surface transition-colors" href="#bantuan">Bantuan</a>
+    </nav>
+
+    <div class="flex items-center gap-2 sm:gap-3">
+      <button type="button" class="h-10 px-4 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-bold transition-colors" data-action="open-admin-login">
+        Login Admin
+      </button>
+      <button type="button" class="h-10 px-4 sm:px-5 rounded-full bg-primary-container hover:bg-primary-hover text-white text-xs font-bold shadow-[0_8px_20px_-6px_rgba(255,102,31,0.6)] transition-all flex items-center gap-2" data-action="open-student-login">
+        <span class="material-symbols-outlined text-base">login</span>
+        <span class="hidden sm:inline">Masuk Mahasiswa</span>
+        <span class="sm:hidden">Masuk</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="public-content w-full max-w-[1520px] mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-16">
+    <div class="cc-panel is-active" id="panel-public-main">
+
+      <!-- Hero -->
+      <section class="public-hero rounded-[32px] overflow-hidden p-6 sm:p-9 lg:p-12 mb-6 relative">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+          <div class="lg:col-span-7">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/20 text-white/90 text-[11px] font-semibold mb-5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              Mode publik • data agregat tanpa akun
+            </div>
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight leading-[1.08] font-display">
+              Fasilitas kampus bermasalah?<br class="hidden sm:block">
+              <span class="text-orange-200">Laporkan, pantau, sampai selesai.</span>
+            </h1>
+            <p class="text-sm sm:text-base text-white/70 leading-relaxed mt-5 max-w-2xl">
+              CampusCare menghubungkan mahasiswa dengan Biro Sarana &amp; Prasarana Universitas Siliwangi.
+              Lihat ringkasan penanganan kampus di sini, lalu masuk sebagai mahasiswa untuk mengirim pengaduan.
+            </p>
+            <div class="flex flex-wrap items-center gap-3 mt-7">
+              <button type="button" class="h-12 px-6 rounded-full bg-primary-container hover:bg-primary-hover text-white text-sm font-bold shadow-[0_14px_30px_-8px_rgba(255,102,31,0.8)] transition-all flex items-center gap-2" data-action="open-student-login">
+                <span class="material-symbols-outlined text-lg">campaign</span>
+                Masuk untuk Melapor
+              </button>
+              <a class="h-12 px-6 rounded-full bg-white/10 hover:bg-white/15 border border-white/20 text-white text-sm font-semibold transition-colors flex items-center gap-2" href="#panduan">
+                <span class="material-symbols-outlined text-lg">menu_book</span>
+                Lihat Panduan
+              </a>
+            </div>
+            <p class="text-[11px] text-white/50 mt-4 flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-sm">lock</span>
+              Pengaduan dan riwayat pribadi hanya terlihat setelah login mahasiswa.
+            </p>
+          </div>
+
+          <div class="lg:col-span-5">
+            <div class="rounded-3xl bg-white/10 border border-white/15 backdrop-blur-md p-5 sm:p-6 text-white">
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <p class="text-[10px] uppercase tracking-[0.18em] text-white/60 font-bold">Ringkasan pengaduan</p>
+                  <p class="text-lg font-bold font-display mt-1">Status penanganan kampus</p>
+                </div>
+                <span class="w-10 h-10 rounded-full bg-white/10 border border-white/15 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-xl">monitoring</span>
+                </span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3 mt-5">
+                <div class="rounded-2xl bg-black/15 border border-white/10 p-4">
+                  <p class="text-2xl font-bold font-display leading-none" data-public-count="all">0</p>
+                  <p class="text-[11px] text-white/60 mt-1.5">Total aduan</p>
+                </div>
+                <div class="rounded-2xl bg-black/15 border border-white/10 p-4">
+                  <p class="text-2xl font-bold font-display leading-none text-orange-200" data-public-count="review">0</p>
+                  <p class="text-[11px] text-white/60 mt-1.5">Butuh verifikasi</p>
+                </div>
+                <div class="rounded-2xl bg-black/15 border border-white/10 p-4">
+                  <p class="text-2xl font-bold font-display leading-none text-sky-200" data-public-count="progress">0</p>
+                  <p class="text-[11px] text-white/60 mt-1.5">Sedang ditangani</p>
+                </div>
+                <div class="rounded-2xl bg-black/15 border border-white/10 p-4">
+                  <p class="text-2xl font-bold font-display leading-none text-emerald-200" data-public-count="done">0</p>
+                  <p class="text-[11px] text-white/60 mt-1.5">Selesai</p>
+                </div>
+              </div>
+
+              <div class="mt-5">
+                <div class="flex items-center justify-between text-[10px] font-semibold text-white/60 mb-2">
+                  <span>Distribusi status</span>
+                  <span id="public-status-caption">Memuat data…</span>
+                </div>
+                <div class="h-2.5 w-full rounded-full bg-white/10 overflow-hidden flex" id="public-status-bar" aria-hidden="true"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Statistik ringkas -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6" id="ringkasan" aria-label="Ringkasan angka pengaduan">
+        <article class="bg-surface-container-lowest rounded-2xl p-5 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.04),0_4px_12px_rgba(166,175,189,0.12)] border border-white/80">
+          <div class="flex items-center justify-between">
+            <span class="w-10 h-10 rounded-full bg-surface-container text-on-surface flex items-center justify-center"><span class="material-symbols-outlined text-lg">inbox</span></span>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-secondary">Semua</span>
+          </div>
+          <p class="text-3xl font-bold font-display tracking-tight mt-4"><span data-public-count="all">0</span></p>
+          <p class="text-xs text-secondary mt-1">Total pengaduan tercatat</p>
+        </article>
+        <article class="bg-surface-container-lowest rounded-2xl p-5 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.04),0_4px_12px_rgba(166,175,189,0.12)] border border-white/80">
+          <div class="flex items-center justify-between">
+            <span class="w-10 h-10 rounded-full bg-primary-fixed text-primary flex items-center justify-center"><span class="material-symbols-outlined text-lg">fact_check</span></span>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-primary">Antrean</span>
+          </div>
+          <p class="text-3xl font-bold font-display tracking-tight text-primary mt-4"><span data-public-count="review">0</span></p>
+          <p class="text-xs text-secondary mt-1">Menunggu verifikasi Sarpras</p>
+        </article>
+        <article class="bg-surface-container-lowest rounded-2xl p-5 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.04),0_4px_12px_rgba(166,175,189,0.12)] border border-white/80">
+          <div class="flex items-center justify-between">
+            <span class="w-10 h-10 rounded-full bg-tertiary-fixed text-tertiary flex items-center justify-center"><span class="material-symbols-outlined text-lg">engineering</span></span>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-tertiary">Proses</span>
+          </div>
+          <p class="text-3xl font-bold font-display tracking-tight text-tertiary mt-4"><span data-public-count="progress">0</span></p>
+          <p class="text-xs text-secondary mt-1">Sedang ditangani teknisi</p>
+        </article>
+        <article class="bg-surface-container-lowest rounded-2xl p-5 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.04),0_4px_12px_rgba(166,175,189,0.12)] border border-white/80">
+          <div class="flex items-center justify-between">
+            <span class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center"><span class="material-symbols-outlined text-lg">task_alt</span></span>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Selesai</span>
+          </div>
+          <p class="text-3xl font-bold font-display tracking-tight text-emerald-700 mt-4"><span data-public-count="done">0</span></p>
+          <p class="text-xs text-secondary mt-1">Sudah divalidasi dan ditutup</p>
+        </article>
+      </section>
+
+      <!-- Konten dua kolom -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div class="lg:col-span-8 flex flex-col gap-6">
+          <section class="bg-surface-container-lowest rounded-2xl border border-[#e2e8f0] shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)] p-5 sm:p-6">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 class="text-xl font-bold text-on-surface font-display tracking-tight">Aduan terbaru</h2>
+                <p class="text-xs text-secondary mt-1">Ringkasan fasilitas yang sedang ditangani. Identitas pelapor tidak ditampilkan di mode publik.</p>
+              </div>
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container text-secondary text-[11px] font-semibold">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                Diperbarui dari data sesi
+              </span>
+            </div>
+            <div class="flex flex-col gap-3 mt-5" id="public-recent-list"></div>
+          </section>
+
+          <section class="bg-surface-container-lowest rounded-2xl border border-[#e2e8f0] shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)] p-5 sm:p-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+              <div>
+                <h2 class="text-xl font-bold text-on-surface font-display tracking-tight">Sebaran kategori</h2>
+                <p class="text-xs text-secondary mt-1">Kategori fasilitas yang paling sering dilaporkan pada data saat ini.</p>
+              </div>
+              <span class="text-[11px] font-semibold text-secondary" id="public-category-caption">0 kategori</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="public-category-list"></div>
+          </section>
+        </div>
+
+        <aside class="lg:col-span-4 flex flex-col gap-6">
+          <section class="bg-surface-container-lowest rounded-2xl border border-[#e2e8f0] shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)] p-5 sm:p-6" id="panduan">
+            <div class="flex items-center gap-2.5">
+              <span class="w-10 h-10 rounded-full bg-primary-fixed text-primary flex items-center justify-center"><span class="material-symbols-outlined text-xl">route</span></span>
+              <div>
+                <h2 class="text-sm font-bold text-on-surface font-display">Cara melapor</h2>
+                <p class="text-[11px] text-secondary">Tiga langkah, tanpa antre manual.</p>
+              </div>
+            </div>
+            <ol class="mt-5 space-y-4">
+              <li class="flex gap-3">
+                <span class="w-7 h-7 rounded-full bg-surface-container text-on-surface text-xs font-bold flex items-center justify-center shrink-0">1</span>
+                <div>
+                  <p class="text-xs font-bold text-on-surface">Masuk sebagai mahasiswa</p>
+                  <p class="text-[11px] text-secondary mt-0.5">Gunakan email kampus dan sandi minimal 8 karakter.</p>
+                </div>
+              </li>
+              <li class="flex gap-3">
+                <span class="w-7 h-7 rounded-full bg-surface-container text-on-surface text-xs font-bold flex items-center justify-center shrink-0">2</span>
+                <div>
+                  <p class="text-xs font-bold text-on-surface">Isi detail kerusakan</p>
+                  <p class="text-[11px] text-secondary mt-0.5">Pilih kategori, gedung, ruang, dan prioritas penanganan.</p>
+                </div>
+              </li>
+              <li class="flex gap-3">
+                <span class="w-7 h-7 rounded-full bg-surface-container text-on-surface text-xs font-bold flex items-center justify-center shrink-0">3</span>
+                <div>
+                  <p class="text-xs font-bold text-on-surface">Pantau timeline</p>
+                  <p class="text-[11px] text-secondary mt-0.5">Lihat verifikasi, disposisi, dan progres teknisi di menu Pengaduan Saya.</p>
+                </div>
+              </li>
+            </ol>
+            <button type="button" class="w-full h-11 mt-5 rounded-full bg-inverse-surface hover:bg-black text-white text-xs font-bold transition-colors flex items-center justify-center gap-2" data-action="open-student-login">
+              <span class="material-symbols-outlined text-base">arrow_forward</span>
+              Mulai sebagai mahasiswa
+            </button>
+          </section>
+
+          <section class="bg-surface-container-lowest rounded-2xl border border-[#e2e8f0] shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)] p-5 sm:p-6" id="bantuan">
+            <div class="flex items-center gap-2.5">
+              <span class="w-10 h-10 rounded-full bg-surface-container text-on-surface flex items-center justify-center"><span class="material-symbols-outlined text-xl">support_agent</span></span>
+              <div>
+                <h2 class="text-sm font-bold text-on-surface font-display">Bantuan cepat</h2>
+                <p class="text-[11px] text-secondary">Biro Sarana &amp; Prasarana UNSIL</p>
+              </div>
+            </div>
+            <div class="flex flex-col gap-2.5 mt-4">
+              <a class="p-3 rounded-full bg-surface-container flex items-center justify-between hover:bg-surface-container-high transition-colors" href="tel:+6282112345678">
+                <span class="flex items-center gap-3 pl-2">
+                  <span class="material-symbols-outlined text-lg text-primary-container">call</span>
+                  <span class="text-xs font-semibold text-on-surface">Hotline Sarpras</span>
+                </span>
+                <span class="text-[11px] text-secondary pr-2">+62 821-1234-5678</span>
+              </a>
+              <a class="p-3 rounded-full bg-surface-container flex items-center justify-between hover:bg-surface-container-high transition-colors" href="mailto:sarpras@unsil.ac.id">
+                <span class="flex items-center gap-3 pl-2">
+                  <span class="material-symbols-outlined text-lg text-secondary">mail</span>
+                  <span class="text-xs font-semibold text-on-surface">Email resmi</span>
+                </span>
+                <span class="text-[11px] text-secondary pr-2">sarpras@unsil.ac.id</span>
+              </a>
+              <button type="button" class="p-3 rounded-full bg-surface-container flex items-center justify-between hover:bg-surface-container-high transition-colors text-left" data-action="open-sso-help">
+                <span class="flex items-center gap-3 pl-2">
+                  <span class="material-symbols-outlined text-lg text-secondary">help</span>
+                  <span class="text-xs font-semibold text-on-surface">Bantuan akun SSO</span>
+                </span>
+                <span class="material-symbols-outlined text-base text-secondary pr-2">chevron_right</span>
+              </button>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <footer class="border-t border-surface-container-high bg-surface-container-lowest">
+    <div class="max-w-[1520px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-secondary">
+      <span>© 2026 CampusCare • Biro Sarana &amp; Prasarana Universitas Siliwangi</span>
+      <span class="flex items-center gap-3">
+        <span>Portal publik read-only</span>
+        <span>•</span>
+        <button type="button" class="font-bold text-primary hover:underline" data-action="open-admin-login">Login Admin</button>
+      </span>
+    </div>
+  </footer>
+</section>
