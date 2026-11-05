@@ -15,6 +15,12 @@ export function setStudentTab(tab) {
   toggleStudentSidebar(false);
   state.studentTab = next;
 
+  // Mode hapus riwayat hanya berlaku selama berada di panel Pengaduan Saya.
+  if (next !== "complaints" && state.historyDeleteMode) {
+    state.historyDeleteMode = false;
+    state.historySelection.clear();
+  }
+
   $$(".cc-panel[id^='panel-student-']").forEach((panel) => {
     panel.classList.toggle("is-active", panel.id === `panel-student-${next}`);
   });

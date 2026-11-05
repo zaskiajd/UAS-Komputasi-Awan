@@ -24,7 +24,16 @@ import { loginAs, logout } from "./features/session.js";
 import { handleDispatchSubmit, openDispatch } from "./features/dispatch.js";
 import { handleComplaintSubmit } from "./features/complaint.js";
 import { trackReport } from "./features/timeline.js";
-import { renderAdminTickets, renderStudentReports } from "./features/reports.js";
+import {
+  cancelHistoryDelete,
+  executeHistoryDelete,
+  openHistoryDeleteConfirm,
+  renderAdminTickets,
+  renderStudentReports,
+  toggleHistoryDeleteMode,
+  toggleHistorySelection,
+  toggleSelectAllHistory,
+} from "./features/reports.js";
 
 /** Menjalankan aksi berdasarkan atribut `data-action` pada elemen. */
 function handleAction(actionElement) {
@@ -99,6 +108,30 @@ function handleAction(actionElement) {
 
     case "track-report":
       trackReport(actionElement.dataset.ticket);
+      break;
+
+    case "delete-history":
+      toggleHistoryDeleteMode();
+      break;
+
+    case "toggle-history-select":
+      toggleHistorySelection(actionElement.dataset.ticket);
+      break;
+
+    case "select-all-history":
+      toggleSelectAllHistory();
+      break;
+
+    case "cancel-delete-history":
+      cancelHistoryDelete();
+      break;
+
+    case "confirm-delete-history":
+      openHistoryDeleteConfirm();
+      break;
+
+    case "execute-delete-history":
+      executeHistoryDelete();
       break;
 
     case "open-detail": {

@@ -99,3 +99,13 @@
     padding-top: 5.5rem;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Hapus riwayat — status tombol pemicu saat mode pilih aktif
+   -------------------------------------------------------------------------- */
+#btn-delete-history[aria-pressed="true"] {
+  background: #ffdad6;
+  color: #93000a;
+  border-color: #fecaca;
+  box-shadow: 0 8px 18px -10px rgba(185, 28, 28, 0.7);
+}

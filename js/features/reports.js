@@ -7,6 +7,8 @@
 import { $$, byId, escapeHtml } from "../core/dom.js";
 import { activeStudent, state } from "../core/state.js";
 import { CATEGORY_META, STATUS_META } from "../data/reports.js";
+import { closeModal, openModal } from "../ui/modal.js";
+import { showToast } from "../ui/toast.js";
 
 export function statusCounts(reports = state.reports) {
   return {
@@ -78,7 +80,23 @@ function emptyState(title) {
 
 function reportActions(report, mode) {
   if (mode === "student") {
-    return "";
+    if (state.historyDeleteMode) {
+      const selected = state.historySelection.has(report.id);
+      return `
+        <button type="button" class="h-10 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${
+          selected
+            ? "bg-primary-container text-white shadow-[0_8px_20px_-8px_rgba(255,102,31,0.8)]"
+            : "bg-surface-container text-on-surface hover:bg-surface-container-high"
+        }" data-action="toggle-history-select" data-ticket="${escapeHtml(report.id)}" aria-pressed="${selected}">
+          <span class="material-symbols-outlined text-base">${selected ? "check_circle" : "radio_button_unchecked"}</span>
+          ${selected ? "Dipilih" : "Pilih"}
+        </button>`;
+    }
+
+    return `
+        <button type="button" class="h-10 px-4 rounded-full bg-surface-container text-on-surface text-xs font-bold hover:bg-surface-container-high transition-colors" data-action="track-report" data-ticket="${escapeHtml(report.id)}">
+          Lihat detail
+        </button>`;
   }
 
   if (report.status === "review") {
@@ -126,9 +144,19 @@ function reportCard(report, mode) {
          </span>`;
 
   const actions = reportActions(report, mode);
+  const selected =
+    mode === "student" &&
+    state.historyDeleteMode &&
+    state.historySelection.has(report.id);
 
   return `
-      <article class="ticket-card bg-surface-container-lowest rounded-2xl p-5 sm:p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05),0_4px_12px_rgba(166,175,189,0.12)] hover:shadow-[0_16px_40px_-4px_rgba(20,23,26,0.08)] border border-[#e2e8f0] transition-all flex flex-col md:flex-row gap-5 justify-between items-start md:items-center" data-id="${escapeHtml(report.id)}" data-status="${escapeHtml(report.status)}">
+      <article class="ticket-card bg-surface-container-lowest rounded-2xl p-5 sm:p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05),0_4px_12px_rgba(166,175,189,0.12)] hover:shadow-[0_16px_40px_-4px_rgba(20,23,26,0.08)] border transition-all flex flex-col md:flex-row gap-5 justify-between items-start md:items-center ${
+        selected
+          ? "border-primary-container ring-2 ring-primary-container/25 bg-primary-fixed/10"
+          : "border-[#e2e8f0]"
+      }" data-id="${escapeHtml(report.id)}" data-status="${escapeHtml(report.status)}"${
+        mode === "student" && state.historyDeleteMode ? ` aria-selected="${selected}"` : ""
+      }>
         <div class="flex items-start gap-4 flex-1 min-w-0">
           <div class="w-12 h-12 rounded-full ${category.badge} flex items-center justify-center shrink-0">
             <span class="material-symbols-outlined text-2xl">${category.icon}</span>
@@ -169,20 +197,167 @@ function reportCard(report, mode) {
       </article>`;
 }
 
+/** Menyamakan tampilan bilah pilihan dengan state hapus riwayat. */
+function syncHistoryToolbar(visibleReports = []) {
+  const trigger = byId("btn-delete-history");
+  if (trigger) {
+    trigger.setAttribute("aria-pressed", String(state.historyDeleteMode));
+    trigger.classList.toggle("is-active", state.historyDeleteMode);
+  }
+
+  const toolbar = byId("student-history-toolbar");
+  if (!toolbar) return;
+
+  toolbar.hidden = !state.historyDeleteMode;
+  if (!state.historyDeleteMode) return;
+
+  const selectedCount = state.historySelection.size;
+  const countLabel = byId("student-history-selected-count");
+  if (countLabel) {
+    countLabel.textContent = `${selectedCount} riwayat dipilih`;
+  }
+
+  const allSelected =
+    visibleReports.length > 0 &&
+    visibleReports.every((report) => state.historySelection.has(report.id));
+  const selectAllButton = byId("btn-select-all-history");
+  if (selectAllButton) {
+    selectAllButton.textContent = allSelected ? "Kosongkan pilihan" : "Pilih semua";
+    selectAllButton.setAttribute("aria-pressed", String(allSelected));
+  }
+
+  const confirmButton = byId("btn-confirm-delete-history");
+  if (confirmButton) confirmButton.disabled = selectedCount === 0;
+}
+
+/** Daftar tiket mahasiswa yang lolos filter & pencarian saat ini. */
+function visibleStudentReports() {
+  return studentReports().filter(
+    (report) =>
+      matchesFilter(report, state.studentFilter) && matchesQuery(report, state.studentQuery)
+  );
+}
+
 export function renderStudentReports() {
   const container = byId("student-report-list");
   if (!container) return;
 
-  const filtered = studentReports().filter(
-    (report) =>
-      matchesFilter(report, state.studentFilter) && matchesQuery(report, state.studentQuery)
-  );
+  const filtered = visibleStudentReports();
 
   container.innerHTML = filtered.length
     ? filtered.map((report) => reportCard(report, "student")).join("")
-    : emptyState("Tidak ada pengaduan yang cocok");
+    : emptyState(
+        state.historyDeleteMode ? "Tidak ada riwayat untuk dipilih" : "Tidak ada pengaduan yang cocok"
+      );
 
+  syncHistoryToolbar(filtered);
   updateCounters();
+}
+
+/* --------------------------------------------------------------------------
+   Hapus riwayat pengaduan mahasiswa (pilih beberapa lalu hapus sekaligus)
+   -------------------------------------------------------------------------- */
+
+export function toggleHistoryDeleteMode() {
+  state.historyDeleteMode = !state.historyDeleteMode;
+  state.historySelection.clear();
+  renderStudentReports();
+}
+
+export function toggleHistorySelection(ticketId) {
+  if (!state.historyDeleteMode || !ticketId) return;
+  if (state.historySelection.has(ticketId)) {
+    state.historySelection.delete(ticketId);
+  } else {
+    state.historySelection.add(ticketId);
+  }
+  renderStudentReports();
+}
+
+export function toggleSelectAllHistory() {
+  if (!state.historyDeleteMode) return;
+
+  const visible = visibleStudentReports();
+  const allSelected =
+    visible.length > 0 && visible.every((report) => state.historySelection.has(report.id));
+
+  visible.forEach((report) => {
+    if (allSelected) state.historySelection.delete(report.id);
+    else state.historySelection.add(report.id);
+  });
+
+  renderStudentReports();
+}
+
+export function cancelHistoryDelete() {
+  state.historyDeleteMode = false;
+  state.historySelection.clear();
+  renderStudentReports();
+}
+
+export function openHistoryDeleteConfirm() {
+  const selected = studentReports().filter((report) =>
+    state.historySelection.has(report.id)
+  );
+
+  if (!selected.length) {
+    showToast("Belum ada riwayat dipilih", "Pilih minimal satu riwayat terlebih dahulu.", "error");
+    return;
+  }
+
+  const modal = byId("modal-delete-history");
+  if (!modal) return;
+
+  const countLabel = byId("delete-history-count");
+  if (countLabel) {
+    countLabel.textContent = `${selected.length} riwayat pengaduan`;
+  }
+
+  const preview = byId("delete-history-preview");
+  if (preview) {
+    preview.innerHTML = selected
+      .map(
+        (report) => `
+          <li class="flex items-start gap-2.5 rounded-xl bg-white px-3 py-2 border border-gray-200">
+            <span class="material-symbols-outlined text-base text-red-600 mt-0.5">receipt_long</span>
+            <span class="min-w-0">
+              <span class="block truncate text-[11px] font-bold text-gray-900">${escapeHtml(report.title)}</span>
+              <span class="block text-[10px] text-gray-500 mt-0.5">${escapeHtml(report.id)} · ${escapeHtml(report.date)}</span>
+            </span>
+          </li>`
+      )
+      .join("");
+  }
+
+  openModal(modal);
+}
+
+export function executeHistoryDelete() {
+  if (!state.historySelection.size) return;
+
+  const selectedIds = new Set(state.historySelection);
+  const count = selectedIds.size;
+
+  state.reports = state.reports.filter((report) => !selectedIds.has(report.id));
+  state.historySelection.clear();
+  state.historyDeleteMode = false;
+
+  closeModal(byId("modal-delete-history"));
+
+  const detail = byId("student-detail-card");
+  if (detail && selectedIds.has(detail.dataset.ticket)) {
+    detail.hidden = true;
+    detail.innerHTML = "";
+    delete detail.dataset.ticket;
+    state.selectedTicket = null;
+  }
+
+  renderReports();
+  showToast(
+    "Riwayat dihapus",
+    `${count} pengaduan berhasil dihapus dari riwayat Anda.`,
+    "success"
+  );
 }
 
 /** Kartu ringkas pada panel Ringkasan (maksimal 3 tiket terbaru milik mahasiswa). */

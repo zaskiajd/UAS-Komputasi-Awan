@@ -16,7 +16,13 @@ const REQUIRED_PANELS = {
   student: ["summary", "complaints", "help"],
   admin: ["dashboard", "dispatches", "techs", "inventory", "sla"],
 };
-const REQUIRED_MODALS = ["modal-complaint", "modal-dispatch", "modal-sso-help", "toast"];
+const REQUIRED_MODALS = [
+  "modal-complaint",
+  "modal-delete-history",
+  "modal-dispatch",
+  "modal-sso-help",
+  "toast",
+];
 
 const ms = (start) => `${Math.round(performance.now() - start)} ms`;
 const nextFrame = () => new Promise((resolve) => requestAnimationFrame(() => resolve()));

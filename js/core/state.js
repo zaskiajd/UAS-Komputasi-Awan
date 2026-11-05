@@ -17,6 +17,8 @@ export const state = {
   student: null, // { name, nim, faculty, email }
   accounts: {}, // akun mahasiswa yang dibuat selama sesi berlangsung
   selectedTicket: null,
+  historyDeleteMode: false, // mode pilih riwayat pada Pengaduan Saya
+  historySelection: new Set(), // id tiket yang dipilih untuk dihapus
 };
 
 /** Profil mahasiswa aktif. Sebelum sesi login memakai akun demo pemilik tiket seed. */
