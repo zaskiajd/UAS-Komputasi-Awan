@@ -485,6 +485,9 @@ export function renderStudentSummary() {
               <span>${escapeHtml(report.date)}</span>
             </p>
           </div>
+          <button type="button" class="h-9 px-3 rounded-full bg-surface-container text-on-surface text-[11px] font-bold hover:bg-surface-container-high transition-colors shrink-0" data-action="track-report" data-ticket="${escapeHtml(report.id)}">
+            Progres
+          </button>
         </article>`;
     })
     .join("");

@@ -7,6 +7,7 @@ import { state } from "./state.js";
 import { info, auditView } from "./debug.js";
 import { closeMenus } from "../ui/menu.js";
 import { closeAllModals } from "../ui/modal.js";
+import { setAuthRole, setAuthTab } from "../views/auth.js";
 
 /** Peta hash yang stabil untuk deep link tanpa membocorkan sesi. */
 const HASH_BY_VIEW = {
@@ -28,24 +29,31 @@ export function syncHash(view) {
 
 /** Menampilkan satu view dan menyembunyikan view lainnya. */
 export function setView(view) {
-  state.view = view;
-  document.body.dataset.view = view;
+  let nextView = view;
+  if ((view === "student" || view === "admin") && state.role !== view) {
+    setAuthRole(view);
+    setAuthTab("login");
+    nextView = "auth";
+  }
+
+  state.view = nextView;
+  document.body.dataset.view = nextView;
 
   ["public", "auth", "student", "admin"].forEach((name) => {
     const section = byId(`view-${name}`);
     if (!section) return;
-    section.classList.toggle("is-active", name === view);
+    section.classList.toggle("is-active", name === nextView);
   });
 
-  syncHash(view);
+  syncHash(nextView);
   closeMenus();
   closeAllModals();
   window.scrollTo({ top: 0, behavior: "auto" });
 
-  info(`Tampilkan view: ${view}`);
+  info(`Tampilkan view: ${nextView}`);
 
   // Audit setelah browser menghitung layout agar panel kosong cepat terdeteksi.
   requestAnimationFrame(() => {
-    if (state.view === view) auditView(view);
+    if (state.view === nextView) auditView(nextView);
   });
 }

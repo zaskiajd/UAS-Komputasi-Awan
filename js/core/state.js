@@ -5,6 +5,7 @@
 export const state = {
   view: "public",
   role: "public", // public | student | admin
+  publicTab: "overview", // overview | tracker | campus | guide | help
   authRole: "student", // peran yang sedang dipilih di gerbang login
   authTab: "login",
   studentTab: "summary",

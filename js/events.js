@@ -11,6 +11,7 @@ import { closeDrawers, toggleSidebar, toggleStudentSidebar } from "./ui/sidebar.
 import { showToast } from "./ui/toast.js";
 import {
   clearFieldError,
+  clearLoginError,
   evaluatePassword,
   setAuthRole,
   setAuthTab,
@@ -19,7 +20,8 @@ import {
 } from "./views/auth.js";
 import { setStudentTab } from "./views/student.js";
 import { setAdminTab } from "./views/admin.js";
-import { loginAs, logout } from "./features/session.js";
+import { setPublicTab } from "./views/public.js";
+import { loginAs, logout, openPortal } from "./features/session.js";
 import {
   handleDispatchSubmit,
   openDispatch,
@@ -70,6 +72,12 @@ function handleAction(actionElement) {
       setView("auth");
       break;
 
+    case "open-student-register":
+      setAuthRole("student");
+      setAuthTab("register");
+      setView("auth");
+      break;
+
     case "open-admin-login":
       setAuthRole("admin");
       setAuthTab("login");
@@ -77,6 +85,7 @@ function handleAction(actionElement) {
       break;
 
     case "back-public":
+      setPublicTab("overview");
       setView("public");
       break;
 
@@ -236,7 +245,11 @@ function handleAction(actionElement) {
     case "google-login":
       showToast("Google Workspace SSO", "Menghubungkan ke layanan OAuth2 UNSIL...", "info");
       setTimeout(() => {
-        if (state.view === "auth") loginAs("student");
+        if (state.view === "auth") {
+          openPortal("student", {
+            message: "Berhasil masuk melalui Google Workspace SSO UNSIL.",
+          });
+        }
       }, 1100);
       break;
 
@@ -329,8 +342,15 @@ export function bindEvents() {
       if (actionElement.dataset.action !== "toggle-menu") closeMenus();
     }
 
+    const publicTabButton = event.target.closest("[data-public-tab]");
+    if (publicTabButton) {
+      closeMenus();
+      setPublicTab(publicTabButton.dataset.publicTab);
+    }
+
     const studentTabButton = event.target.closest("[data-student-tab]");
     if (studentTabButton) {
+      closeMenus();
       setStudentTab(studentTabButton.dataset.studentTab);
     }
 
@@ -483,10 +503,18 @@ export function bindEvents() {
   if (loginForm) {
     loginForm.addEventListener("submit", (event) => {
       event.preventDefault();
-      const email = byId("login-email").value.trim();
-      loginAs(state.role, { name: email ? email.split("@")[0] : "" });
+      loginAs(state.authRole, {
+        email: byId("login-email").value,
+        password: byId("login-password").value,
+      });
     });
   }
+
+  /* Sembunyikan pesan galat begitu pengguna mengetik kembali */
+  ["login-email", "login-password"].forEach((id) => {
+    const input = byId(id);
+    if (input) input.addEventListener("input", clearLoginError);
+  });
 
   /* Registrasi */
   const registerForm = byId("register-form");
@@ -495,10 +523,38 @@ export function bindEvents() {
       event.preventDefault();
       clearFieldError();
 
+      const name = byId("reg-name").value.trim();
+      const nim = byId("reg-nim").value.trim();
+      const faculty = byId("reg-fakultas").value;
+      const email = byId("reg-email").value.trim().toLowerCase();
       const password = byId("reg-password").value;
       const confirm = byId("reg-confirm").value;
-      const email = byId("reg-email").value.trim();
-      const name = byId("reg-name").value.trim();
+      const agreement = registerForm.querySelector('input[type="checkbox"]');
+
+      if (!name) {
+        showFieldError(byId("reg-name"), "Nama lengkap mahasiswa wajib diisi.");
+        return;
+      }
+
+      if (!/^\d{6,12}$/.test(nim)) {
+        showFieldError(byId("reg-nim"), "NIM terdiri dari 6 sampai 12 digit angka.");
+        return;
+      }
+
+      if (!faculty) {
+        showFieldError(byId("reg-fakultas"), "Pilih fakultas Anda terlebih dahulu.");
+        return;
+      }
+
+      if (!email.endsWith("@student.unsil.ac.id")) {
+        showFieldError(byId("reg-email"), "Gunakan email kampus NIM@student.unsil.ac.id.");
+        return;
+      }
+
+      if (email.split("@")[0] !== nim) {
+        showFieldError(byId("reg-email"), "NIM pada email harus sama dengan NIM di atas.");
+        return;
+      }
 
       if (password.length < 8) {
         showFieldError(byId("reg-password"), "Kata sandi minimal 8 karakter.");
@@ -510,19 +566,22 @@ export function bindEvents() {
         return;
       }
 
-      const loginEmail = byId("login-email");
-      if (loginEmail) loginEmail.value = email;
+      if (agreement && !agreement.checked) {
+        showFieldError(agreement, "Persetujuan ketentuan layanan wajib dicentang.");
+        return;
+      }
+
+      /* Akun disimpan pada sesi berjalan, lalu mahasiswa langsung masuk. */
+      state.accounts[email] = { name, nim, faculty, email };
+      state.student = { name, nim, faculty, email };
 
       registerForm.reset();
       evaluatePassword("");
-      setAuthTab("login");
-      setAuthRole("student");
+      clearFieldError();
 
-      showToast(
-        "Pendaftaran Berhasil!",
-        `Akun ${name || "mahasiswa"} siap digunakan. Silakan masuk dengan akun SSO Anda.`,
-        "success"
-      );
+      openPortal("student", {
+        message: `Pendaftaran berhasil. Selamat datang, ${name}.`,
+      });
     });
   }
 

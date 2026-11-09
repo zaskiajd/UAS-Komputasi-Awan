@@ -3,9 +3,36 @@
    Hanya menampilkan data agregat; identitas pelapor tidak pernah dirender.
    ========================================================================== */
 
-import { byId, escapeHtml } from "../core/dom.js";
+import { $$, byId, escapeHtml } from "../core/dom.js";
 import { state } from "../core/state.js";
 import { CATEGORY_META, STATUS_META } from "../data/reports.js";
+
+const PUBLIC_TABS = ["overview", "tracker", "campus", "guide", "help"];
+
+export function setPublicTab(tab) {
+  const next = PUBLIC_TABS.includes(tab) ? tab : "overview";
+  state.publicTab = next;
+
+  const publicMain = byId("public-main-content");
+  if (publicMain) {
+    publicMain.classList.toggle("hidden", next === "overview");
+  }
+
+  $$(".cc-panel[id^='panel-public-']").forEach((panel) => {
+    panel.classList.toggle("is-active", panel.id === `panel-public-${next}`);
+  });
+
+  $$("[data-public-tab]").forEach((button) => {
+    const isActive = button.dataset.publicTab === next;
+    button.classList.toggle("is-active", isActive);
+    if (button.classList.contains("seg-tab")) {
+      button.setAttribute("aria-current", isActive ? "page" : "false");
+    }
+  });
+
+  renderPublicView();
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
 
 function publicCounts() {
   const reports = state.reports;
@@ -150,6 +177,11 @@ function renderCategories() {
 }
 
 export function renderPublicView() {
+  const publicMain = byId("public-main-content");
+  if (publicMain) {
+    publicMain.classList.toggle("hidden", (state.publicTab || "overview") === "overview");
+  }
+
   const counts = publicCounts();
 
   document.querySelectorAll("[data-public-count]").forEach((element) => {

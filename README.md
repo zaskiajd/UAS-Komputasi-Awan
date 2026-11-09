@@ -77,7 +77,9 @@ package.json                # Skrip build CSS (opsional, hanya maintainer)
 README.md
 ```
 
-Catatan: `views/student/timeline.html` dan `views/student/campus.html` adalah partial lama yang tidak lagi dimuat oleh `student.html`. Panel mahasiswa aktif hanya `summary`, `complaints`, dan `help`; detail progres tiket dirender di dalam panel Pengaduan Saya.
+Catatan: partial lama `views/student/timeline.html` dan `views/student/campus.html` sudah dihapus pada redesain ini. Panel mahasiswa aktif hanya `summary`, `complaints`, dan `help`; detail progres tiket dirender di dalam panel Pengaduan Saya.
+
+Foto hero halaman publik dan logo pada gerbang login memakai `UNSIL.png` di akar proyek, sehingga tetap tampil tanpa koneksi internet.
 
 Tidak ada proses build saat menjalankan aplikasi. Utility Tailwind sudah dikompilasi ke `css/tailwind.css`, sedangkan seluruh perilaku berada di ES module dalam `js/` dan dimuat oleh `js/main.js`.
 
@@ -99,7 +101,7 @@ Alternatif lain: `npx serve .`, ekstensi *Live Server* di VS Code, atau unggah f
 
 **Jika tampilan terlihat rusak setelah memperbarui file**, lakukan *hard refresh* (`Ctrl+F5`). Bila modul JS gagal dimuat, aplikasi menampilkan panel peringatan otomatis setelah 8 detik, bukan layar "Memuat CampusCare…" yang menggantung.
 
-Tanpa koneksi internet aplikasi tetap berfungsi penuh: Tailwind sudah dikompilasi, JS disajikan lokal, dan seluruh font (termasuk ikon Material Symbols) di-*host* sendiri di `assets/fonts/`.
+Tanpa koneksi internet aplikasi tetap berfungsi penuh: Tailwind sudah dikompilasi, JS disajikan lokal, seluruh font (termasuk ikon Material Symbols) di-*host* sendiri di `assets/fonts/`, dan foto landing page memakai `UNSIL.png` dari folder proyek.
 
 ---
 
@@ -123,12 +125,18 @@ Dari console browser tersedia `ccDiagnose()` dan `ccDebug.report()`.
 
 ## Akun Demo
 
-Form login bersifat demo: **email valid + kata sandi apa pun** akan diterima. Pilih peran lewat chip di atas form.
+Login memakai validasi domain kampus dan kata sandi minimal 8 karakter. Pilih peran lewat chip di atas form.
 
 | Peran | Email contoh | Tujuan |
 | --- | --- | --- |
 | Mahasiswa | `217006120@student.unsil.ac.id` | Portal mahasiswa (pemilik tiket seed) |
 | Admin Sarpras | `hendrawan@unsil.ac.id` | Dashboard admin Sarpras |
+
+Aturan validasi:
+
+- **Mahasiswa** wajib memakai email berakhiran `@student.unsil.ac.id`.
+- **Admin Sarpras** wajib memakai email berakhiran `@unsil.ac.id`; akun `@student.unsil.ac.id` ditolak di gerbang admin.
+- **Kata sandi** minimal 8 karakter (contoh: `password123`).
 
 Registrasi baru juga tersedia (minimal 8 karakter, konfirmasi sandi harus sama, dan checkbox persetujuan wajib dicentang).
 
@@ -136,11 +144,13 @@ Registrasi baru juga tersedia (minimal 8 karakter, konfirmasi sandi harus sama, 
 
 ## Navigasi
 
-**Deep link** (langsung masuk tanpa login):
+**Gerbang login:**
 
-- `http://localhost:8000/#student` atau `#mahasiswa` → portal mahasiswa
-- `http://localhost:8000/#admin` → dashboard admin Sarpras
-- tanpa hash → halaman publik/login
+- `http://localhost:8000/` → halaman publik sebagai halaman awal.
+- `http://localhost:8000/#student` atau `#mahasiswa` → gerbang login mahasiswa.
+- `http://localhost:8000/#admin` → gerbang login admin Sarpras.
+
+Router menolak akses langsung ke portal tanpa sesi sesuai peran: membuka `#student`/`#admin` tanpa login akan dialihkan ke gerbang login. Setelah login valid, pengguna masuk ke portal sesuai peran; registrasi mahasiswa membuat sesi dan langsung membuka portal mahasiswa.
 
 > Catatan: mengubah hash pada URL yang sudah terbuka tidak memuat ulang halaman. Gunakan link di atas dari tab baru, atau tekan **Keluar** lalu masuk lagi.
 
@@ -151,6 +161,13 @@ Registrasi baru juga tersedia (minimal 8 karakter, konfirmasi sandi harus sama, 
 ---
 
 ## Fitur Utama
+
+### Halaman publik
+
+- **Landing page** dengan foto hero `UNSIL.png`, ringkasan layanan, dan ajakan melapor.
+- **Tab publik** — Beranda, Pantau Aduan, Zona Kampus, Alur & SOP, dan Bantuan; perpindahan tab tanpa reload.
+- **Gerbang login** untuk mahasiswa dan admin Sarpras, lengkap dengan registrasi mahasiswa.
+- **Router guard** — portal mahasiswa/admin hanya bisa dibuka setelah login sesuai peran.
 
 ### Portal mahasiswa
 
@@ -179,6 +196,7 @@ Registrasi baru juga tersedia (minimal 8 karakter, konfirmasi sandi harus sama, 
 ### Umum
 
 - Router satu halaman dengan animasi fade, tanpa reload.
+- Validasi kredensial per peran dan registrasi mahasiswa dengan sesi langsung aktif.
 - Toast global dan modal terpusat dengan focus trap serta pemulihan fokus.
 - Responsif 320–1440 px; menu admin berupa drawer dan dock mahasiswa ringkas.
 - Aksesibilitas dasar: `aria-label`/`aria-modal`, fokus modal, `prefers-reduced-motion`.
