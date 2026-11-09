@@ -1,15 +1,38 @@
 <div class="cc-panel" id="panel-admin-dispatches">
             <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
               <div class="xl:col-span-8 flex flex-col gap-4">
-                <div class="bg-surface-container-lowest rounded-2xl p-5 border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)] flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <h2 class="text-xl font-bold text-on-surface font-display tracking-tight">Antrean Disposisi Penugasan</h2>
-                    <p class="text-xs text-secondary mt-1">Tiket yang membutuhkan verifikasi dan penugasan teknisi lapangan.</p>
+                <div class="bg-surface-container-lowest rounded-2xl p-5 border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)] flex flex-col gap-3">
+                  <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <h2 class="text-xl font-bold text-on-surface font-display tracking-tight">Antrean Disposisi Penugasan</h2>
+                      <p class="text-xs text-secondary mt-1">Tiket yang membutuhkan verifikasi dan penugasan teknisi lapangan.</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                      <button type="button" class="h-11 px-5 rounded-full bg-surface-container-lowest border border-white text-xs font-bold text-on-surface shadow-sm hover:bg-surface-container-high transition flex items-center gap-2" data-action="export" data-export="dispatch" aria-label="Unduh antrean disposisi sesuai filter" title="Unduh antrean disposisi sesuai filter">
+                        <span class="material-symbols-outlined text-base">download</span>
+                        Unduh Antrean
+                      </button>
+                      <button type="button" class="h-11 px-5 rounded-full bg-primary-container text-white text-xs font-bold shadow-[0_12px_28px_-4px_rgba(255,102,31,0.45)] hover:brightness-110 transition flex items-center gap-2" data-action="open-dispatch">
+                        <span class="material-symbols-outlined text-base">bolt</span>
+                        Disposisi Cepat
+                      </button>
+                    </div>
                   </div>
-                  <button type="button" class="h-11 px-5 rounded-full bg-primary-container text-white text-xs font-bold shadow-[0_12px_28px_-4px_rgba(255,102,31,0.45)] hover:brightness-110 transition flex items-center gap-2" data-action="open-dispatch">
-                    <span class="material-symbols-outlined text-base">bolt</span>
-                    Disposisi Cepat
-                  </button>
+                  <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <div class="relative flex-1">
+                      <span class="material-symbols-outlined text-secondary absolute left-4 top-1/2 -translate-y-1/2 text-lg">search</span>
+                      <input class="w-full h-11 pl-11 pr-4 rounded-full bg-surface-container text-on-surface placeholder:text-secondary text-xs focus:outline-none focus:bg-surface-container-high transition-colors" id="dispatch-search" placeholder="Cari kode tiket, pelapor, tim, atau lokasi..." type="search">
+                    </div>
+                    <div class="flex items-center gap-1.5 p-1 bg-surface-container rounded-full overflow-x-auto no-scrollbar shrink-0">
+                      <button type="button" class="filter-chip is-active" data-dispatch-filter="all">Semua</button>
+                      <button type="button" class="filter-chip" data-dispatch-filter="urgent">Urgent</button>
+                      <button type="button" class="filter-chip" data-dispatch-filter="normal">Normal</button>
+                    </div>
+                  </div>
+                  <p class="text-[11px] text-secondary flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-primary"></span>
+                    <span><span id="dispatch-visible">0</span> tiket pada filter ini</span>
+                  </p>
                 </div>
                 <div class="flex flex-col gap-4" id="admin-dispatch-list"></div>
               </div>
@@ -19,6 +42,7 @@
                   <div class="flex items-center gap-2.5">
                     <span class="w-9 h-9 rounded-full bg-primary-fixed text-primary flex items-center justify-center"><span class="material-symbols-outlined text-lg">priority_high</span></span>
                     <h3 class="text-sm font-bold text-on-surface font-display">Ringkasan Antrean</h3>
+                    <span class="ml-auto text-[11px] font-bold px-2.5 py-1 rounded-full bg-primary-fixed text-primary"><span data-dispatch-queue>0</span> tiket</span>
                   </div>
                   <div class="mt-4 space-y-3 text-xs">
                     <div class="flex items-center justify-between p-3 rounded-xl bg-red-50">
@@ -28,6 +52,10 @@
                     <div class="flex items-center justify-between p-3 rounded-xl bg-orange-50">
                       <span class="font-semibold text-primary">Butuh Verifikasi</span>
                       <span class="font-display font-bold text-primary" data-admin-count="review">0</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-surface-container-low">
+                      <span class="font-semibold text-secondary">Antrean Tertua</span>
+                      <span class="font-display font-bold text-on-surface" data-dispatch-oldest>0 menit</span>
                     </div>
                     <div class="flex items-center justify-between p-3 rounded-xl bg-sky-50">
                       <span class="font-semibold text-sky-700">Sedang Dikerjakan</span>
@@ -45,9 +73,9 @@
                   <p class="font-display text-3xl font-bold mt-1">20 menit</p>
                   <p class="text-xs text-white/70 mt-1 leading-relaxed">Tiket prioritas tinggi wajib mendapat teknisi sebelum 20 menit sejak verifikasi.</p>
                   <div class="w-full h-2 rounded-full bg-white/15 mt-4 overflow-hidden">
-                    <div class="h-full w-[64%] rounded-full bg-primary-container"></div>
+                    <div class="h-full rounded-full bg-primary-container" data-dispatch-safe-bar style="width:0%"></div>
                   </div>
-                  <p class="text-[11px] text-white/60 mt-2">64% antrean masih dalam batas aman.</p>
+                  <p class="text-[11px] text-white/60 mt-2" data-dispatch-safe>0% antrean masih dalam batas aman.</p>
                 </div>
 
                 <div class="bg-surface-container-lowest rounded-2xl p-5 border border-[#e2e8f0]">

@@ -10,22 +10,22 @@
                     </div>
                     <span class="text-xs font-semibold text-secondary">Total Pengaduan Masuk</span>
                   </div>
-                  <div class="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-secondary group-hover:text-primary-container transition-colors">
+                  <button type="button" class="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-secondary hover:bg-surface-container-high hover:text-primary-container transition-colors cursor-pointer" data-admin-tab="dashboard" data-admin-filter="all" data-admin-scroll="admin-ticket-list" aria-label="Lihat semua pengaduan" title="Lihat semua pengaduan">
                     <span class="material-symbols-outlined text-base">north_east</span>
-                  </div>
+                  </button>
                 </div>
                 <div class="flex items-baseline justify-between mt-5">
                   <div>
-                    <span class="text-3xl font-bold text-on-surface font-display tracking-tight">48</span>
+                    <span class="text-3xl font-bold text-on-surface font-display tracking-tight" data-admin-kpi="total">0</span>
                     <span class="text-xs text-secondary ml-1.5 font-medium">Laporan</span>
                   </div>
                   <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-primary px-2.5 py-1 rounded-full bg-primary-fixed">
                     <span class="material-symbols-outlined text-xs">trending_up</span>
-                    +12% vs mggu lalu
+                    <span data-admin-kpi-sub="total">0 laporan hari ini</span>
                   </span>
                 </div>
                 <div class="w-full bg-surface-container h-1.5 rounded-full mt-4 overflow-hidden">
-                  <div class="bg-primary-container h-full rounded-full w-[82%]"></div>
+                  <div class="bg-primary-container h-full rounded-full" data-admin-kpi-bar="total" style="width:0%"></div>
                 </div>
               </div>
 
@@ -37,25 +37,25 @@
                     </div>
                     <span class="text-xs font-semibold text-secondary">Butuh Verifikasi &amp; Disposisi</span>
                   </div>
-                  <div class="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-secondary group-hover:text-primary-container transition-colors">
+                  <button type="button" class="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-secondary hover:bg-surface-container-high hover:text-primary-container transition-colors cursor-pointer" data-admin-tab="dispatches" data-admin-filter="all" aria-label="Buka antrean verifikasi dan disposisi" title="Buka antrean verifikasi dan disposisi">
                     <span class="material-symbols-outlined text-base">north_east</span>
-                  </div>
+                  </button>
                 </div>
                 <div class="flex items-baseline justify-between mt-5">
                   <div>
-                    <span class="text-3xl font-bold text-primary font-display tracking-tight">9</span>
+                    <span class="text-3xl font-bold text-primary font-display tracking-tight" data-admin-kpi="review">0</span>
                     <span class="text-xs text-secondary ml-1.5 font-medium">Tiket</span>
                   </div>
                   <div class="w-14 h-9 relative flex items-center justify-center">
                     <svg class="w-14 h-9 overflow-visible" viewBox="0 0 56 32" aria-hidden="true">
                       <path d="M 4 28 A 24 24 0 0 1 52 28" fill="none" stroke="#E2E5EA" stroke-linecap="round" stroke-width="5"></path>
-                      <path d="M 4 28 A 24 24 0 0 1 24 9" fill="none" stroke="#ff661f" stroke-linecap="round" stroke-width="5"></path>
+                      <path d="M 4 28 A 24 24 0 0 1 52 28" data-admin-kpi-arc="review" pathLength="100" stroke-dasharray="0 100" fill="none" stroke="#ff661f" stroke-linecap="round" stroke-width="5"></path>
                     </svg>
                   </div>
                 </div>
                 <div class="inline-flex items-center gap-1.5 mt-3 text-secondary text-xs">
                   <span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-ping"></span>
-                  4 Urgent • Antrean &lt; 20 Mnt
+                  <span data-admin-kpi-sub="review">0 urgent • antrean disposisi</span>
                 </div>
               </div>
 
@@ -67,25 +67,25 @@
                     </div>
                     <span class="text-xs font-semibold text-secondary">Sedang Dikerjakan Lapangan</span>
                   </div>
-                  <div class="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-secondary group-hover:text-tertiary transition-colors">
+                  <button type="button" class="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-secondary hover:bg-surface-container-high hover:text-tertiary transition-colors cursor-pointer" data-admin-tab="dashboard" data-admin-filter="progress" data-admin-scroll="admin-ticket-list" aria-label="Lihat tiket yang sedang dikerjakan" title="Lihat tiket yang sedang dikerjakan">
                     <span class="material-symbols-outlined text-base">north_east</span>
-                  </div>
+                  </button>
                 </div>
                 <div class="flex items-baseline justify-between mt-5">
                   <div>
-                    <span class="text-3xl font-bold text-tertiary font-display tracking-tight">15</span>
+                    <span class="text-3xl font-bold text-tertiary font-display tracking-tight" data-admin-kpi="progress">0</span>
                     <span class="text-xs text-secondary ml-1.5 font-medium">Tiket</span>
                   </div>
                   <div class="w-14 h-9 relative flex items-center justify-center">
                     <svg class="w-14 h-9 overflow-visible" viewBox="0 0 56 32" aria-hidden="true">
                       <path d="M 4 28 A 24 24 0 0 1 52 28" fill="none" stroke="#E2E5EA" stroke-linecap="round" stroke-width="5"></path>
-                      <path d="M 4 28 A 24 24 0 0 1 38 6" fill="none" stroke="#0053db" stroke-linecap="round" stroke-width="5"></path>
+                      <path d="M 4 28 A 24 24 0 0 1 52 28" data-admin-kpi-arc="progress" pathLength="100" stroke-dasharray="0 100" fill="none" stroke="#0053db" stroke-linecap="round" stroke-width="5"></path>
                     </svg>
                   </div>
                 </div>
                 <div class="inline-flex items-center gap-1.5 mt-3 text-secondary text-xs">
                   <span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
-                  12 Teknisi aktif di lokasi
+                  <span data-admin-kpi-sub="progress">0 teknisi aktif</span>
                 </div>
               </div>
 
@@ -97,25 +97,25 @@
                     </div>
                     <span class="text-xs font-semibold text-secondary">Selesai &amp; Validasi SLA</span>
                   </div>
-                  <div class="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-secondary group-hover:text-emerald-700 transition-colors">
+                  <button type="button" class="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-secondary hover:bg-surface-container-high hover:text-emerald-700 transition-colors cursor-pointer" data-admin-tab="sla" data-admin-filter="all" aria-label="Buka laporan dan validasi SLA" title="Buka laporan dan validasi SLA">
                     <span class="material-symbols-outlined text-base">north_east</span>
-                  </div>
+                  </button>
                 </div>
                 <div class="flex items-baseline justify-between mt-5">
                   <div>
-                    <span class="text-3xl font-bold text-on-surface font-display tracking-tight">24</span>
+                    <span class="text-3xl font-bold text-on-surface font-display tracking-tight" data-admin-kpi="done">0</span>
                     <span class="text-xs text-secondary ml-1.5 font-medium">Tiket</span>
                   </div>
                   <div class="w-14 h-9 relative flex items-center justify-center">
                     <svg class="w-14 h-9 overflow-visible" viewBox="0 0 56 32" aria-hidden="true">
                       <path d="M 4 28 A 24 24 0 0 1 52 28" fill="none" stroke="#E2E5EA" stroke-linecap="round" stroke-width="5"></path>
-                      <path d="M 4 28 A 24 24 0 0 1 49 22" fill="none" stroke="#059669" stroke-linecap="round" stroke-width="5"></path>
+                      <path d="M 4 28 A 24 24 0 0 1 52 28" data-admin-kpi-arc="done" pathLength="100" stroke-dasharray="0 100" fill="none" stroke="#059669" stroke-linecap="round" stroke-width="5"></path>
                     </svg>
                   </div>
                 </div>
                 <div class="inline-flex items-center gap-1.5 mt-3 text-secondary text-xs">
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-                  97.2% SLA tercapai (Avg 1.8 Jam)
+                  <span data-admin-kpi-sub="done">0% SLA tercapai</span>
                 </div>
               </div>
             </div>
@@ -139,14 +139,20 @@
                   </div>
                 </div>
 
-                <div class="flex items-center justify-between px-2">
+                <div class="flex flex-wrap items-center justify-between gap-2 px-2">
                   <div class="flex items-center gap-2">
                     <h2 class="text-xl font-bold text-on-surface tracking-tight font-display">Daftar Pengaduan &amp; Disposisi Sarpras</h2>
                     <span class="w-6 h-6 rounded-full bg-surface-container text-secondary flex items-center justify-center text-xs font-bold" id="visible-count">0</span>
                   </div>
-                  <button type="button" class="text-xs font-bold text-primary hover:underline flex items-center gap-1" data-action="demo" data-note="Arsip lengkap pengaduan dibuka.">
-                    Lihat Semua Arsip →
-                  </button>
+                  <div class="flex items-center gap-2">
+                    <button type="button" class="h-9 px-4 rounded-full bg-surface-container-lowest border border-white text-[11px] font-bold text-on-surface hover:bg-surface-container-high transition flex items-center gap-1.5" data-action="export" data-export="reports" aria-label="Unduh rekap tiket sesuai filter" title="Unduh rekap tiket sesuai filter">
+                      <span class="material-symbols-outlined text-base">download</span>
+                      Unduh Rekap
+                    </button>
+                    <button type="button" class="text-xs font-bold text-primary hover:underline flex items-center gap-1" data-action="demo" data-note="Arsip lengkap pengaduan dibuka.">
+                      Lihat Semua Arsip →
+                    </button>
+                  </div>
                 </div>
 
                 <div class="flex flex-col gap-4" id="admin-ticket-list"></div>
@@ -190,65 +196,43 @@
                         <span class="text-[11px] text-secondary">Monitoring Real-Time UNSIL</span>
                       </div>
                     </div>
-                    <button type="button" class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-secondary hover:text-on-surface" data-action="demo" data-note="Detail kesiapan sarana dibuka." aria-label="Detail Sarpras">
+                    <button type="button" class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-secondary hover:bg-surface-container-high hover:text-on-surface transition-colors cursor-pointer" data-admin-tab="inventory" data-admin-filter="all" data-admin-scroll="inventory-summary" aria-label="Buka inventaris sarana dan prasarana" title="Buka inventaris sarana dan prasarana">
                       <span class="material-symbols-outlined text-base">north_east</span>
                     </button>
                   </div>
                   <div class="p-5 rounded-xl bg-surface-container-low flex items-center justify-between">
                     <div class="flex flex-col">
                       <div class="flex items-center gap-1.5 text-xs text-primary font-bold mb-1">
-                        <span class="material-symbols-outlined text-sm font-bold">arrow_upward</span>
-                        +2.4% Optimal
+                        <span class="material-symbols-outlined text-sm font-bold">monitoring</span>
+                        <span data-readiness-attention>0 aset perlu perhatian</span>
                       </div>
-                      <span class="text-3xl font-bold text-on-surface tracking-tight font-display">96.5%</span>
-                      <span class="text-xs text-secondary mt-0.5">Indeks Kesiapan Sarpras</span>
+                      <span class="text-3xl font-bold text-on-surface tracking-tight font-display" data-readiness-score>0%</span>
+                      <span class="text-xs text-secondary mt-0.5" data-readiness-caption>Memuat kesiapan aset...</span>
                     </div>
                     <div class="relative w-28 h-20 flex items-end justify-center">
                       <svg class="w-28 h-20" viewBox="0 0 110 65" aria-hidden="true">
                         <path d="M 10 55 A 45 45 0 0 1 100 55" fill="none" stroke="#D8DADE" stroke-linecap="round" stroke-width="9"></path>
-                        <path d="M 10 55 A 45 45 0 0 1 92 30" fill="none" stroke="#ff661f" stroke-linecap="round" stroke-width="9"></path>
-                        <circle cx="92" cy="30" fill="#ffffff" r="4.5" stroke="#ff661f" stroke-width="3"></circle>
+                        <path d="M 10 55 A 45 45 0 0 1 100 55" data-readiness-arc pathLength="100" stroke-dasharray="0 100" fill="none" stroke="#ff661f" stroke-linecap="round" stroke-width="9"></path>
+                        <circle cx="10" cy="55" fill="#ffffff" r="4.5" stroke="#ff661f" stroke-width="3" data-readiness-marker></circle>
                       </svg>
                       <div class="absolute bottom-0 text-center">
-                        <span class="text-xs font-bold text-on-surface">A+ Unggul</span>
+                        <span class="text-xs font-bold text-on-surface" data-readiness-grade>-</span>
                       </div>
                     </div>
                   </div>
                   <div class="grid grid-cols-2 gap-3">
                     <div class="p-3.5 rounded-xl bg-surface-container flex flex-col">
                       <span class="text-xs text-secondary">Rata-rata Penanganan</span>
-                      <span class="text-xl font-bold text-on-surface font-display mt-1">1.8 Jam</span>
+                      <span class="text-xl font-bold text-on-surface font-display mt-1"><span data-sla="avg">0</span> Jam</span>
                       <span class="text-[11px] text-primary font-semibold mt-0.5">Respon Cepat</span>
                     </div>
                     <div class="p-3.5 rounded-xl bg-surface-container flex flex-col">
                       <span class="text-xs text-secondary">Teknisi Siaga</span>
-                      <span class="text-xl font-bold text-on-surface font-display mt-1">14 Personil</span>
-                      <span class="text-[11px] text-secondary mt-0.5">4 Zona Kampus</span>
+                      <span class="text-xl font-bold text-on-surface font-display mt-1" data-tech-summary="total">0 Personil</span>
+                      <span class="text-[11px] text-secondary mt-0.5" data-tech-summary="teams">0 Tim</span>
                     </div>
                   </div>
-                  <div class="flex flex-col gap-3 pt-1 border-t border-surface-container-high">
-                    <div>
-                      <div class="flex items-center justify-between text-xs mb-1">
-                        <span class="text-on-surface font-medium">Fakultas Teknik &amp; Lab Terpadu</span>
-                        <span class="font-bold text-on-surface">98.2%</span>
-                      </div>
-                      <div class="w-full bg-surface-container h-2 rounded-full overflow-hidden"><div class="bg-inverse-surface h-full rounded-full" style="width: 98.2%"></div></div>
-                    </div>
-                    <div>
-                      <div class="flex items-center justify-between text-xs mb-1">
-                        <span class="text-on-surface font-medium">Gedung Kuliah Bersama (GKB)</span>
-                        <span class="font-bold text-primary">91.4%</span>
-                      </div>
-                      <div class="w-full bg-surface-container h-2 rounded-full overflow-hidden"><div class="bg-primary-container h-full rounded-full" style="width: 91.4%"></div></div>
-                    </div>
-                    <div>
-                      <div class="flex items-center justify-between text-xs mb-1">
-                        <span class="text-on-surface font-medium">Rektorat &amp; Administrasi Pusat</span>
-                        <span class="font-bold text-emerald-700">99.0%</span>
-                      </div>
-                      <div class="w-full bg-surface-container h-2 rounded-full overflow-hidden"><div class="bg-emerald-500 h-full rounded-full" style="width: 99%"></div></div>
-                    </div>
-                  </div>
+                  <div class="flex flex-col gap-3 pt-1 border-t border-surface-container-high" id="readiness-zone-list"></div>
                 </div>
 
                 <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05),0_4px_12px_rgba(166,175,189,0.12)] border border-[#e2e8f0] flex flex-col gap-4">
@@ -261,32 +245,7 @@
                     </div>
                     <span class="text-[11px] text-secondary font-semibold">Real-Time</span>
                   </div>
-                  <div class="space-y-3.5 pt-1">
-                    <div>
-                      <div class="flex justify-between items-center mb-1 text-xs">
-                        <span class="font-medium text-on-surface flex items-center gap-1.5"><span class="material-symbols-outlined text-base text-primary">hvac</span>Kelistrikan &amp; Tata Udara</span>
-                        <span class="text-primary font-bold">4/5 Bertugas</span>
-                      </div>
-                      <div class="w-full h-2 rounded-full bg-surface-container overflow-hidden"><div class="h-full rounded-full bg-primary-container" style="width: 80%"></div></div>
-                      <span class="text-[11px] text-secondary mt-0.5 block">Kapasitas 80% (Tinggi)</span>
-                    </div>
-                    <div>
-                      <div class="flex justify-between items-center mb-1 text-xs">
-                        <span class="font-medium text-on-surface flex items-center gap-1.5"><span class="material-symbols-outlined text-base text-tertiary">videocam</span>Multimedia &amp; Audio Visual</span>
-                        <span class="text-on-surface font-bold">2/3 Bertugas</span>
-                      </div>
-                      <div class="w-full h-2 rounded-full bg-surface-container overflow-hidden"><div class="h-full rounded-full bg-tertiary" style="width: 66%"></div></div>
-                      <span class="text-[11px] text-secondary mt-0.5 block">Kapasitas 66% (Optimal)</span>
-                    </div>
-                    <div>
-                      <div class="flex justify-between items-center mb-1 text-xs">
-                        <span class="font-medium text-on-surface flex items-center gap-1.5"><span class="material-symbols-outlined text-base text-secondary">plumbing</span>Sanitasi &amp; Konstruksi Sipil</span>
-                        <span class="text-on-surface font-bold">3/4 Bertugas</span>
-                      </div>
-                      <div class="w-full h-2 rounded-full bg-surface-container overflow-hidden"><div class="h-full rounded-full bg-secondary" style="width: 75%"></div></div>
-                      <span class="text-[11px] text-secondary mt-0.5 block">Kapasitas 75% (Normal)</span>
-                    </div>
-                  </div>
+                  <div class="space-y-3.5 pt-1" id="team-workload-list"></div>
                 </div>
 
                 <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05),0_4px_12px_rgba(166,175,189,0.12)] border border-[#e2e8f0] flex flex-col gap-4">
@@ -299,32 +258,7 @@
                     </div>
                     <span class="text-[11px] text-secondary font-semibold">Audit Stream</span>
                   </div>
-                  <div class="space-y-4 text-xs relative before:absolute before:inset-0 before:left-2.5 before:w-0.5 before:bg-surface-container before:h-full pt-1">
-                    <div class="relative flex items-start gap-3 pl-1">
-                      <div class="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center z-10 shrink-0"><span class="material-symbols-outlined text-xs">check</span></div>
-                      <div>
-                        <p class="font-bold text-on-surface">Perbaikan AC R.102 Selesai</p>
-                        <p class="text-secondary text-[11px]">Teknisi Hendra menandatangani BAP perbaikan</p>
-                        <span class="text-[10px] text-primary font-bold">12 Menit lalu</span>
-                      </div>
-                    </div>
-                    <div class="relative flex items-start gap-3 pl-1">
-                      <div class="w-5 h-5 rounded-full bg-primary-container text-white flex items-center justify-center z-10 shrink-0"><span class="material-symbols-outlined text-xs">assignment</span></div>
-                      <div>
-                        <p class="font-bold text-on-surface">Disposisi #CC-2024-0912</p>
-                        <p class="text-secondary text-[11px]">Kepala Biro meneruskan tiket ke Tim Kelistrikan</p>
-                        <span class="text-[10px] text-secondary font-medium">28 Menit lalu</span>
-                      </div>
-                    </div>
-                    <div class="relative flex items-start gap-3 pl-1">
-                      <div class="w-5 h-5 rounded-full bg-surface-container-high text-on-surface flex items-center justify-center z-10 shrink-0"><span class="material-symbols-outlined text-xs">notifications</span></div>
-                      <div>
-                        <p class="font-bold text-on-surface">Pengaduan Baru Terdaftar</p>
-                        <p class="text-secondary text-[11px]">Fasilitas Wi-Fi Perpustakaan Lt.2 gangguan</p>
-                        <span class="text-[10px] text-secondary font-medium">45 Menit lalu</span>
-                      </div>
-                    </div>
-                  </div>
+                  <div class="space-y-4 text-xs relative before:absolute before:inset-0 before:left-2.5 before:w-0.5 before:bg-surface-container before:h-full pt-1" id="audit-log-list"></div>
                 </div>
 
                 <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05),0_4px_12px_rgba(166,175,189,0.12)] border border-[#e2e8f0] flex flex-col gap-4">

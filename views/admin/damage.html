@@ -1,0 +1,84 @@
+<div class="cc-panel" id="panel-admin-damage">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-5">
+              <div>
+                <h2 class="text-xl sm:text-2xl font-bold text-on-surface font-display tracking-tight">Rekapitulasi Kerusakan</h2>
+                <p class="text-xs text-secondary mt-1">Rekap kerusakan per kategori, aset yang perlu perhatian, dan tiket terkait.</p>
+              </div>
+              <button type="button" class="h-11 px-5 rounded-full bg-surface-container-lowest border border-white text-xs font-bold text-on-surface shadow-sm hover:bg-surface-container-high transition flex items-center gap-2" data-action="export" data-export="damage">
+                <span class="material-symbols-outlined text-base">download</span>
+                Unduh Rekap Kerusakan
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-5">
+              <div class="bg-surface-container-lowest rounded-2xl p-5 border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)]">
+                <p class="text-xs text-secondary">Total Laporan Kerusakan</p>
+                <p class="font-display text-3xl font-bold text-on-surface mt-1"><span data-damage="tickets">0</span> <span class="text-sm font-semibold text-secondary">tiket</span></p>
+                <p class="text-[11px] font-semibold text-secondary mt-1" data-damage-sub="tickets">Seluruh riwayat pengaduan fasilitas</p>
+              </div>
+              <div class="bg-surface-container-lowest rounded-2xl p-5 border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)]">
+                <p class="text-xs text-secondary">Masih Aktif</p>
+                <p class="font-display text-3xl font-bold text-primary mt-1"><span data-damage="active">0</span> <span class="text-sm font-semibold text-secondary">tiket</span></p>
+                <p class="text-[11px] font-semibold text-secondary mt-1" data-damage-sub="active">Belum selesai divalidasi</p>
+              </div>
+              <div class="bg-surface-container-lowest rounded-2xl p-5 border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)]">
+                <p class="text-xs text-secondary">Prioritas Tinggi Aktif</p>
+                <p class="font-display text-3xl font-bold text-red-600 mt-1"><span data-damage="high">0</span> <span class="text-sm font-semibold text-secondary">tiket</span></p>
+                <p class="text-[11px] font-semibold text-secondary mt-1" data-damage-sub="high">Perlu penanganan segera</p>
+              </div>
+              <div class="bg-surface-container-lowest rounded-2xl p-5 border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)]">
+                <p class="text-xs text-secondary">Aset Perlu Perhatian</p>
+                <p class="font-display text-3xl font-bold text-amber-600 mt-1"><span data-damage="assets">0</span> <span class="text-sm font-semibold text-secondary">aset</span></p>
+                <p class="text-[11px] font-semibold text-secondary mt-1" data-damage-sub="assets">Kondisi servis, gangguan, atau rusak</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
+              <div class="xl:col-span-7 bg-surface-container-lowest rounded-2xl p-6 border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)]">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h3 class="text-sm font-bold text-on-surface font-display">Rekap per Kategori</h3>
+                    <p class="text-[11px] text-secondary">Proporsi tiket yang masih aktif terhadap total kategori.</p>
+                  </div>
+                  <span class="inline-flex items-center gap-2 text-[11px] font-semibold text-secondary"><span class="w-2.5 h-2.5 rounded-full bg-primary-container"></span>Aktif</span>
+                </div>
+                <div class="mt-4 space-y-3.5 text-xs" id="damage-category-list"></div>
+              </div>
+
+              <div class="xl:col-span-5 bg-surface-container-lowest rounded-2xl p-6 border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)]">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h3 class="text-sm font-bold text-on-surface font-display">Aset Perlu Perhatian</h3>
+                    <p class="text-[11px] text-secondary">Diurutkan dari kondisi paling kritis.</p>
+                  </div>
+                  <button type="button" class="text-[11px] font-bold text-primary hover:underline" data-admin-tab="inventory">Lihat semua</button>
+                </div>
+                <div class="mt-4 space-y-2.5" id="damage-asset-list"></div>
+              </div>
+            </div>
+
+            <div class="mt-5 bg-surface-container-lowest rounded-2xl border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)] overflow-hidden">
+              <div class="p-5 flex flex-wrap items-center justify-between gap-2 border-b border-surface-container-high">
+                <div>
+                  <h3 class="text-sm font-bold text-on-surface font-display">Daftar Tiket Kerusakan</h3>
+                  <p class="text-[11px] text-secondary">Tiket aktif ditampilkan lebih dulu, lalu riwayat yang sudah selesai.</p>
+                </div>
+                <span class="text-[11px] px-2.5 py-1 rounded-full bg-surface-container text-secondary font-bold" data-damage="ticket-count">0 tiket</span>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-surface-container-low text-secondary uppercase tracking-wide text-[10px]">
+                    <tr>
+                      <th class="py-3 px-5 font-bold">Tiket</th>
+                      <th class="py-3 px-5 font-bold">Kategori</th>
+                      <th class="py-3 px-5 font-bold">Status</th>
+                      <th class="py-3 px-5 font-bold">Prioritas</th>
+                      <th class="py-3 px-5 font-bold">Batas SLA</th>
+                      <th class="py-3 px-5 font-bold text-right">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="damage-ticket-body" class="divide-y divide-surface-container-high"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>

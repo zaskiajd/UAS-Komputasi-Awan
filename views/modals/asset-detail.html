@@ -1,0 +1,19 @@
+<div class="cc-modal" id="modal-asset-detail" role="dialog" aria-modal="true" aria-labelledby="asset-detail-title" hidden>
+  <div class="cc-modal__card max-w-2xl">
+    <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl">inventory_2</span>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-gray-900 font-display" id="asset-detail-title">Detail Aset</h3>
+          <p class="text-xs text-gray-500">Kondisi, riwayat perawatan, dan tiket terkait</p>
+        </div>
+      </div>
+      <button type="button" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center transition" data-action="close-modal" aria-label="Tutup">
+        <span class="material-symbols-outlined text-base">close</span>
+      </button>
+    </div>
+    <div class="mt-4" id="asset-detail-body"></div>
+  </div>
+</div>

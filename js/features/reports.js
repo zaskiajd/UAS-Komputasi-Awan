@@ -4,20 +4,27 @@
    (dipilih lewat field owner = NIM pemilik).
    ========================================================================== */
 
-import { $$, byId, escapeHtml } from "../core/dom.js";
+import { $$, byId, escapeHtml, relativeTime } from "../core/dom.js";
 import { activeStudent, state } from "../core/state.js";
-import { CATEGORY_META, STATUS_META } from "../data/reports.js";
+import {
+  assignmentRoster,
+  primaryAssignee,
+  supportAssignments,
+} from "../data/assignments.js";
+import { CATEGORY_META, PRIORITY_META, STATUS_META } from "../data/reports.js";
 import { closeModal, openModal } from "../ui/modal.js";
 import { showToast } from "../ui/toast.js";
+import { renderAnalytics } from "./analytics.js";
 
 export function statusCounts(reports = state.reports) {
   return {
     all: reports.length,
-    urgent: reports.filter((report) => report.urgent).length,
+    urgent: reports.filter((report) => report.urgent && report.status !== "done").length,
     review: reports.filter((report) => report.status === "review").length,
     progress: reports.filter(
       (report) => report.status === "progress" || report.status === "waiting"
     ).length,
+    waiting: reports.filter((report) => report.status === "waiting").length,
     done: reports.filter((report) => report.status === "done").length,
   };
 }
@@ -45,7 +52,7 @@ export function updateCounters() {
 
 export function matchesFilter(report, filter) {
   if (filter === "all") return true;
-  if (filter === "urgent") return Boolean(report.urgent);
+  if (filter === "urgent") return Boolean(report.urgent) && report.status !== "done";
   if (filter === "review") return report.status === "review";
   if (filter === "progress") {
     return report.status === "progress" || report.status === "waiting";
@@ -56,17 +63,52 @@ export function matchesFilter(report, filter) {
 
 export function matchesQuery(report, query) {
   if (!query) return true;
+  const assignee = primaryAssignee(report, state.technicians);
+  const rosterNames = assignmentRoster(report, state.technicians).map(
+    (entry) => entry.technician.name
+  );
   const haystack = [
     report.id,
     report.title,
     report.location,
     report.reporter,
     report.team || "",
+    assignee?.name || "",
+    ...rosterNames,
+    report.priority || "",
     CATEGORY_META[report.cat]?.label || "",
+    ...(report.notes || []).map((note) => note.text),
+    ...(report.instructions || []).map((instruction) => instruction.text),
   ]
     .join(" ")
     .toLowerCase();
   return haystack.includes(query.toLowerCase());
+}
+
+/** Tiket admin yang sedang tampil (mengikuti filter status & pencarian). */
+export function filteredAdminReports() {
+  return state.reports.filter(
+    (report) =>
+      matchesFilter(report, state.adminFilter) &&
+      matchesQuery(report, state.adminQuery)
+  );
+}
+
+/** Antrean disposisi yang sedang tampil (mengikuti filter & pencarian). */
+export function filteredDispatchReports() {
+  return state.reports
+    .filter((report) => report.status === "review")
+    .filter((report) => {
+      if (state.dispatchFilter === "urgent") return report.urgent;
+      if (state.dispatchFilter === "normal") return !report.urgent;
+      return true;
+    })
+    .filter((report) => matchesQuery(report, state.dispatchQuery))
+    .sort(
+      (a, b) =>
+        Number(b.urgent) - Number(a.urgent) ||
+        new Date(a.createdAt || 0) - new Date(b.createdAt || 0)
+    );
 }
 
 function emptyState(title) {
@@ -76,6 +118,14 @@ function emptyState(title) {
         <p class="font-display text-sm font-bold text-gray-700">${escapeHtml(title)}</p>
         <p class="text-xs text-gray-500">Coba ubah kata kunci atau filter status pengaduan.</p>
       </div>`;
+}
+
+function isOverdue(report) {
+  return Boolean(
+    report.status !== "done" &&
+      report.slaDueAt &&
+      new Date(report.slaDueAt).getTime() < Date.now()
+  );
 }
 
 function reportActions(report, mode) {
@@ -116,8 +166,8 @@ function reportActions(report, mode) {
   }
 
   return `
-      <button type="button" class="h-11 px-5 rounded-full bg-inverse-surface text-white text-xs font-bold hover:bg-black transition-all flex items-center gap-1.5 shadow-sm" data-action="open-detail" data-ticket="${escapeHtml(report.id)}">
-        <span>${report.status === "waiting" ? "Detail Tiket" : "Lihat Progres"}</span>
+      <button type="button" class="h-11 px-5 rounded-full ${isOverdue(report) ? "bg-error text-white" : "bg-inverse-surface text-white"} text-xs font-bold hover:brightness-110 transition-all flex items-center gap-1.5 shadow-sm" data-action="open-detail" data-ticket="${escapeHtml(report.id)}">
+        <span>${report.status === "waiting" ? "Detail Tiket" : "Kelola Tiket"}</span>
         <span class="material-symbols-outlined text-base font-bold">arrow_forward</span>
       </button>`;
 }
@@ -125,16 +175,20 @@ function reportActions(report, mode) {
 function reportCard(report, mode) {
   const category = CATEGORY_META[report.cat] || CATEGORY_META.ac;
   const status = STATUS_META[report.status] || STATUS_META.review;
+  const priority = PRIORITY_META[report.priority] || PRIORITY_META.Sedang;
+  const assignee = primaryAssignee(report, state.technicians);
+  const supports = supportAssignments(report, state.technicians);
+  const overdue = isOverdue(report);
 
   const progressLabel =
     report.status === "progress" && report.progress ? ` (${report.progress}%)` : "";
 
   const teamLine = report.team
     ? `<span class="inline-flex items-center gap-1 font-semibold ${
-        report.status === "done" ? "text-emerald-700" : "text-tertiary"
+        report.status === "done" ? "text-emerald-700" : overdue ? "text-error" : "text-tertiary"
       }">
            <span class="material-symbols-outlined text-base">engineering</span>
-           Teknisi: ${escapeHtml(report.team)}
+           ${escapeHtml(report.team)}${assignee ? ` • ${escapeHtml(assignee.name)}` : ""}${supports.length ? ` +${supports.length}` : ""}
          </span>`
     : `<span class="inline-flex items-center gap-1 font-semibold ${
         report.urgent ? "text-primary" : "text-secondary"
@@ -173,7 +227,22 @@ function reportCard(report, mode) {
                   ? `<span class="px-2 py-0.5 rounded-full bg-error-container text-on-error-container text-[11px] font-bold">Urgent</span>`
                   : ""
               }
+              ${
+                mode === "admin"
+                  ? `<span class="px-2 py-0.5 rounded-full ${priority.chip} text-[11px] font-bold">${escapeHtml(report.priority || "Sedang")}</span>`
+                  : ""
+              }
+              ${
+                overdue
+                  ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[11px] font-bold"><span class="material-symbols-outlined text-xs">schedule</span>Lewat SLA</span>`
+                  : ""
+              }
               <span class="text-xs text-secondary">${escapeHtml(report.date)}</span>
+              ${
+                mode === "admin" && report.updatedAt
+                  ? `<span class="text-[11px] text-secondary/70">Diperbarui ${escapeHtml(relativeTime(report.updatedAt))}</span>`
+                  : ""
+              }
             </div>
             <h3 class="text-base md:text-lg font-bold text-on-surface font-display leading-snug">${escapeHtml(report.title)}</h3>
             <div class="flex flex-wrap items-center gap-y-1 gap-x-4 text-xs text-secondary">
@@ -208,11 +277,18 @@ function syncHistoryToolbar(visibleReports = []) {
   const toolbar = byId("student-history-toolbar");
   if (!toolbar) return;
 
-  toolbar.hidden = !state.historyDeleteMode;
-  if (!state.historyDeleteMode) return;
-
   const selectedCount = state.historySelection.size;
   const countLabel = byId("student-history-selected-count");
+  const confirmButton = byId("btn-confirm-delete-history");
+
+  toolbar.hidden = !state.historyDeleteMode;
+  if (!state.historyDeleteMode) {
+    // Reset label & tombol agar tidak menyisakan status pilihan lama saat toolbar disembunyikan.
+    if (countLabel) countLabel.textContent = "0 riwayat dipilih";
+    if (confirmButton) confirmButton.disabled = true;
+    return;
+  }
+
   if (countLabel) {
     countLabel.textContent = `${selectedCount} riwayat dipilih`;
   }
@@ -226,7 +302,6 @@ function syncHistoryToolbar(visibleReports = []) {
     selectAllButton.setAttribute("aria-pressed", String(allSelected));
   }
 
-  const confirmButton = byId("btn-confirm-delete-history");
   if (confirmButton) confirmButton.disabled = selectedCount === 0;
 }
 
@@ -421,9 +496,7 @@ export function renderAdminTickets() {
   const container = byId("admin-ticket-list");
   if (!container) return;
 
-  const filtered = state.reports.filter(
-    (report) => matchesFilter(report, state.adminFilter) && matchesQuery(report, state.adminQuery)
-  );
+  const filtered = filteredAdminReports();
 
   container.innerHTML = filtered.length
     ? filtered.map((report) => reportCard(report, "admin")).join("")
@@ -439,13 +512,18 @@ export function renderDispatchList() {
   const container = byId("admin-dispatch-list");
   if (!container) return;
 
-  const filtered = state.reports
-    .filter((report) => report.status === "review")
-    .sort((a, b) => Number(b.urgent) - Number(a.urgent));
+  const filtered = filteredDispatchReports();
 
   container.innerHTML = filtered.length
     ? filtered.map((report) => reportCard(report, "admin")).join("")
-    : emptyState("Antrean disposisi sudah bersih");
+    : emptyState(
+        state.dispatchQuery || state.dispatchFilter !== "all"
+          ? "Tidak ada tiket yang cocok"
+          : "Antrean disposisi sudah bersih"
+      );
+
+  const countBadge = byId("dispatch-visible");
+  if (countBadge) countBadge.textContent = String(filtered.length);
 
   updateCounters();
 }
@@ -456,4 +534,5 @@ export function renderReports() {
   renderAdminTickets();
   renderDispatchList();
   updateCounters();
+  renderAnalytics();
 }

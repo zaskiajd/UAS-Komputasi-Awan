@@ -1,0 +1,91 @@
+<div class="cc-modal" id="modal-operation-guide" role="dialog" aria-modal="true" aria-labelledby="operation-guide-title" hidden>
+    <div class="cc-modal__card max-w-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-full bg-orange-100 text-primary-container flex items-center justify-center">
+            <span class="material-symbols-outlined text-xl">menu_book</span>
+          </div>
+          <div>
+            <h3 class="font-display font-bold text-base text-gray-900" id="operation-guide-title">Panduan Operasional Sarpras</h3>
+            <p class="font-body text-xs text-gray-500">Alur disposisi, status tiket, dan target SLA</p>
+          </div>
+        </div>
+        <button type="button" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition" data-action="close-modal" aria-label="Tutup">
+          <span class="material-symbols-outlined text-base">close</span>
+        </button>
+      </div>
+
+      <div class="mt-4 space-y-4 font-body text-xs text-gray-600 leading-relaxed">
+        <div class="p-3.5 bg-gray-50 rounded-xl border border-gray-100">
+          <p class="font-display font-bold text-gray-900 mb-2">1. Verifikasi &amp; disposisi</p>
+          <ol class="list-decimal list-inside space-y-1.5">
+            <li>Buka menu <strong>Disposisi Penugasan</strong> untuk melihat tiket berstatus verifikasi.</li>
+            <li>Periksa kategori, lokasi, dan tingkat urgensi laporan.</li>
+            <li>Tentukan tim pelaksana dan PIC melalui tombol disposisi.</li>
+            <li>Tiket berpindah ke status <strong>Diproses</strong> setelah disposisi tersimpan.</li>
+          </ol>
+        </div>
+
+        <div class="p-3.5 bg-gray-50 rounded-xl border border-gray-100">
+          <p class="font-display font-bold text-gray-900 mb-2">2. Alur status tiket</p>
+          <div class="space-y-2">
+            <div class="flex items-start gap-2.5">
+              <span class="mt-1 w-2.5 h-2.5 rounded-full bg-primary shrink-0"></span>
+              <span><strong>Verifikasi</strong> — laporan baru menunggu pemeriksaan dan penugasan tim.</span>
+            </div>
+            <div class="flex items-start gap-2.5">
+              <span class="mt-1 w-2.5 h-2.5 rounded-full bg-tertiary shrink-0"></span>
+              <span><strong>Diproses</strong> — teknisi sudah ditugaskan dan pekerjaan sedang berjalan.</span>
+            </div>
+            <div class="flex items-start gap-2.5">
+              <span class="mt-1 w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></span>
+              <span><strong>Menunggu</strong> — pekerjaan tertahan suku cadang atau jadwal lanjutan.</span>
+            </div>
+            <div class="flex items-start gap-2.5">
+              <span class="mt-1 w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+              <span><strong>Selesai</strong> — pekerjaan tervalidasi dan tiket ditutup.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-3.5 bg-gray-50 rounded-xl border border-gray-100">
+          <p class="font-display font-bold text-gray-900 mb-2">3. Target SLA</p>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead class="text-[10px] uppercase tracking-wide text-gray-500">
+                <tr>
+                  <th class="py-1.5 pr-4 font-bold">Prioritas</th>
+                  <th class="py-1.5 pr-4 font-bold">Target</th>
+                  <th class="py-1.5 font-bold">Contoh kasus</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                <tr>
+                  <td class="py-1.5 pr-4 font-semibold text-red-700">Tinggi</td>
+                  <td class="py-1.5 pr-4">2 jam</td>
+                  <td class="py-1.5">Lift macet, korsleting, kebocoran besar</td>
+                </tr>
+                <tr>
+                  <td class="py-1.5 pr-4 font-semibold text-primary">Sedang</td>
+                  <td class="py-1.5 pr-4">6 jam</td>
+                  <td class="py-1.5">AC tidak dingin, proyektor bermasalah</td>
+                </tr>
+                <tr>
+                  <td class="py-1.5 pr-4 font-semibold text-gray-600">Rendah</td>
+                  <td class="py-1.5 pr-4">24 jam</td>
+                  <td class="py-1.5">Meubel longgar, lampu redup</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="mt-2 text-[11px] text-gray-500">Persentase SLA dihitung dari tiket selesai yang tidak melewati batas waktu.</p>
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-4">
+        <button type="button" class="px-5 py-2.5 rounded-full text-xs font-display font-bold bg-primary-container hover:bg-primary-hover text-white shadow-md transition" data-action="close-modal">
+          Mengerti
+        </button>
+      </div>
+    </div>
+  </div>

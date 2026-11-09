@@ -5,7 +5,6 @@
 import { $$, byId } from "./core/dom.js";
 import { state } from "./core/state.js";
 import { setView } from "./core/router.js";
-import { STATUS_META } from "./data/reports.js";
 import { closeMenus } from "./ui/menu.js";
 import { closeModal, openModal } from "./ui/modal.js";
 import { closeDrawers, toggleSidebar, toggleStudentSidebar } from "./ui/sidebar.js";
@@ -21,7 +20,11 @@ import {
 import { setStudentTab } from "./views/student.js";
 import { setAdminTab } from "./views/admin.js";
 import { loginAs, logout } from "./features/session.js";
-import { handleDispatchSubmit, openDispatch } from "./features/dispatch.js";
+import {
+  handleDispatchSubmit,
+  openDispatch,
+  refreshDispatchTechnicians,
+} from "./features/dispatch.js";
 import { handleComplaintSubmit } from "./features/complaint.js";
 import { trackReport } from "./features/timeline.js";
 import {
@@ -29,11 +32,32 @@ import {
   executeHistoryDelete,
   openHistoryDeleteConfirm,
   renderAdminTickets,
+  renderDispatchList,
   renderStudentReports,
   toggleHistoryDeleteMode,
   toggleHistorySelection,
   toggleSelectAllHistory,
 } from "./features/reports.js";
+import {
+  addTicketSupport,
+  changeTicketPic,
+  handleInstructionSubmit,
+  handleTicketNoteSubmit,
+  openTicketDetail,
+  removeTicketSupport,
+  updateTicketStatus,
+} from "./features/ticket-actions.js";
+import {
+  handleTechnicianFormSubmit,
+  openTechnicianDetail,
+  openTechnicianForm,
+  removeTechnician,
+  renderTechnicians,
+  restoreTechnician,
+  toggleTechnicianDuty,
+} from "./features/technicians.js";
+import { markAssetServiced, openAssetDetail, renderInventory } from "./features/inventory.js";
+import { handleExport } from "./features/export.js";
 
 /** Menjalankan aksi berdasarkan atribut `data-action` pada elemen. */
 function handleAction(actionElement) {
@@ -87,6 +111,12 @@ function handleAction(actionElement) {
     case "open-sso-help":
       closeMenus();
       openModal(byId("modal-sso-help"));
+      break;
+
+    case "open-operation-guide":
+      closeMenus();
+      toggleSidebar(false);
+      openModal(byId("modal-operation-guide"));
       break;
 
     case "open-complaint":
@@ -147,15 +177,61 @@ function handleAction(actionElement) {
     case "open-detail": {
       const report = state.reports.find((item) => item.id === actionElement.dataset.ticket);
       closeMenus();
-      if (report) {
-        showToast(
-          `Detail ${report.id}`,
-          `${report.title} • Status: ${STATUS_META[report.status].label}`,
-          "info"
-        );
-      }
+      if (report) openTicketDetail(report.id);
       break;
     }
+
+    case "ticket-status":
+      updateTicketStatus(actionElement.dataset.ticket, actionElement.dataset.status);
+      break;
+
+    case "save-pic":
+      changeTicketPic(actionElement.dataset.ticket);
+      break;
+
+    case "add-support":
+      addTicketSupport(actionElement.dataset.ticket);
+      break;
+
+    case "remove-support":
+      removeTicketSupport(actionElement.dataset.ticket, actionElement.dataset.tech);
+      break;
+
+    case "tech-detail":
+      closeMenus();
+      openTechnicianDetail(actionElement.dataset.tech);
+      break;
+
+    case "add-tech":
+      closeMenus();
+      openTechnicianForm();
+      break;
+
+    case "edit-tech":
+      closeMenus();
+      openTechnicianForm(actionElement.dataset.tech);
+      break;
+
+    case "remove-tech":
+      removeTechnician(actionElement.dataset.tech);
+      break;
+
+    case "restore-tech":
+      restoreTechnician(actionElement.dataset.tech);
+      break;
+
+    case "toggle-tech-duty":
+      toggleTechnicianDuty(actionElement.dataset.tech);
+      break;
+
+    case "asset-detail":
+      closeMenus();
+      openAssetDetail(actionElement.dataset.asset);
+      break;
+
+    case "asset-service":
+      markAssetServiced(actionElement.dataset.asset);
+      break;
 
     case "google-login":
       showToast("Google Workspace SSO", "Menghubungkan ke layanan OAuth2 UNSIL...", "info");
@@ -165,15 +241,7 @@ function handleAction(actionElement) {
       break;
 
     case "export":
-      showToast(
-        "Menyiapkan Ekspor",
-        "Rekap Sarpras UNSIL sedang dibuat dalam format PDF/XLS.",
-        "success"
-      );
-      break;
-
-    case "notify":
-      showToast("Notifikasi", actionElement.dataset.note || "Tidak ada notifikasi baru.", "info");
+      handleExport(actionElement);
       break;
 
     case "show-lock-info":
@@ -182,10 +250,6 @@ function handleAction(actionElement) {
         "Sesi Anda terikat SSO UNSIL dengan enkripsi 256-bit.",
         "info"
       );
-      break;
-
-    case "switch-role":
-      loginAs(actionElement.dataset.role);
       break;
 
     case "logout":
@@ -239,6 +303,22 @@ function bindAdminFilter(button) {
   renderAdminTickets();
 }
 
+function bindDispatchFilter(button) {
+  state.dispatchFilter = button.dataset.dispatchFilter;
+  $$("[data-dispatch-filter]").forEach((element) => {
+    element.classList.toggle("is-active", element.dataset.dispatchFilter === state.dispatchFilter);
+  });
+  renderDispatchList();
+}
+
+function bindInventoryFilter(button) {
+  state.inventoryFilter = button.dataset.inventoryFilter;
+  $$("[data-inventory-filter]").forEach((element) => {
+    element.classList.toggle("is-active", element.dataset.inventoryFilter === state.inventoryFilter);
+  });
+  renderInventory();
+}
+
 /** Memasang seluruh listener global setelah partial HTML siap. */
 export function bindEvents() {
   /* Delegasi klik global */
@@ -256,14 +336,33 @@ export function bindEvents() {
 
     const adminTabButton = event.target.closest("[data-admin-tab]");
     if (adminTabButton) {
-      setAdminTab(adminTabButton.dataset.adminTab);
+      setAdminTab(adminTabButton.dataset.adminTab, {
+        filter: adminTabButton.dataset.adminFilter,
+      });
+      // Panah KPI pada dashboard mengarahkan ke daftar tiket terkait.
+      const scrollTarget = adminTabButton.dataset.adminScroll;
+      if (scrollTarget) {
+        const target = byId(scrollTarget);
+        if (target) {
+          const top = target.getBoundingClientRect().top + window.scrollY - 96;
+          window.scrollTo({ top, behavior: "smooth" });
+        }
+      }
     }
 
     const studentFilterButton = event.target.closest("[data-student-filter]");
     if (studentFilterButton) bindStudentFilter(studentFilterButton);
 
     const adminFilterButton = event.target.closest("[data-admin-filter]");
-    if (adminFilterButton) bindAdminFilter(adminFilterButton);
+    if (adminFilterButton && !adminFilterButton.dataset.adminTab) {
+      bindAdminFilter(adminFilterButton);
+    }
+
+    const dispatchFilterButton = event.target.closest("[data-dispatch-filter]");
+    if (dispatchFilterButton) bindDispatchFilter(dispatchFilterButton);
+
+    const inventoryFilterButton = event.target.closest("[data-inventory-filter]");
+    if (inventoryFilterButton) bindInventoryFilter(inventoryFilterButton);
 
     /* Tutup menu saat klik di luar */
     if (!event.target.closest(".cc-menu") && !event.target.closest("[data-action='toggle-menu']")) {
@@ -304,6 +403,65 @@ export function bindEvents() {
     adminSearch.addEventListener("input", (event) => {
       state.adminQuery = event.target.value;
       renderAdminTickets();
+    });
+  }
+
+  const dispatchSearch = byId("dispatch-search");
+  if (dispatchSearch) {
+    dispatchSearch.addEventListener("input", (event) => {
+      state.dispatchQuery = event.target.value;
+      renderDispatchList();
+    });
+  }
+
+  /* Disposisi: personil mengikuti tim & PIC yang dipilih. */
+  const dispatchTeam = byId("dispatch-team");
+  if (dispatchTeam) {
+    dispatchTeam.addEventListener("change", (event) => {
+      refreshDispatchTechnicians(event.target.value);
+    });
+  }
+
+  const dispatchAssignee = byId("dispatch-assignee");
+  if (dispatchAssignee) {
+    dispatchAssignee.addEventListener("change", () => {
+      refreshDispatchTechnicians(
+        byId("dispatch-team")?.value || "",
+        byId("dispatch-assignee")?.value || ""
+      );
+    });
+  }
+
+  /* Pencarian & filter personil teknisi. */
+  const techSearch = byId("tech-search");
+  if (techSearch) {
+    techSearch.addEventListener("input", (event) => {
+      state.techQuery = event.target.value;
+      renderTechnicians();
+    });
+  }
+
+  const techTeamFilter = byId("tech-team-filter");
+  if (techTeamFilter) {
+    techTeamFilter.addEventListener("change", (event) => {
+      state.techTeamFilter = event.target.value;
+      renderTechnicians();
+    });
+  }
+
+  const techStatusFilter = byId("tech-status-filter");
+  if (techStatusFilter) {
+    techStatusFilter.addEventListener("change", (event) => {
+      state.techStatusFilter = event.target.value;
+      renderTechnicians();
+    });
+  }
+
+  const inventorySearch = byId("inventory-search");
+  if (inventorySearch) {
+    inventorySearch.addEventListener("input", (event) => {
+      state.inventoryQuery = event.target.value;
+      renderInventory();
     });
   }
 
@@ -379,6 +537,23 @@ export function bindEvents() {
   if (dispatchForm) {
     dispatchForm.addEventListener("submit", handleDispatchSubmit);
   }
+
+  /* CRUD teknisi */
+  const technicianForm = byId("technician-form");
+  if (technicianForm) {
+    technicianForm.addEventListener("submit", handleTechnicianFormSubmit);
+  }
+
+  /* Form tiket dirender ulang di dalam modal, jadi pakai delegasi. */
+  document.addEventListener("submit", (event) => {
+    if (event.target.closest("#ticket-instruction-form")) {
+      handleInstructionSubmit(event);
+      return;
+    }
+    if (event.target.closest("#ticket-note-form")) {
+      handleTicketNoteSubmit(event);
+    }
+  });
 
   /* Histogram hover */
   $$("#histogram-container div").forEach((bar) => {

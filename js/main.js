@@ -21,6 +21,10 @@ const REQUIRED_MODALS = [
   "modal-delete-history",
   "modal-dispatch",
   "modal-sso-help",
+  "modal-ticket-detail",
+  "modal-technician",
+  "modal-technician-form",
+  "modal-asset-detail",
   "toast",
 ];
 

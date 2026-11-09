@@ -2,34 +2,35 @@
             <div class="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-5">
               <div>
                 <h2 class="text-xl sm:text-2xl font-bold text-on-surface font-display tracking-tight">Laporan Kinerja &amp; SLA</h2>
-                <p class="text-xs text-secondary mt-1">Rekap performa pemeliharaan sarana kampus periode November 2026.</p>
+                <p class="text-xs text-secondary mt-1">Rekap performa pemeliharaan sarana kampus — data per <span data-sla-period>November 2026</span>.</p>
               </div>
-              <button type="button" class="h-11 px-5 rounded-full bg-primary-container text-white text-xs font-bold shadow-[0_12px_28px_-4px_rgba(255,102,31,0.45)] hover:brightness-110 transition flex items-center gap-2" data-action="export">
-                <span class="material-symbols-outlined text-base">picture_as_pdf</span>
-                Unduh Laporan Bulanan
+              <button type="button" class="h-11 px-5 rounded-full bg-primary-container text-white text-xs font-bold shadow-[0_12px_28px_-4px_rgba(255,102,31,0.45)] hover:brightness-110 transition flex items-center gap-2" data-action="export" data-export="sla">
+                <span class="material-symbols-outlined text-base">download</span>
+                Unduh Laporan SLA
               </button>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-5">
               <div class="bg-surface-container-lowest rounded-2xl p-5 border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)]">
-                <p class="text-xs text-secondary">Rata-rata Respon</p>
-                <p class="font-display text-3xl font-bold text-on-surface mt-1">1.8 <span class="text-sm font-semibold text-secondary">jam</span></p>
-                <p class="text-[11px] font-semibold text-emerald-600 mt-1">Turun 0.3 jam dari bulan lalu</p>
+                <p class="text-xs text-secondary">Rata-rata Penyelesaian</p>
+                <p class="font-display text-3xl font-bold text-on-surface mt-1"><span data-sla="avg">0</span> <span class="text-sm font-semibold text-secondary">jam</span></p>
+                <p class="text-[11px] font-semibold text-emerald-600 mt-1">Dihitung dari tiket yang selesai</p>
               </div>
               <div class="bg-surface-container-lowest rounded-2xl p-5 border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)]">
                 <p class="text-xs text-secondary">SLA Tercapai</p>
-                <p class="font-display text-3xl font-bold text-emerald-600 mt-1">97.2%</p>
-                <div class="w-full h-1.5 rounded-full bg-surface-container mt-3 overflow-hidden"><div class="h-full w-[97.2%] rounded-full bg-emerald-500"></div></div>
+                <p class="font-display text-3xl font-bold text-emerald-600 mt-1" data-sla="percent">0%</p>
+                <div class="w-full h-1.5 rounded-full bg-surface-container mt-3 overflow-hidden"><div class="h-full rounded-full bg-emerald-500" data-sla-bar="percent" style="width:0%"></div></div>
+                <p class="text-[11px] font-semibold text-secondary mt-2" data-sla="percent-sub">0 dari 0 tiket dalam target waktu</p>
               </div>
               <div class="bg-surface-container-lowest rounded-2xl p-5 border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)]">
                 <p class="text-xs text-secondary">Tiket Selesai</p>
-                <p class="font-display text-3xl font-bold text-on-surface mt-1">142</p>
-                <p class="text-[11px] font-semibold text-primary mt-1">+18% dibanding bulan lalu</p>
+                <p class="font-display text-3xl font-bold text-on-surface mt-1" data-sla="done">0</p>
+                <p class="text-[11px] font-semibold text-primary mt-1">Tervalidasi oleh Biro Sarpras</p>
               </div>
               <div class="bg-surface-container-lowest rounded-2xl p-5 border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)]">
                 <p class="text-xs text-secondary">Backlog Aktif</p>
-                <p class="font-display text-3xl font-bold text-primary mt-1">15</p>
-                <p class="text-[11px] font-semibold text-secondary mt-1">4 di antaranya prioritas tinggi</p>
+                <p class="font-display text-3xl font-bold text-primary mt-1" data-sla="backlog">0</p>
+                <p class="text-[11px] font-semibold text-secondary mt-1" data-sla="backlog-sub">0 di antaranya prioritas tinggi</p>
               </div>
             </div>
 
@@ -42,41 +43,13 @@
                   </div>
                   <span class="inline-flex items-center gap-2 text-[11px] font-semibold text-secondary"><span class="w-2.5 h-2.5 rounded-full bg-primary-container"></span>Selesai</span>
                 </div>
-                <div class="h-52 flex items-end gap-3 sm:gap-5 pt-6 px-1">
-                  <div class="flex-1 flex flex-col items-center gap-2"><div class="w-full max-w-[46px] rounded-t-xl bg-surface-container-high" style="height: 58%"></div><span class="text-[10px] font-semibold text-secondary">Jun</span></div>
-                  <div class="flex-1 flex flex-col items-center gap-2"><div class="w-full max-w-[46px] rounded-t-xl bg-surface-container-high" style="height: 66%"></div><span class="text-[10px] font-semibold text-secondary">Jul</span></div>
-                  <div class="flex-1 flex flex-col items-center gap-2"><div class="w-full max-w-[46px] rounded-t-xl bg-surface-container-high" style="height: 74%"></div><span class="text-[10px] font-semibold text-secondary">Agu</span></div>
-                  <div class="flex-1 flex flex-col items-center gap-2"><div class="w-full max-w-[46px] rounded-t-xl bg-primary-container/30" style="height: 82%"></div><span class="text-[10px] font-semibold text-secondary">Sep</span></div>
-                  <div class="flex-1 flex flex-col items-center gap-2"><div class="w-full max-w-[46px] rounded-t-xl bg-primary-container/60" style="height: 90%"></div><span class="text-[10px] font-semibold text-secondary">Okt</span></div>
-                  <div class="flex-1 flex flex-col items-center gap-2"><div class="w-full max-w-[46px] rounded-t-xl bg-primary-container" style="height: 97%"></div><span class="text-[10px] font-bold text-primary">Nov</span></div>
-                </div>
+                <div class="h-52 flex items-end gap-3 sm:gap-5 pt-6 px-1" id="sla-trend-chart"></div>
               </div>
 
               <div class="xl:col-span-4 bg-surface-container-lowest rounded-2xl p-6 border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)]">
                 <h3 class="text-sm font-bold text-on-surface font-display">Target SLA per Kategori</h3>
-                <div class="mt-4 space-y-3.5 text-xs">
-                  <div>
-                    <div class="flex justify-between mb-1"><span class="font-medium text-on-surface">Kelistrikan &amp; AC</span><span class="font-bold text-emerald-600">98%</span></div>
-                    <div class="w-full h-2 rounded-full bg-surface-container overflow-hidden"><div class="h-full w-[98%] rounded-full bg-emerald-500"></div></div>
-                  </div>
-                  <div>
-                    <div class="flex justify-between mb-1"><span class="font-medium text-on-surface">Jaringan &amp; IT</span><span class="font-bold text-emerald-600">96%</span></div>
-                    <div class="w-full h-2 rounded-full bg-surface-container overflow-hidden"><div class="h-full w-[96%] rounded-full bg-emerald-500"></div></div>
-                  </div>
-                  <div>
-                    <div class="flex justify-between mb-1"><span class="font-medium text-on-surface">Multimedia</span><span class="font-bold text-primary">91%</span></div>
-                    <div class="w-full h-2 rounded-full bg-surface-container overflow-hidden"><div class="h-full w-[91%] rounded-full bg-primary-container"></div></div>
-                  </div>
-                  <div>
-                    <div class="flex justify-between mb-1"><span class="font-medium text-on-surface">Sanitasi &amp; Sipil</span><span class="font-bold text-primary">88%</span></div>
-                    <div class="w-full h-2 rounded-full bg-surface-container overflow-hidden"><div class="h-full w-[88%] rounded-full bg-primary-container"></div></div>
-                  </div>
-                  <div>
-                    <div class="flex justify-between mb-1"><span class="font-medium text-on-surface">Lift &amp; Akses Gedung</span><span class="font-bold text-amber-600">84%</span></div>
-                    <div class="w-full h-2 rounded-full bg-surface-container overflow-hidden"><div class="h-full w-[84%] rounded-full bg-amber-500"></div></div>
-                  </div>
-                </div>
-                <p class="text-[11px] text-secondary leading-relaxed mt-4">Kategori lift dan akses gedung menjadi fokus peningkatan karena ketergantungan suku cadang impor.</p>
+                <div class="mt-4 space-y-3.5 text-xs" id="sla-category-list"></div>
+                <p class="text-[11px] text-secondary leading-relaxed mt-4">Persentase dihitung dari jumlah tiket selesai dibanding total tiket pada kategori terkait.</p>
               </div>
             </div>
           </div>

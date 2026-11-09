@@ -233,8 +233,8 @@ function clearEntries() {
 
 const EXPECTED = {
   "view-auth": 1,
-  "view-student": 4,
-  "view-admin": 5,
+  "view-student": 3,
+  "view-admin": 6,
 };
 
 function qsa(selector, root = document) {
@@ -274,8 +274,8 @@ function brokenImages() {
 function simulateTabs(view, checks) {
   const config =
     view === "student"
-      ? { tabs: ["dashboard", "complaints", "timeline", "campus"], selector: "[data-student-tab]", key: "studentTab" }
-      : { tabs: ["dashboard", "dispatches", "techs", "inventory", "sla"], selector: "#sidebar-drawer [data-admin-tab]", key: "adminTab" };
+      ? { tabs: ["summary", "complaints", "help"], selector: "[data-student-tab]", key: "studentTab" }
+      : { tabs: ["dashboard", "dispatches", "techs", "inventory", "sla", "damage"], selector: "#sidebar-drawer [data-admin-tab]", key: "adminTab" };
 
   const buttons = qsa(config.selector);
   const currentPanel = document.querySelector(`#view-${view} .cc-panel.is-active`);
@@ -345,7 +345,7 @@ export function diagnose(options = {}) {
     }
   });
 
-  ["modal-complaint", "modal-dispatch", "modal-sso-help"].forEach((id) => {
+  ["modal-complaint", "modal-dispatch", "modal-sso-help", "modal-ticket-detail", "modal-technician", "modal-asset-detail"].forEach((id) => {
     add(`Modal #${id}`, Boolean(document.getElementById(id)), document.getElementById(id) ? "ada" : "tidak ditemukan");
   });
 

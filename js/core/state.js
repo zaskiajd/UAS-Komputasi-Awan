@@ -11,9 +11,18 @@ export const state = {
   adminTab: "dashboard",
   studentFilter: "all",
   adminFilter: "all",
+  dispatchFilter: "all",
+  inventoryFilter: "all",
+  techTeamFilter: "all",
+  techStatusFilter: "all",
   studentQuery: "",
   adminQuery: "",
+  dispatchQuery: "",
+  inventoryQuery: "",
+  techQuery: "",
   reports: [],
+  technicians: [],
+  assets: [],
   student: null, // { name, nim, faculty, email }
   accounts: {}, // akun mahasiswa yang dibuat selama sesi berlangsung
   selectedTicket: null,
