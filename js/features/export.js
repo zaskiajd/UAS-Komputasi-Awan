@@ -201,6 +201,7 @@ export function exportAssets(assets = filteredAssets()) {
     "Lokasi",
     "Zona",
     "Kondisi",
+    "Status",
     "Tim",
     "Servis Terakhir",
     "Catatan",
@@ -212,14 +213,22 @@ export function exportAssets(assets = filteredAssets()) {
     asset.location,
     asset.zone,
     assetCondition(asset.condition).label,
+    asset.archived ? "Diarsipkan" : "Aktif",
     TEAM_BY_ID[asset.teamId]?.name || "-",
     formatDateTime(asset.lastServiceAt),
     asset.note || "-",
   ]);
 
+  const statusMeta = {
+    active: "Aktif",
+    archived: "Diarsipkan",
+    all: "Semua status",
+  };
+
   downloadCsv(`campuscare-inventaris-${stamp()}.csv`, [
     ...metaRows("Inventaris Aset Sarpras", [
       ["Jenis Laporan", "Aset & fasilitas"],
+      ["Filter Status", statusMeta[state.assetStatusFilter] || "Aktif"],
       [
         "Filter Kondisi",
         state.inventoryFilter === "all"
@@ -322,7 +331,7 @@ export function exportDamage() {
   );
   const active = reports.filter((report) => report.status !== "done");
   const attentionAssets = state.assets
-    .filter((asset) => asset.condition !== "good")
+    .filter((asset) => !asset.archived && asset.condition !== "good")
     .sort(
       (a, b) =>
         assetCondition(a.condition).weight - assetCondition(b.condition).weight ||

@@ -4,10 +4,16 @@
                 <h2 class="text-xl sm:text-2xl font-bold text-on-surface font-display tracking-tight">Inventaris Sarana &amp; Prasarana</h2>
                 <p class="text-xs text-secondary mt-1">Daftar aset kritis, kondisi terakhir, dan jadwal pemeliharaan.</p>
               </div>
-              <button type="button" class="h-11 px-5 rounded-full bg-surface-container-lowest border border-white text-xs font-bold text-on-surface shadow-sm hover:bg-surface-container-high transition flex items-center gap-2" data-action="export" data-export="assets">
-                <span class="material-symbols-outlined text-base">download</span>
-                Unduh Data Aset
-              </button>
+              <div class="flex flex-wrap items-center gap-2">
+                <button type="button" class="h-11 px-5 rounded-full bg-surface-container-lowest border border-white text-xs font-bold text-on-surface shadow-sm hover:bg-surface-container-high transition flex items-center gap-2" data-action="export" data-export="assets">
+                  <span class="material-symbols-outlined text-base">download</span>
+                  Unduh Data Aset
+                </button>
+                <button type="button" class="h-11 px-5 rounded-full bg-primary-container text-white text-xs font-bold shadow-lg shadow-orange-500/25 hover:brightness-110 transition flex items-center gap-2" data-action="add-asset">
+                  <span class="material-symbols-outlined text-base">add</span>
+                  Tambah Aset
+                </button>
+              </div>
             </div>
 
             <div class="bg-surface-container-lowest rounded-2xl border border-white shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)] overflow-hidden" id="inventory-summary">
@@ -32,6 +38,11 @@
                     <span class="material-symbols-outlined text-secondary absolute left-4 top-1/2 -translate-y-1/2 text-lg">search</span>
                     <input class="w-full h-11 pl-11 pr-4 rounded-full bg-surface-container text-on-surface placeholder:text-secondary text-xs focus:outline-none focus:bg-surface-container-high transition-colors" id="inventory-search" placeholder="Cari kode aset, nama fasilitas, atau lokasi..." type="search">
                   </div>
+                  <select class="h-11 px-4 rounded-full bg-surface-container text-on-surface text-xs font-semibold focus:outline-none focus:bg-surface-container-high transition-colors shrink-0" id="asset-status-filter" aria-label="Filter status aset">
+                    <option value="active">Status: Aktif</option>
+                    <option value="archived">Status: Diarsipkan</option>
+                    <option value="all">Status: Semua</option>
+                  </select>
                   <div class="flex items-center gap-1.5 p-1 bg-surface-container rounded-full overflow-x-auto no-scrollbar shrink-0">
                     <button type="button" class="filter-chip is-active" data-inventory-filter="all">Semua</button>
                     <button type="button" class="filter-chip" data-inventory-filter="good">Baik</button>
