@@ -117,3 +117,24 @@ export const seedAssets = () => [
 ];
 
 export const assetCondition = (key) => ASSET_CONDITION[key] || ASSET_CONDITION.good;
+
+const ASSET_ID_PREFIX = {
+  ac: "AC",
+  projector: "PRJ",
+  network: "WIFI",
+  sanitation: "SAN",
+  furniture: "MJR",
+  lift: "LFT",
+  electrical: "LMP",
+};
+
+/** ID unik untuk aset baru, mengikuti pola AST-<prefix>-<nomor>. */
+export function nextAssetId(cat, assets = []) {
+  const prefix = ASSET_ID_PREFIX[cat] || "AST";
+  const pattern = new RegExp(`^AST-${prefix}-(\\d+)$`);
+  const highest = assets.reduce((max, asset) => {
+    const match = pattern.exec(asset.id);
+    return match ? Math.max(max, Number(match[1])) : max;
+  }, 0);
+  return `AST-${prefix}-${String(highest + 1).padStart(4, "0")}`;
+}

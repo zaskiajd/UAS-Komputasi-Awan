@@ -345,7 +345,7 @@ export function diagnose(options = {}) {
     }
   });
 
-  ["modal-complaint", "modal-dispatch", "modal-sso-help", "modal-ticket-detail", "modal-technician", "modal-asset-detail"].forEach((id) => {
+  ["modal-complaint", "modal-dispatch", "modal-sso-help", "modal-ticket-detail", "modal-technician", "modal-asset-detail", "modal-asset-form", "modal-asset-confirm"].forEach((id) => {
     add(`Modal #${id}`, Boolean(document.getElementById(id)), document.getElementById(id) ? "ada" : "tidak ditemukan");
   });
 

@@ -56,7 +56,17 @@ import {
   restoreTechnician,
   toggleTechnicianDuty,
 } from "./features/technicians.js";
-import { markAssetServiced, openAssetDetail, renderInventory } from "./features/inventory.js";
+import {
+  confirmAssetAction,
+  handleAssetFormSubmit,
+  markAssetServiced,
+  openAssetDetail,
+  openAssetForm,
+  renderInventory,
+  requestAssetArchive,
+  requestAssetDelete,
+  restoreAsset,
+} from "./features/inventory.js";
 import { handleExport } from "./features/export.js";
 
 /** Menjalankan aksi berdasarkan atribut `data-action` pada elemen. */
@@ -231,6 +241,32 @@ function handleAction(actionElement) {
 
     case "asset-service":
       markAssetServiced(actionElement.dataset.asset);
+      break;
+
+    case "add-asset":
+      closeMenus();
+      openAssetForm();
+      break;
+
+    case "edit-asset":
+      closeMenus();
+      openAssetForm(actionElement.dataset.asset);
+      break;
+
+    case "asset-archive":
+      requestAssetArchive(actionElement.dataset.asset);
+      break;
+
+    case "asset-delete":
+      requestAssetDelete(actionElement.dataset.asset);
+      break;
+
+    case "asset-restore":
+      restoreAsset(actionElement.dataset.asset);
+      break;
+
+    case "asset-confirm":
+      confirmAssetAction();
       break;
 
     case "google-login":
@@ -463,6 +499,20 @@ export function bindEvents() {
       state.inventoryQuery = event.target.value;
       renderInventory();
     });
+  }
+
+  const assetStatusFilter = byId("asset-status-filter");
+  if (assetStatusFilter) {
+    assetStatusFilter.value = state.assetStatusFilter || "active";
+    assetStatusFilter.addEventListener("change", (event) => {
+      state.assetStatusFilter = event.target.value;
+      renderInventory();
+    });
+  }
+
+  const assetForm = byId("asset-form");
+  if (assetForm) {
+    assetForm.addEventListener("submit", handleAssetFormSubmit);
   }
 
   /* Password strength */

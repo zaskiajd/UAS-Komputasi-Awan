@@ -159,12 +159,12 @@ function technicianRow(technician) {
         </span>
       </td>
       <td class="py-3.5 px-5 is-action">
-        <span class="flex items-center justify-end gap-2">
-          <button type="button" class="text-primary font-bold hover:underline" data-action="tech-detail" data-tech="${escapeHtml(technician.id)}">Detail</button>
+        <span class="inline-flex items-center justify-end gap-2">
+          <button type="button" class="px-3 py-1.5 rounded-full bg-surface-container text-primary font-bold hover:bg-surface-container-high transition" data-action="tech-detail" data-tech="${escapeHtml(technician.id)}">Detail</button>
           ${
             archived
-              ? `<button type="button" class="text-emerald-700 font-bold hover:underline" data-action="restore-tech" data-tech="${escapeHtml(technician.id)}">Pulihkan</button>`
-              : `<button type="button" class="text-tertiary font-bold hover:underline" data-action="edit-tech" data-tech="${escapeHtml(technician.id)}">Edit</button>`
+              ? `<button type="button" class="px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 font-bold hover:bg-emerald-200 transition" data-action="restore-tech" data-tech="${escapeHtml(technician.id)}">Pulihkan</button>`
+              : `<button type="button" class="px-3 py-1.5 rounded-full bg-tertiary-fixed text-tertiary font-bold hover:brightness-95 transition" data-action="edit-tech" data-tech="${escapeHtml(technician.id)}">Edit</button>`
           }
         </span>
       </td>

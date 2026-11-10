@@ -13,6 +13,7 @@ export const state = {
   adminFilter: "all",
   dispatchFilter: "all",
   inventoryFilter: "all",
+  assetStatusFilter: "active",
   techTeamFilter: "all",
   techStatusFilter: "all",
   studentQuery: "",

@@ -1,0 +1,25 @@
+<div class="cc-modal" id="modal-asset-confirm" role="dialog" aria-modal="true" aria-labelledby="asset-confirm-title" hidden>
+  <div class="cc-modal__card max-w-md">
+    <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl">archive</span>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-gray-900 font-display" id="asset-confirm-title">Arsipkan Aset?</h3>
+          <p class="text-xs text-gray-500">Tindakan ini memengaruhi daftar inventaris aktif</p>
+        </div>
+      </div>
+      <button type="button" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center transition" data-action="close-modal" aria-label="Tutup">
+        <span class="material-symbols-outlined text-base">close</span>
+      </button>
+    </div>
+
+    <p class="text-xs text-gray-600 leading-relaxed mt-4" id="asset-confirm-text"></p>
+
+    <div class="flex items-center justify-end gap-2 pt-5">
+      <button type="button" class="px-4 py-2 rounded-full text-xs font-semibold text-gray-600 hover:bg-gray-100 transition" data-action="close-modal">Batal</button>
+      <button type="button" class="px-5 py-2.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 hover:bg-amber-200 transition" id="asset-confirm-submit" data-action="asset-confirm">Arsipkan Aset</button>
+    </div>
+  </div>
+</div>

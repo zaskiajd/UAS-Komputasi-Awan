@@ -36,6 +36,8 @@ views/
     technician.html         # Modal detail teknisi
     technician-form.html    # Modal tambah/edit data teknisi
     asset-detail.html       # Modal detail aset
+asset-form.html         # Modal tambah/edit data aset
+asset-confirm.html      # Modal konfirmasi arsip/hapus permanen aset
     toast.html              # Notifikasi toast global
 css/                        # Stylesheet modular (urutan pemuatan penting)
   tokens.css, base.css, layout.css, components.css
@@ -171,7 +173,7 @@ Registrasi baru juga tersedia (minimal 8 karakter, konfirmasi sandi harus sama, 
 - **Manajemen teknisi** — 4 tim, 15 personil awal, tabel personil dengan pencarian/filter tim & status, jumlah tiket aktif/selesai, keahlian, detail keahlian/kontak/tiket, serta toggle status bertugas/standby yang dijaga selama teknisi masih memegang tiket aktif.
 - **CRUD teknisi** — admin dapat menambah personil baru, mengedit nama/tim/peran/telepon/keahlian/status, serta menghapus atau mengarsipkan teknisi. Teknisi yang sudah memiliki riwayat tiket diarsipkan agar histori tetap utuh, dan dapat dipulihkan lewat filter status "Diarsipkan". Koordinator otomatis diganti bila pindah tim, turun peran, atau dihapus, sehingga setiap tim tetap memiliki satu koordinator.
 - **Beban kerja personil** — analitik per teknisi (PIC + pendukung) dan pemilihan PIC otomatis berdasarkan beban tiket paling ringan saat disposisi.
-- **Inventaris** — 7 aset seed, kondisi berbobot, pencarian, filter kondisi, detail riwayat perawatan, tiket terkait, dan aksi "Tandai Selesai Servis".
+- **Inventaris** - 7 aset seed, kondisi berbobot, pencarian, filter kondisi, filter status (Aktif/Diarsipkan/Semua), tambah & edit aset, detail riwayat perawatan, tiket terkait, aksi "Tandai Selesai Servis", arsip (soft delete), pemulihan aset, dan hapus permanen ter-guard untuk aset terarsip tanpa riwayat servis/tiket aktif.
 - **Laporan & SLA** — rata-rata penyelesaian, persentase SLA dihitung dari tiket selesai tepat waktu, tiket selesai, backlog, tren 6 bulan, dan capaian per kategori.
 - **Rekapitulasi Kerusakan** — ringkasan tiket aktif, prioritas tinggi aktif, dan aset yang perlu perhatian; rekap per kategori; serta daftar tiket kerusakan dengan status SLA. Setiap baris terhubung ke detail tiket atau detail aset.
 - **Ekspor CSV per tab** — satu tombol ekspor di tiap tab: Dashboard (rekap tiket), Disposisi (antrean), Teknisi (data personil), Inventaris (aset), Laporan SLA (ringkasan + tren + kategori + rincian status SLA), dan Rekapitulasi Kerusakan (ringkasan + aset terdampak + tiket). Semua ekspor mengikuti filter/pencarian aktif, memakai `Blob` + `URL.createObjectURL`, dan kompatibel dibuka di Excel tanpa dependency tambahan. Tiap file diawali blok identitas (jenis laporan, waktu ekspor, filter, pencarian, jumlah baris) sehingga isinya mudah dibedakan.

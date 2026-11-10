@@ -25,6 +25,8 @@ const REQUIRED_MODALS = [
   "modal-technician",
   "modal-technician-form",
   "modal-asset-detail",
+  "modal-asset-form",
+  "modal-asset-confirm",
   "toast",
 ];
 

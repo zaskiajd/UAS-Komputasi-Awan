@@ -123,7 +123,7 @@ export function technicianWorkload() {
 }
 
 export function readinessStats() {
-  const assets = state.assets;
+  const assets = state.assets.filter((asset) => !asset.archived);
   const scored = assets.map((asset) => ({
     ...asset,
     weight: assetCondition(asset.condition).weight,
@@ -549,7 +549,7 @@ function renderDamageRecap() {
   const active = reports.filter((report) => report.status !== "done");
   const highPriorityActive = active.filter((report) => report.priority === "Tinggi");
   const attentionAssets = state.assets
-    .filter((asset) => asset.condition !== "good")
+    .filter((asset) => !asset.archived && asset.condition !== "good")
     .sort(
       (a, b) =>
         assetCondition(a.condition).weight - assetCondition(b.condition).weight ||
@@ -576,7 +576,7 @@ function renderDamageRecap() {
   );
   setText(
     "[data-damage-sub='assets']",
-    `${state.assets.filter((asset) => asset.condition === "broken").length} aset rusak`
+    `${state.assets.filter((asset) => !asset.archived && asset.condition === "broken").length} aset rusak`
   );
 
   const categoryBox = byId("damage-category-list");
@@ -702,7 +702,9 @@ function renderBadges() {
     (technician) => technician.active && !technician.archived
   ).length;
   const sla = slaStats(reports);
-  const attention = state.assets.filter((asset) => asset.condition !== "good").length;
+  const attention = state.assets.filter(
+    (asset) => !asset.archived && asset.condition !== "good"
+  ).length;
 
   setText("[data-admin-badge='review']", review);
   setText("[data-admin-badge='urgent']", `${urgent} Urgent`);
