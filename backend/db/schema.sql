@@ -139,8 +139,39 @@ CREATE TABLE IF NOT EXISTS assets (
   team_id         TEXT REFERENCES teams(id) ON DELETE SET NULL,
   last_service_at TIMESTAMPTZ,
   note            TEXT,
-  created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+  archived        BOOLEAN NOT NULL DEFAULT false,
+  archived_at     TIMESTAMPTZ,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+  -- Arsip dan waktu arsip harus konsisten: keduanya terisi atau keduanya kosong.
+  CONSTRAINT chk_assets_archived_at CHECK (
+    (archived AND archived_at IS NOT NULL) OR
+    (NOT archived AND archived_at IS NULL)
+  )
 );
+
+-- Untuk database lama yang tabel assets-nya sudah dibuat sebelum revisi ini.
+ALTER TABLE assets ADD COLUMN IF NOT EXISTS archived BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE assets ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'chk_assets_archived_at'
+  ) THEN
+    ALTER TABLE assets
+      ADD CONSTRAINT chk_assets_archived_at CHECK (
+        (archived AND archived_at IS NOT NULL) OR
+        (NOT archived AND archived_at IS NULL)
+      );
+  END IF;
+END
+$$;
+
+COMMENT ON COLUMN assets.archived IS
+  'true = diarsipkan; tidak tampil di daftar aktif, riwayat tetap utuh.';
+COMMENT ON COLUMN assets.archived_at IS
+  'Waktu aset diarsipkan; NULL bila archived = false, wajib terisi bila archived = true.';
 
 -- ----------------------------------------------------------------------------
 -- 7. asset_history
@@ -178,7 +209,7 @@ CREATE TABLE IF NOT EXISTS tickets (
   category_id            INTEGER NOT NULL REFERENCES categories(id) ON DELETE RESTRICT,
   location_id            INTEGER REFERENCES locations(id) ON DELETE SET NULL,
   location_detail        TEXT,
-  asset_id               TEXT REFERENCES assets(id) ON DELETE SET NULL,
+  asset_id               TEXT REFERENCES assets(id) ON DELETE RESTRICT,
   status                 TEXT NOT NULL DEFAULT 'review'
                            CHECK (status IN ('review', 'progress', 'waiting', 'done', 'rejected')),
   priority               TEXT NOT NULL DEFAULT 'Sedang'
@@ -197,6 +228,13 @@ CREATE TABLE IF NOT EXISTS tickets (
   CONSTRAINT tickets_code_format_chk
     CHECK (ticket_code ~ '^#CC-[0-9]{4}-[0-9]{4,}$')
 );
+
+-- Aset yang masih dirujuk tiket tidak boleh dihapus permanen. RESTRICT menjaga
+-- integritas relasi; aset cukup diarsipkan (archived = true).
+ALTER TABLE tickets DROP CONSTRAINT IF EXISTS tickets_asset_id_fkey;
+ALTER TABLE tickets
+  ADD CONSTRAINT tickets_asset_id_fkey
+  FOREIGN KEY (asset_id) REFERENCES assets(id) ON DELETE RESTRICT;
 
 COMMENT ON COLUMN tickets.deleted_by_student_at IS
   'Soft delete dari fitur "hapus riwayat" mahasiswa. NULL = masih tampil bagi mahasiswa.';
@@ -317,6 +355,7 @@ CREATE INDEX IF NOT EXISTS idx_ticket_comments_ticket        ON ticket_comments 
 CREATE INDEX IF NOT EXISTS idx_technicians_team_id           ON technicians (team_id);
 CREATE INDEX IF NOT EXISTS idx_assets_category_id            ON assets (category_id);
 CREATE INDEX IF NOT EXISTS idx_assets_location_id            ON assets (location_id);
+CREATE INDEX IF NOT EXISTS idx_assets_archived               ON assets (archived);
 CREATE INDEX IF NOT EXISTS idx_asset_history_asset           ON asset_history (asset_id, at DESC);
 
 -- ----------------------------------------------------------------------------

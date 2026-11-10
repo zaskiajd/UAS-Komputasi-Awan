@@ -160,7 +160,7 @@ ON CONFLICT DO NOTHING;
 -- ----------------------------------------------------------------------------
 -- Aset (7) + riwayat
 -- ----------------------------------------------------------------------------
-INSERT INTO assets (id, name, location_id, category_id, condition, team_id, last_service_at, note)
+INSERT INTO assets (id, name, location_id, category_id, condition, team_id, last_service_at, note, archived, archived_at)
 VALUES
   (
     'AST-AC-0312',
@@ -168,7 +168,8 @@ VALUES
     (SELECT id FROM locations WHERE building = 'Gedung F (Fakultas Teknik)' AND room = 'Lt. 2'),
     (SELECT id FROM categories WHERE code = 'ac'),
     'service', 'electrical', now() - INTERVAL '26 days',
-    'Drainase kondensat tersumbat dan unit mengeluarkan tetesan air.'
+    'Drainase kondensat tersumbat dan unit mengeluarkan tetesan air.',
+    false, NULL
   ),
   (
     'AST-PRJ-0087',
@@ -176,7 +177,8 @@ VALUES
     (SELECT id FROM locations WHERE building = 'GKB (Gedung Kuliah Bersama)' AND room = 'R.204'),
     (SELECT id FROM categories WHERE code = 'projector'),
     'broken', 'av', now() - INTERVAL '66 days',
-    'Lampu indikator mati total, ballast terindikasi lemah.'
+    'Lampu indikator mati total, ballast terindikasi lemah.',
+    false, NULL
   ),
   (
     'AST-WIFI-0145',
@@ -184,7 +186,8 @@ VALUES
     (SELECT id FROM locations WHERE building = 'Gedung D (Perpustakaan Pusat)' AND room = 'Lt. 2'),
     (SELECT id FROM categories WHERE code = 'network'),
     'disrupted', 'network', now() - INTERVAL '20 days',
-    'Koneksi terputus berkala, perlu audit jalur uplink.'
+    'Koneksi terputus berkala, perlu audit jalur uplink.',
+    false, NULL
   ),
   (
     'AST-LFT-0004',
@@ -192,7 +195,8 @@ VALUES
     (SELECT id FROM locations WHERE building = 'Gedung A (Rektorat)' AND room IS NULL),
     (SELECT id FROM categories WHERE code = 'lift'),
     'good', 'civil', now() - INTERVAL '10 days',
-    'Inspeksi bulanan selesai, seluruh sensor berfungsi normal.'
+    'Inspeksi bulanan selesai, seluruh sensor berfungsi normal.',
+    false, NULL
   ),
   (
     'AST-MJR-0210',
@@ -200,7 +204,8 @@ VALUES
     (SELECT id FROM locations WHERE building = 'Gedung F (Fakultas Teknik)' AND room = 'R.301'),
     (SELECT id FROM categories WHERE code = 'furniture'),
     'good', 'civil', now() - INTERVAL '33 days',
-    'Kondisi stabil, tidak ada keluhan aktif.'
+    'Kondisi stabil, tidak ada keluhan aktif.',
+    false, NULL
   ),
   (
     'AST-SAN-0063',
@@ -208,7 +213,8 @@ VALUES
     (SELECT id FROM locations WHERE building = 'Gedung A (Rektorat)' AND room = 'Lt. 1'),
     (SELECT id FROM categories WHERE code = 'sanitation'),
     'service', 'civil', now() - INTERVAL '47 days',
-    'Engsel pengganti masih dalam pengiriman vendor.'
+    'Engsel pengganti masih dalam pengiriman vendor.',
+    false, NULL
   ),
   (
     'AST-LMP-0455',
@@ -216,7 +222,8 @@ VALUES
     (SELECT id FROM locations WHERE building = 'Gelanggang Olahraga' AND room IS NULL),
     (SELECT id FROM categories WHERE code = 'electrical'),
     'good', 'electrical', now() - INTERVAL '3 days',
-    'Penggantian lampu selesai dan lolos uji nyala.'
+    'Penggantian lampu selesai dan lolos uji nyala.',
+    false, NULL
   )
 ON CONFLICT (id) DO UPDATE SET
   name            = EXCLUDED.name,
@@ -225,7 +232,9 @@ ON CONFLICT (id) DO UPDATE SET
   condition       = EXCLUDED.condition,
   team_id         = EXCLUDED.team_id,
   last_service_at = EXCLUDED.last_service_at,
-  note            = EXCLUDED.note;
+  note            = EXCLUDED.note,
+  archived        = EXCLUDED.archived,
+  archived_at     = EXCLUDED.archived_at;
 
 WITH seed_asset_history (asset_id, days_ago, label, actor, note) AS (
   VALUES
