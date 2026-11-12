@@ -196,27 +196,117 @@ async function googleAuth(credential) {
     if (byEmail[0]) {
       // Tautkan google_id ke akun yang sudah ada (hanya jika email_verified true)
       const existing = byEmail[0];
-      const { rows: updatedRows } = await query(
-        `UPDATE users
-            SET google_id = $1
-          WHERE id = $2
-        RETURNING id, nim, name, email, role, faculty, auth_provider`,
-        [googleId, existing.id]
-      );
-      userRow = updatedRows[0];
+      if (existing.google_id) {
+        if (existing.google_id !== googleId) {
+          throw forbidden('Akun ini sudah tertaut dengan akun Google lain.');
+        }
+        userRow = existing;
+      } else {
+        const { rows: updatedRows } = await query(
+          `UPDATE users
+              SET google_id = $1
+            WHERE id = $2 AND google_id IS NULL
+          RETURNING id, nim, name, email, role, faculty, auth_provider`,
+          [googleId, existing.id]
+        );
+        if (updatedRows[0]) {
+          userRow = updatedRows[0];
+        } else {
+          const { rows: refetched } = await query(
+            `SELECT id, nim, name, email, role, faculty, auth_provider, google_id
+               FROM users
+              WHERE id = $1`,
+            [existing.id]
+          );
+          const current = refetched[0];
+          if (!current || current.google_id !== googleId) {
+            throw forbidden('Akun ini sudah tertaut dengan akun Google lain.');
+          }
+          userRow = current;
+        }
+      }
     } else {
       // Buat akun baru: role SELALU 'student', NIM diambil dari bagian depan email jika 6-20 digit
       const emailPrefix = email.split('@')[0];
       const nim = /^[0-9]{6,20}$/.test(emailPrefix) ? emailPrefix : null;
       const faculty = 'Belum diisi';
 
-      const { rows: insertedRows } = await query(
-        `INSERT INTO users (nim, name, email, password_hash, role, faculty, auth_provider, google_id)
-         VALUES ($1, $2, $3, NULL, 'student', $4, 'google', $5)
-         RETURNING id, nim, name, email, role, faculty, auth_provider`,
-        [nim, name, email, faculty, googleId]
-      );
-      userRow = insertedRows[0];
+      try {
+        const { rows: insertedRows } = await query(
+          `INSERT INTO users (nim, name, email, password_hash, role, faculty, auth_provider, google_id)
+           VALUES ($1, $2, $3, NULL, 'student', $4, 'google', $5)
+           RETURNING id, nim, name, email, role, faculty, auth_provider`,
+          [nim, name, email, faculty, googleId]
+        );
+        userRow = insertedRows[0];
+      } catch (error) {
+        if (error.code !== '23505') throw error;
+
+        const constraint = String(error.constraint || '');
+        if (constraint.includes('nim')) {
+          try {
+            const { rows: retryRows } = await query(
+              `INSERT INTO users (nim, name, email, password_hash, role, faculty, auth_provider, google_id)
+               VALUES (NULL, $1, $2, NULL, 'student', $3, 'google', $4)
+               RETURNING id, nim, name, email, role, faculty, auth_provider`,
+              [name, email, faculty, googleId]
+            );
+            userRow = retryRows[0];
+          } catch (retryError) {
+            if (retryError.code !== '23505') throw retryError;
+          }
+        }
+
+        if (!userRow) {
+          const { rows: retryByGoogle } = await query(
+            `SELECT id, nim, name, email, role, faculty, auth_provider
+               FROM users
+              WHERE google_id = $1`,
+            [googleId]
+          );
+          if (retryByGoogle[0]) {
+            userRow = retryByGoogle[0];
+          } else {
+            const { rows: retryByEmail } = await query(
+              `SELECT id, nim, name, email, role, faculty, auth_provider, google_id
+                 FROM users
+                WHERE email = $1`,
+              [email]
+            );
+            const found = retryByEmail[0];
+            if (!found) throw error;
+            if (found.google_id) {
+              if (found.google_id !== googleId) {
+                throw forbidden('Akun ini sudah tertaut dengan akun Google lain.');
+              }
+              userRow = found;
+            } else {
+              const { rows: linkedRows } = await query(
+                `UPDATE users
+                    SET google_id = $1
+                  WHERE id = $2 AND google_id IS NULL
+                RETURNING id, nim, name, email, role, faculty, auth_provider`,
+                [googleId, found.id]
+              );
+              if (linkedRows[0]) {
+                userRow = linkedRows[0];
+              } else {
+                const { rows: refetched } = await query(
+                  `SELECT id, nim, name, email, role, faculty, auth_provider, google_id
+                     FROM users
+                    WHERE id = $1`,
+                  [found.id]
+                );
+                const current = refetched[0];
+                if (!current || current.google_id !== googleId) {
+                  throw forbidden('Akun ini sudah tertaut dengan akun Google lain.');
+                }
+                userRow = current;
+              }
+            }
+          }
+        }
+      }
     }
   }
 

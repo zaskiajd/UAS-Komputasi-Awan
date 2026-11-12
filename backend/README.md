@@ -76,7 +76,7 @@ validasi input, aturan status (edit/hapus), soft delete, ubah status oleh admin 
    - `js/config.js` pada konfigurasi `GOOGLE_CLIENT_ID` (atau inject via `window.CAMPUSCARE_GOOGLE_CLIENT_ID`)
 5. Bila database sudah berjalan sebelum fitur ini, jalankan migrasi:
    ```bash
-   psql "$DATABASE_URL" -f db/migrations/001_google_auth.sql
+   psql "$DATABASE_URL" -f db/migrations/002_google_auth.sql
    ```
 
 ## Deploy (catatan untuk anggota 5)

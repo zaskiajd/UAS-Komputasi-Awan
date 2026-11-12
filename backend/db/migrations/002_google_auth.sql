@@ -1,11 +1,11 @@
 -- ============================================================================
--- CampusCare — Migrasi 001: Google OAuth support pada tabel users
+-- CampusCare — Migrasi 002: Google OAuth support pada tabel users
 -- ----------------------------------------------------------------------------
 -- Untuk database yang SUDAH berjalan.
 -- Skrip ini idempotent dan aman dijalankan berulang kali:
 --
 --   psql "$DATABASE_URL" -v ON_ERROR_STOP=1 \
---        -f db/migrations/001_google_auth.sql
+--        -f db/migrations/002_google_auth.sql
 --
 -- Perubahan:
 --   1. users.password_hash menjadi boleh NULL (untuk akun login pihak ketiga).

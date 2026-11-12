@@ -209,19 +209,44 @@ export function initGoogleAuth() {
   }
 
   // Jika library Google Identity Services sudah termuat
-  if (window.google?.accounts?.id && !gisInitialized) {
+  if (window.google?.accounts?.id) {
     try {
-      window.google.accounts.id.initialize({
-        client_id: clientId,
-        callback: handleGoogleCredentialResponse,
-        auto_select: false,
-        cancel_on_tap_outside: true,
-      });
-      gisInitialized = true;
+      if (!gisInitialized) {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: handleGoogleCredentialResponse,
+          auto_select: false,
+          cancel_on_tap_outside: true,
+        });
+        gisInitialized = true;
+      }
+
+      const container = byId("google-btn-container");
+      if (container && !container.dataset.gisRendered) {
+        const manualBtn = byId("google-login-btn");
+        const containerWidth = Math.min(
+          container.clientWidth || container.offsetWidth || 360,
+          400
+        );
+        window.google.accounts.id.renderButton(container, {
+          type: "standard",
+          theme: "outline",
+          size: "large",
+          text: "signin_with",
+          shape: "pill",
+          width: containerWidth,
+        });
+        container.dataset.gisRendered = "true";
+        if (manualBtn) {
+          manualBtn.classList.add("hidden");
+          manualBtn.hidden = true;
+          manualBtn.style.display = "none";
+        }
+      }
     } catch (err) {
       console.warn("[CampusCare] Gagal menginisialisasi GIS:", err);
     }
-  } else if (!window.google?.accounts?.id && gisRetryCount < 5) {
+  } else if (gisRetryCount < 5) {
     gisRetryCount += 1;
     window.setTimeout(initGoogleAuth, 1000);
   }
@@ -245,17 +270,15 @@ export function triggerGoogleLogin() {
   }
 
   if (window.google?.accounts?.id) {
-    if (!gisInitialized) {
-      window.google.accounts.id.initialize({
-        client_id: clientId,
-        callback: handleGoogleCredentialResponse,
-        auto_select: false,
-        cancel_on_tap_outside: true,
-      });
-      gisInitialized = true;
-    }
-    window.google.accounts.id.prompt();
-  } else {
-    showToast("Google SSO", "Memuat Google Identity Services, silakan coba sesaat lagi.", "info");
+    initGoogleAuth();
+    return;
   }
+
+  const ssoModal = byId("modal-sso-help");
+  if (ssoModal) openModal(ssoModal);
+  showToast(
+    "Google SSO",
+    "Layanan Google Identity Services belum termuat. Silakan coba sesaat lagi atau cek panduan bantuan.",
+    "info"
+  );
 }

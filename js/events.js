@@ -24,7 +24,7 @@ import {
 } from "./views/auth.js";
 import { setStudentTab } from "./views/student.js";
 import { setAdminTab } from "./views/admin.js";
-import { handleAuthSuccess, loginAs, logout } from "./features/session.js";
+import { handleAuthSuccess, logout } from "./features/session.js";
 import { ApiError, loginRequest, registerRequest } from "./core/api.js";
 import { loadTicketsSafely } from "./features/tickets-api.js";
 import {
@@ -279,13 +279,6 @@ function handleAction(actionElement) {
 
     case "asset-confirm":
       confirmAssetAction();
-      break;
-
-    case "google-login":
-      showToast("Google Workspace SSO", "Menghubungkan ke layanan OAuth2 UNSIL...", "info");
-      setTimeout(() => {
-        if (state.view === "auth") loginAs("student");
-      }, 1100);
       break;
 
     case "export":

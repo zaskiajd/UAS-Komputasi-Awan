@@ -436,6 +436,57 @@ test.describe('Autentikasi Google OAuth', () => {
     assert.equal(loginAttempt.status, 401);
     assert.equal(loginAttempt.body.message, 'Email atau kata sandi salah.');
   });
+
+  test('akun lokal yang sudah tertaut ke Google A ditolak (403) saat login Google B dengan email sama', async () => {
+    const { payload, user: localUser } = await registerStudent();
+    const googleSubA = `google-sub-a-${RUN}-${Date.now()}`;
+    const googleSubB = `google-sub-b-${RUN}-${Date.now()}`;
+
+    _setGoogleVerifierForTesting(async (cred) => ({
+      sub: cred === 'token-a' ? googleSubA : googleSubB,
+      email: payload.email,
+      email_verified: true,
+      name: 'Mahasiswa Tertaut',
+    }));
+
+    const first = await api('POST', '/auth/google', { body: { credential: 'token-a' } });
+    assert.equal(first.status, 200);
+
+    const second = await api('POST', '/auth/google', { body: { credential: 'token-b' } });
+    assert.equal(second.status, 403);
+    assert.match(second.body.message, /sudah tertaut dengan akun Google lain/i);
+
+    const { rows } = await query('SELECT google_id FROM users WHERE id = $1', [localUser.id]);
+    assert.equal(rows[0].google_id, googleSubA);
+  });
+
+  test('dua request /api/auth/google paralel untuk email baru yang sama tidak 500 dan hanya membuat satu baris user', async () => {
+    googleSeq += 1;
+    const email = `21700899${googleSeq}@student.unsil.ac.id`;
+    const googleSub = `google-parallel-${RUN}-${googleSeq}`;
+    createdEmails.push(email);
+
+    _setGoogleVerifierForTesting(async () => ({
+      sub: googleSub,
+      email,
+      email_verified: true,
+      name: `Mahasiswa Paralel ${googleSeq}`,
+    }));
+
+    const [res1, res2] = await Promise.all([
+      api('POST', '/auth/google', { body: { credential: 'token-par-1' } }),
+      api('POST', '/auth/google', { body: { credential: 'token-par-2' } }),
+    ]);
+
+    assert.notEqual(res1.status, 500);
+    assert.notEqual(res2.status, 500);
+    assert.equal(res1.status, 200);
+    assert.equal(res2.status, 200);
+    assert.equal(res1.body.data.user.id, res2.body.data.user.id);
+
+    const { rows } = await query('SELECT id FROM users WHERE email = $1', [email]);
+    assert.equal(rows.length, 1);
+  });
 });
 
 /* ============================================================== TICKETS ==== */
