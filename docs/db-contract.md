@@ -5,8 +5,7 @@ membuat Express/API. Sumber kebenaran skema ada di
 [`backend/db/schema.sql`](../backend/db/schema.sql), seed di
 [`backend/db/seed.sql`](../backend/db/seed.sql).
 
-Ruang lingkup dokumen ini **hanya database**. Tidak ada endpoint Express/API
-yang dibuat di sini; contoh query disediakan agar backend tinggal memakai.
+Ruang lingkup dokumen ini berfokus pada struktur dan kontrak database PostgreSQL, yang terhubung langsung dengan backend Express/API di folder `backend/`. Contoh query dan spesifikasi skema disediakan sebagai acuan implementasi.
 
 ---
 
@@ -87,9 +86,11 @@ memakai `timestamptz`.
 | `nim` | text | nullable, unique | NIM mahasiswa; `NULL` untuk admin/tendik. |
 | `name` | text | not null | Nama lengkap. |
 | `email` | text | not null, unique | Wajib lowercase (`email = lower(email)`). |
-| `password_hash` | text | not null | Hash bcrypt. |
+| `password_hash` | text | nullable | Hash bcrypt (`NULL` untuk akun pihak ketiga seperti Google OAuth). |
 | `role` | text | not null, default `student` | `student` / `admin`. |
 | `faculty` | text | nullable | Fakultas/jurusan atau unit kerja. |
+| `google_id` | text | nullable, unique | Subject ID unik dari Google OAuth (Google Identity Services). |
+| `auth_provider` | text | not null, default `local` | `local` / `google`. Akun `local` wajib punya `password_hash`. |
 | `created_at` | timestamptz | not null, default `now()` | |
 
 ### 2.2 `teams`

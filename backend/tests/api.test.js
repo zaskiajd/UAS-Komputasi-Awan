@@ -24,6 +24,7 @@ if (process.env.NODE_ENV === 'production') throw new Error('Jangan jalankan test
 const { createApp } = require('../src/app');
 const { query, pool } = require('../src/config/db');
 const { JWT_SECRET } = require('../src/config/env');
+const { _setGoogleVerifierForTesting } = require('../src/services/auth.service');
 
 const ADMIN = {
   email: process.env.TEST_ADMIN_EMAIL || 'hendrawan@unsil.ac.id',
@@ -269,6 +270,171 @@ test.describe('Autentikasi', () => {
       body: { status: 'done' },
     });
     assert.equal(patch.status, 403);
+  });
+});
+
+test.describe('Autentikasi Google OAuth', () => {
+  let googleSeq = 0;
+
+  test.afterEach(() => {
+    _setGoogleVerifierForTesting(null);
+  });
+
+  test('validasi: credential kosong → 422', async () => {
+    const res = await api('POST', '/auth/google', { body: {} });
+    assert.equal(res.status, 422);
+    assert.ok(res.body.errors.credential);
+  });
+
+  test('token tidak valid → 401', async () => {
+    _setGoogleVerifierForTesting(async () => {
+      throw new Error('Token signature invalid');
+    });
+    const res = await api('POST', '/auth/google', { body: { credential: 'token-salah' } });
+    assert.equal(res.status, 401);
+    assert.equal(res.body.success, false);
+  });
+
+  test('email belum terverifikasi → 403', async () => {
+    _setGoogleVerifierForTesting(async () => ({
+      sub: 'google-sub-unverified',
+      email: 'unverified@student.unsil.ac.id',
+      email_verified: false,
+      name: 'Unverified User',
+    }));
+    const res = await api('POST', '/auth/google', { body: { credential: 'token-unverified' } });
+    assert.equal(res.status, 403);
+    assert.match(res.body.message, /belum diverifikasi/i);
+  });
+
+  test('domain email ditolak → 403', async () => {
+    _setGoogleVerifierForTesting(async () => ({
+      sub: 'google-sub-domain-ditolak',
+      email: 'someone@gmail.com',
+      email_verified: true,
+      name: 'Gmail User',
+    }));
+    const res = await api('POST', '/auth/google', { body: { credential: 'token-gmail' } });
+    assert.equal(res.status, 403);
+    assert.match(res.body.message, /tidak diizinkan/i);
+  });
+
+  test('akun baru: role SELALU student, nim diekstrak jika numerik, faculty default', async () => {
+    googleSeq += 1;
+    const nimPart = `21700688${googleSeq}`;
+    const email = `${nimPart}@student.unsil.ac.id`;
+    const googleSub = `google-id-${RUN}-${googleSeq}`;
+    createdEmails.push(email);
+
+    _setGoogleVerifierForTesting(async () => ({
+      sub: googleSub,
+      email,
+      email_verified: true,
+      name: `Mahasiswa Google ${googleSeq}`,
+    }));
+
+    const res = await api('POST', '/auth/google', { body: { credential: 'token-baru' } });
+    assert.equal(res.status, 200);
+    assert.equal(res.body.success, true);
+    assert.ok(res.body.data.token);
+    assert.equal(res.body.data.user.role, 'student');
+    assert.equal(res.body.data.user.email, email);
+    assert.equal(res.body.data.user.nim, nimPart);
+    assert.equal(res.body.data.user.faculty, 'Belum diisi');
+
+    // Cek di DB bahwa password_hash NULL dan auth_provider = 'google'
+    const { rows } = await query(
+      'SELECT password_hash, auth_provider, google_id FROM users WHERE email = $1',
+      [email]
+    );
+    assert.equal(rows[0].password_hash, null);
+    assert.equal(rows[0].auth_provider, 'google');
+    assert.equal(rows[0].google_id, googleSub);
+  });
+
+  test('login ulang akun Google yang sudah terdaftar → 200', async () => {
+    googleSeq += 1;
+    const email = `21700777${googleSeq}@student.unsil.ac.id`;
+    const googleSub = `google-id-relok-${RUN}-${googleSeq}`;
+    createdEmails.push(email);
+
+    _setGoogleVerifierForTesting(async () => ({
+      sub: googleSub,
+      email,
+      email_verified: true,
+      name: `Mahasiswa Repeat ${googleSeq}`,
+    }));
+
+    const first = await api('POST', '/auth/google', { body: { credential: 'tok-1' } });
+    assert.equal(first.status, 200);
+
+    const second = await api('POST', '/auth/google', { body: { credential: 'tok-2' } });
+    assert.equal(second.status, 200);
+    assert.equal(second.body.data.user.id, first.body.data.user.id);
+  });
+
+  test('penautan akun lokal yang sudah ada email-nya → 200 & google_id tertaut', async () => {
+    const { payload, user: localUser } = await registerStudent();
+    const googleSub = `google-linked-${RUN}-${Date.now()}`;
+
+    _setGoogleVerifierForTesting(async () => ({
+      sub: googleSub,
+      email: payload.email,
+      email_verified: true,
+      name: 'Google Linked Name',
+    }));
+
+    const res = await api('POST', '/auth/google', { body: { credential: 'token-link' } });
+    assert.equal(res.status, 200);
+    assert.equal(res.body.data.user.id, localUser.id);
+
+    const { rows } = await query('SELECT google_id, password_hash FROM users WHERE id = $1', [
+      localUser.id,
+    ]);
+    assert.equal(rows[0].google_id, googleSub);
+    assert.ok(rows[0].password_hash);
+  });
+
+  test('role SELALU student meskipun token Google berisi role=admin atau klien mengirim role=admin', async () => {
+    googleSeq += 1;
+    const email = `admin.palsu.${googleSeq}@student.unsil.ac.id`;
+    createdEmails.push(email);
+
+    _setGoogleVerifierForTesting(async () => ({
+      sub: `google-forged-admin-${RUN}-${googleSeq}`,
+      email,
+      email_verified: true,
+      name: 'Penyerang Google',
+      role: 'admin',
+    }));
+
+    const res = await api('POST', '/auth/google', {
+      body: { credential: 'token-hacker', role: 'admin' },
+    });
+    assert.equal(res.status, 200);
+    assert.equal(res.body.data.user.role, 'student');
+  });
+
+  test('login password (POST /auth/login) ke akun Google-only ditolak dengan 401', async () => {
+    googleSeq += 1;
+    const email = `google.only.${googleSeq}@student.unsil.ac.id`;
+    createdEmails.push(email);
+
+    _setGoogleVerifierForTesting(async () => ({
+      sub: `google-only-${RUN}-${googleSeq}`,
+      email,
+      email_verified: true,
+      name: 'User Google Saja',
+    }));
+
+    const reg = await api('POST', '/auth/google', { body: { credential: 'token-g-only' } });
+    assert.equal(reg.status, 200);
+
+    const loginAttempt = await api('POST', '/auth/login', {
+      body: { email, password: 'SandiSembarang123' },
+    });
+    assert.equal(loginAttempt.status, 401);
+    assert.equal(loginAttempt.body.message, 'Email atau kata sandi salah.');
   });
 });
 

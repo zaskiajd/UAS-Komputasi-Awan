@@ -44,6 +44,24 @@ Error: `422` validasi, `409` email/NIM sudah terdaftar.
 ```
 `role` opsional (chip peran di form login): bila diisi dan tidak cocok dengan akun → `403`.
 Email/sandi salah → `401` dengan pesan yang sama untuk kedua kasus.
+Akun dengan `auth_provider='google'` tanpa password akan ditolak dengan respons `401` yang sama ("Email atau kata sandi salah.") demi menjaga keamanan dan mencegah enumerasi pengguna.
+
+### `POST /auth/google` — publik
+Autentikasi menggunakan ID Token dari Google Identity Services (GIS).
+
+```json
+{ "credential": "<google_id_token>" }
+```
+
+**Aturan & Alur Akun:**
+- Token diverifikasi dengan `google-auth-library` (`audience = GOOGLE_CLIENT_ID`).
+- Tolak bila `email_verified` bukan `true` (`403`).
+- Tolak bila domain email tidak ada di daftar `ALLOWED_EMAIL_DOMAINS` (`403`).
+- Bila `google_id` sudah ada di database: login pengguna terkait.
+- Bila email sudah ada sebagai akun lokal: tautkan `google_id` ke akun tersebut (penautan akun).
+- Bila belum ada: buat akun baru dengan role **SELALU** `student` (`password_hash: NULL`, `auth_provider: 'google'`). NIM otomatis diekstrak dari bagian depan email jika berupa 6–20 digit angka, faculty default `"Belum diisi"`. Role tidak pernah bisa ditentukan dari token Google atau dari input klien.
+- Dilindungi oleh rate limiter yang sama dengan login/register (`AUTH_RATE_LIMIT`).
+- Respons sukses (`200`): `{ data: { token, user: { id, nim, name, email, role, faculty } } }`.
 
 ### `GET /auth/me` — login
 Profil pengguna dari token → `{ data: { id, nim, name, email, role, faculty } }`.
@@ -150,3 +168,20 @@ const token = localStorage.getItem("cc-token");
 const res = await fetch(`${API}/tickets`, { headers: { Authorization: `Bearer ${token}` } });
 const { success, data, message, errors } = await res.json();
 ```
+
+---
+
+## Environment Variables
+
+| Variable | Default | Keterangan |
+| --- | --- | --- |
+| `DATABASE_URL` | - | PostgreSQL connection URL |
+| `DB_SSL` | `false` | Set `true` untuk database cloud yang mewajibkan SSL |
+| `JWT_SECRET` | - | Kunci rahasia untuk tanda tangan JWT (min. 16 karakter) |
+| `JWT_EXPIRES_IN` | `8h` | Masa berlaku token JWT |
+| `PORT` | `3000` | Port server Express |
+| `CORS_ORIGIN` | - | Domain frontend yang diizinkan (pisahkan koma) |
+| `AUTH_RATE_LIMIT` | `50` | Batas percobaan auth per IP per 15 menit |
+| `GOOGLE_CLIENT_ID` | - | Client ID OAuth 2.0 dari Google Cloud Console |
+| `ALLOWED_EMAIL_DOMAINS` | `student.unsil.ac.id,unsil.ac.id` | Domain email resmi yang diizinkan login Google |
+

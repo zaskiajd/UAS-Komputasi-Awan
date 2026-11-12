@@ -46,7 +46,8 @@ Test memakai server Express sungguhan terhadap database di `DATABASE_URL` (harus
 Test membuat lalu menghapus akun/tiketnya sendiri, tetapi **jangan diarahkan ke database produksi**.
 Bila sandi demo diganti, set `TEST_ADMIN_EMAIL` / `TEST_ADMIN_PASSWORD` (dan `TEST_SKIP_DEMO_STUDENT=1`).
 
-Yang diuji: register/login/JWT (kedaluwarsa, token palsu, `alg=none`, role dari token tidak dipercaya),
+Yang diuji (51 tes integrasi): register/login/JWT (kedaluwarsa, token palsu, `alg=none`, role dari token tidak dipercaya),
+Google OAuth (ID token invalid, email unverified, domain ditolak, pendaftaran mahasiswa baru, login ulang, penautan akun lokal, pencegahan eskalasi role, penolakan login sandi pada akun Google-only),
 pembatasan role, kepemilikan tiket (mahasiswa B tidak bisa membuka/mengubah/menghapus tiket mahasiswa A),
 validasi input, aturan status (edit/hapus), soft delete, ubah status oleh admin + riwayat, buka kembali tiket.
 
@@ -62,6 +63,21 @@ validasi input, aturan status (edit/hapus), soft delete, ubah status oleh admin 
 | `NODE_ENV` | — | Set `production` saat deploy |
 | `CORS_ORIGIN` | prod | URL frontend, pisahkan koma bila lebih dari satu |
 | `AUTH_RATE_LIMIT` | — | Percobaan login/registrasi per IP per 15 menit (default 50) |
+| `GOOGLE_CLIENT_ID` | opsional | OAuth 2.0 Web Client ID dari Google Cloud Console untuk verifikasi ID token |
+| `ALLOWED_EMAIL_DOMAINS` | — | Domain email yang diizinkan untuk login Google (default: `student.unsil.ac.id,unsil.ac.id`) |
+
+## Konfigurasi Google OAuth 2.0 (Google Identity Services)
+
+1. Buka [Google Cloud Console](https://console.cloud.google.com/) > **APIs & Services** > **Credentials**.
+2. Buat **OAuth 2.0 Client ID** bertipe *Web application*.
+3. Pada **Authorized JavaScript origins**, tambahkan origin frontend Anda (misalnya `http://localhost:8000` untuk development lokal atau domain production).
+4. Salin Client ID yang dihasilkan ke:
+   - `backend/.env` pada variabel `GOOGLE_CLIENT_ID`
+   - `js/config.js` pada konfigurasi `GOOGLE_CLIENT_ID` (atau inject via `window.CAMPUSCARE_GOOGLE_CLIENT_ID`)
+5. Bila database sudah berjalan sebelum fitur ini, jalankan migrasi:
+   ```bash
+   psql "$DATABASE_URL" -f db/migrations/001_google_auth.sql
+   ```
 
 ## Deploy (catatan untuk anggota 5)
 

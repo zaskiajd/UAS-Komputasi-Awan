@@ -191,6 +191,15 @@ function parseTicketRef(raw) {
   return null;
 }
 
+function validateGoogleAuth(body = {}) {
+  const errors = {};
+  const credential = str(body?.credential);
+  if (!credential) {
+    errors.credential = 'Kredensial Google (ID token) wajib dikirimkan.';
+  }
+  return { value: { credential }, errors };
+}
+
 module.exports = {
   STATUSES,
   PRIORITIES,
@@ -198,6 +207,7 @@ module.exports = {
   normalizeEmail,
   validateRegister,
   validateLogin,
+  validateGoogleAuth,
   validateTicketInput,
   validateStatusUpdate,
   parseTicketRef,

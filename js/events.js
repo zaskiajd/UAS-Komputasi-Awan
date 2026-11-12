@@ -11,15 +11,22 @@ import { closeDrawers, toggleSidebar, toggleStudentSidebar } from "./ui/sidebar.
 import { showToast } from "./ui/toast.js";
 import {
   clearFieldError,
+  clearLoginError,
   evaluatePassword,
   setAuthRole,
   setAuthTab,
+  setButtonLoading,
+  setOnAuthSuccess,
   showFieldError,
+  showLoginError,
   togglePasswordVisibility,
+  triggerGoogleLogin,
 } from "./views/auth.js";
 import { setStudentTab } from "./views/student.js";
 import { setAdminTab } from "./views/admin.js";
-import { loginAs, logout } from "./features/session.js";
+import { handleAuthSuccess, loginAs, logout } from "./features/session.js";
+import { ApiError, loginRequest, registerRequest } from "./core/api.js";
+import { loadTicketsSafely } from "./features/tickets-api.js";
 import {
   handleDispatchSubmit,
   openDispatch,
@@ -33,6 +40,7 @@ import {
   openHistoryDeleteConfirm,
   renderAdminTickets,
   renderDispatchList,
+  renderReports,
   renderStudentReports,
   toggleHistoryDeleteMode,
   toggleHistorySelection,
@@ -96,6 +104,10 @@ function handleAction(actionElement) {
 
     case "auth-role":
       setAuthRole(actionElement.dataset.role);
+      break;
+
+    case "google-login":
+      triggerGoogleLogin();
       break;
 
     case "toggle-password":
@@ -528,27 +540,63 @@ export function bindEvents() {
     regConfirm.addEventListener("input", clearFieldError);
   }
 
-  /* Login */
+  /* Callback sukses autentikasi (Google OAuth / integrasi lainnya) */
+  setOnAuthSuccess(async (user) => {
+    await loadTicketsSafely();
+    renderReports();
+    handleAuthSuccess(user);
+  });
+
+  /* Login — diverifikasi ke backend (POST /auth/login) */
   const loginForm = byId("login-form");
   if (loginForm) {
-    loginForm.addEventListener("submit", (event) => {
+    loginForm.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const email = byId("login-email").value.trim();
-      loginAs(state.role, { name: email ? email.split("@")[0] : "" });
+      clearLoginError();
+
+      const submit = loginForm.querySelector('[type="submit"]');
+      const email = byId("login-email")?.value.trim() || "";
+      const password = byId("login-password")?.value || "";
+      const role = state.role === "admin" ? "admin" : "student";
+
+      if (!email || !password) {
+        showLoginError("Email dan kata sandi wajib diisi.");
+        showToast("Data Belum Lengkap", "Email dan kata sandi wajib diisi.", "error");
+        return;
+      }
+
+      setButtonLoading(submit, true, "Memverifikasi...");
+      try {
+        const user = await loginRequest({ email, password, role });
+        const passEl = byId("login-password");
+        if (passEl) passEl.value = "";
+        await loadTicketsSafely();
+        renderReports();
+        handleAuthSuccess(user);
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : "Terjadi kesalahan saat masuk. Coba lagi.";
+        showLoginError(message);
+        showToast("Gagal Masuk", message, "error");
+      } finally {
+        setButtonLoading(submit, false, "Masuk ke Portal CampusCare");
+      }
     });
   }
 
-  /* Registrasi */
+  /* Registrasi Mahasiswa Baru (POST /auth/register) */
   const registerForm = byId("register-form");
   if (registerForm) {
-    registerForm.addEventListener("submit", (event) => {
+    registerForm.addEventListener("submit", async (event) => {
       event.preventDefault();
       clearFieldError();
 
-      const password = byId("reg-password").value;
-      const confirm = byId("reg-confirm").value;
-      const email = byId("reg-email").value.trim();
-      const name = byId("reg-name").value.trim();
+      const password = byId("reg-password")?.value || "";
+      const confirm = byId("reg-confirm")?.value || "";
+      const email = byId("reg-email")?.value.trim() || "";
+      const name = byId("reg-name")?.value.trim() || "";
+      const nim = byId("reg-nim")?.value.trim() || "";
+      const faculty = byId("reg-fakultas")?.value || "";
 
       if (password.length < 8) {
         showFieldError(byId("reg-password"), "Kata sandi minimal 8 karakter.");
@@ -560,6 +608,40 @@ export function bindEvents() {
         return;
       }
 
+      const submit = registerForm.querySelector('[type="submit"]');
+      setButtonLoading(submit, true, "Mendaftarkan...");
+
+      try {
+        await registerRequest({ name, nim, faculty, email, password, confirmPassword: confirm });
+      } catch (error) {
+        if (error instanceof ApiError && error.errors) {
+          const fieldIds = {
+            name: "reg-name",
+            nim: "reg-nim",
+            faculty: "reg-fakultas",
+            email: "reg-email",
+            password: "reg-password",
+            confirmPassword: "reg-confirm",
+          };
+          Object.entries(error.errors).forEach(([field, msg]) => {
+            const input = byId(fieldIds[field]);
+            if (input) input.classList.add("input-invalid");
+          });
+          const [field, message] = Object.entries(error.errors)[0] || [];
+          showFieldError(byId(fieldIds[field]), message || error.message);
+        } else {
+          showToast(
+            "Pendaftaran Gagal",
+            error instanceof ApiError ? error.message : "Terjadi kesalahan. Coba lagi.",
+            "error"
+          );
+        }
+        setButtonLoading(submit, false, "Daftarkan Akun Mahasiswa");
+        return;
+      }
+
+      setButtonLoading(submit, false, "Daftarkan Akun Mahasiswa");
+
       const loginEmail = byId("login-email");
       if (loginEmail) loginEmail.value = email;
 
@@ -570,7 +652,7 @@ export function bindEvents() {
 
       showToast(
         "Pendaftaran Berhasil!",
-        `Akun ${name || "mahasiswa"} siap digunakan. Silakan masuk dengan akun SSO Anda.`,
+        `Akun ${name || "mahasiswa"} siap digunakan. Silakan masuk dengan email dan kata sandi Anda.`,
         "success"
       );
     });

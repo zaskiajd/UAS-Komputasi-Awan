@@ -1,5 +1,5 @@
 /* ==========================================================================
-   features/session.js — Masuk & keluar sesi (demo)
+   features/session.js — Masuk & keluar sesi autentikasi
    ========================================================================== */
 
 import { byId } from "../core/dom.js";
@@ -8,9 +8,24 @@ import { setView } from "../core/router.js";
 import { showToast } from "../ui/toast.js";
 import { setStudentTab } from "../views/student.js";
 import { setAdminTab } from "../views/admin.js";
-import { setAuthTab } from "../views/auth.js";
+import { setAuthTab, clearFieldError, clearLoginError } from "../views/auth.js";
 import { renderReports } from "./reports.js";
 import { closeDrawers } from "../ui/sidebar.js";
+import { clearToken } from "../core/api.js";
+import { seedReports } from "../data/reports.js";
+
+/**
+ * Menyelesaikan proses login sukses:
+ * Menyimpan data pengguna ke state dan mengarahkan ke dashboard yang sesuai (admin / mahasiswa).
+ */
+export function handleAuthSuccess(user) {
+  state.role = user.role;
+  state.student =
+    user.role === "student"
+      ? { name: user.name, nim: user.nim, faculty: user.faculty, email: user.email }
+      : null;
+  loginAs(user.role, { name: user.name });
+}
 
 export function loginAs(role, options = {}) {
   closeDrawers();
@@ -25,7 +40,7 @@ export function loginAs(role, options = {}) {
     ).length;
     showToast(
       "Portal Admin Sarpras Aktif",
-      `Selamat bertugas, Ir. Hendrawan. ${review} tiket menunggu verifikasi • ${urgent} urgent.`,
+      `Selamat bertugas, ${options.name || "Admin Sarpras"}. ${review} tiket menunggu verifikasi • ${urgent} urgent.`,
       "success"
     );
   } else {
@@ -41,7 +56,11 @@ export function loginAs(role, options = {}) {
   }
 }
 
-export function logout() {
+export function logout(options = {}) {
+  clearToken();
+  state.student = null;
+  state.role = "public";
+  state.reports = seedReports(); // buang data tiket milik sesi sebelumnya
   setView("auth");
   setAuthTab("login");
   state.studentFilter = "all";
@@ -53,6 +72,9 @@ export function logout() {
   state.dispatchQuery = "";
   state.inventoryQuery = "";
   state.selectedTicket = null;
+
+  clearFieldError();
+  clearLoginError();
 
   const studentSearch = byId("student-search");
   const adminSearch = byId("admin-search");
@@ -69,5 +91,11 @@ export function logout() {
   const loginPassword = byId("login-password");
   if (loginPassword) loginPassword.value = "";
 
-  showToast("Sesi Diakhiri", "Anda telah keluar dari portal CampusCare secara aman.", "info");
+  if (options.silent !== true) {
+    showToast(
+      options.title || "Sesi Diakhiri",
+      options.message || "Anda telah keluar dari portal CampusCare secara aman.",
+      options.variant || "info"
+    );
+  }
 }

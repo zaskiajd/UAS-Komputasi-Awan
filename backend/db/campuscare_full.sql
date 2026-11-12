@@ -38,19 +38,26 @@ CREATE TABLE IF NOT EXISTS users (
   nim           TEXT UNIQUE,
   name          TEXT NOT NULL,
   email         TEXT NOT NULL UNIQUE,
-  password_hash TEXT NOT NULL,
+  password_hash TEXT,
   role          TEXT NOT NULL DEFAULT 'student'
                   CHECK (role IN ('student', 'admin')),
   faculty       TEXT,
+  google_id     TEXT UNIQUE,
+  auth_provider TEXT NOT NULL DEFAULT 'local'
+                  CHECK (auth_provider IN ('local', 'google')),
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
 
   CONSTRAINT users_email_lowercase_chk CHECK (email = lower(email)),
   CONSTRAINT users_nim_format_chk
-    CHECK (nim IS NULL OR nim ~ '^[0-9]{6,20}$')
+    CHECK (nim IS NULL OR nim ~ '^[0-9]{6,20}$'),
+  CONSTRAINT users_auth_local_password_chk
+    CHECK (auth_provider <> 'local' OR password_hash IS NOT NULL)
 );
 
 COMMENT ON COLUMN users.nim IS 'NIM mahasiswa; NULL untuk admin/tendik.';
-COMMENT ON COLUMN users.password_hash IS 'Hash bcrypt (pgcrypto crypt/bf atau bcrypt Node).';
+COMMENT ON COLUMN users.password_hash IS 'Hash bcrypt (pgcrypto crypt/bf atau bcrypt Node); NULL untuk akun Google OAuth.';
+COMMENT ON COLUMN users.google_id IS 'Subject ID unik Google OAuth (Google Identity Services).';
+COMMENT ON COLUMN users.auth_provider IS 'Penyedia autentikasi: local (email + sandi) atau google (Google OAuth).';
 
 -- ----------------------------------------------------------------------------
 -- 2. teams

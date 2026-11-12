@@ -5,7 +5,12 @@
 const authService = require('../services/auth.service');
 const { ok, created } = require('../utils/response');
 const { asyncHandler } = require('../utils/errors');
-const { assertValid, validateRegister, validateLogin } = require('../utils/validate');
+const {
+  assertValid,
+  validateRegister,
+  validateLogin,
+  validateGoogleAuth,
+} = require('../utils/validate');
 
 const register = asyncHandler(async (req, res) => {
   const { value, errors } = validateRegister(req.body);
@@ -21,6 +26,13 @@ const login = asyncHandler(async (req, res) => {
   return ok(res, result, 'Login berhasil.');
 });
 
+const googleLogin = asyncHandler(async (req, res) => {
+  const { value, errors } = validateGoogleAuth(req.body);
+  assertValid(errors);
+  const result = await authService.googleAuth(value.credential);
+  return ok(res, result, 'Login Google berhasil.');
+});
+
 const me = (req, res) => ok(res, authService.toPublicUser(req.user), 'Profil pengguna.');
 
-module.exports = { register, login, me };
+module.exports = { register, login, googleLogin, me };

@@ -33,6 +33,14 @@ const CORS_ORIGINS = (process.env.CORS_ORIGIN || '')
   .map((origin) => origin.trim().replace(/\/$/, ''))
   .filter(Boolean);
 
+/** Domain email yang diizinkan untuk login/registrasi Google OAuth. */
+const ALLOWED_EMAIL_DOMAINS = (
+  process.env.ALLOWED_EMAIL_DOMAINS || 'student.unsil.ac.id,unsil.ac.id'
+)
+  .split(',')
+  .map((domain) => domain.trim().toLowerCase())
+  .filter(Boolean);
+
 module.exports = {
   NODE_ENV,
   isProduction,
@@ -40,4 +48,6 @@ module.exports = {
   JWT_SECRET: JWT_SECRET || 'dev-only-insecure-secret',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '8h',
   CORS_ORIGINS,
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
+  ALLOWED_EMAIL_DOMAINS,
 };
