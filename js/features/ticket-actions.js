@@ -15,6 +15,7 @@ import { openModal } from "../ui/modal.js";
 import { showToast } from "../ui/toast.js";
 import { renderReports } from "./reports.js";
 import { renderTechnicians } from "./technicians.js";
+import { updateStatusRequest } from "./tickets-api.js";
 
 const ADMIN_NAME = "Ir. Hendrawan";
 
@@ -622,9 +623,22 @@ export function handleInstructionSubmit(event) {
   );
 }
 
-export function updateTicketStatus(ticketId, nextStatus) {
+export async function updateTicketStatus(ticketId, nextStatus) {
   const report = state.reports.find((item) => item.id === ticketId);
   if (!report) return;
+
+  // Simpan ke backend dulu; tampilan hanya berubah bila server menerima.
+  const apiStatus = nextStatus === "waiting" ? "waiting" : nextStatus === "done" ? "done" : "progress";
+  const apiProgress =
+    apiStatus === "done"
+      ? 100
+      : Math.min(95, Math.max(35, Number(report.progress) || 35));
+  try {
+    await updateStatusRequest(report, apiStatus, { progress: apiProgress });
+  } catch (error) {
+    showToast("Status Gagal Diubah", error.message || "Perubahan tidak tersimpan.", "error");
+    return;
+  }
 
   const now = new Date().toISOString();
   let label = "";

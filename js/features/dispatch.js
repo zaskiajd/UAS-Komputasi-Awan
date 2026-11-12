@@ -15,6 +15,7 @@ import { closeModal, openModal } from "../ui/modal.js";
 import { showToast } from "../ui/toast.js";
 import { renderReports } from "./reports.js";
 import { renderTechnicians } from "./technicians.js";
+import { updateStatusRequest } from "./tickets-api.js";
 
 const ADMIN_NAME = "Ir. Hendrawan";
 
@@ -302,6 +303,16 @@ export function handleDispatchSubmit(event) {
       note,
     });
   }
+
+  // Penugasan teknisi belum punya endpoint; status tiket tetap disimpan ke backend.
+  updateStatusRequest(report, "progress", {
+    progress: report.progress,
+    note: `Disposisi ke ${team.name} — ${assignee.title}`,
+  }).catch((error) => {
+    if (error.status !== 409) {
+      showToast("Status Belum Tersimpan", error.message || "Disposisi hanya tersimpan sementara.", "error");
+    }
+  });
 
   closeModal(byId("modal-dispatch"));
   event.target.reset();
