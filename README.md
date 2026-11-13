@@ -76,6 +76,8 @@ js/
 assets/fonts/               # Font WOFF2 lokal (teks + Material Symbols)
 tailwind.config.js          # Tema & daftar berkas yang dipindai Tailwind
 package.json                # Skrip build CSS (opsional, hanya maintainer)
+backend/                    # REST API Express + PostgreSQL (src/, db/, tests/)
+docs/                       # API.md dan db-contract.md
 README.md
 ```
 
@@ -105,6 +107,69 @@ Tanpa koneksi internet aplikasi tetap berfungsi penuh: Tailwind sudah dikompilas
 
 ---
 
+## Menjalankan Backend (REST API + PostgreSQL)
+
+Frontend memanggil REST API di `http://localhost:3000/api` (Express + PostgreSQL, folder `backend/`). Backend dan frontend dijalankan terpisah, jadi **keduanya harus hidup**.
+
+**Prasyarat**
+
+- Node.js 18+
+- PostgreSQL 14+ beserta `psql`. Di Windows, tambahkan folder `bin` PostgreSQL (mis. `D:\PostgreSQL\bin`) ke `PATH`.
+- Untuk `npm run db:reset` di Windows dibutuhkan `bash` (Git Bash).
+
+**Langkah**
+
+```powershell
+cd backend
+npm install
+copy .env.example .env      # lalu isi DATABASE_URL, JWT_SECRET, GOOGLE_CLIENT_ID, dll.
+npm run db:reset            # buat ulang skema + data seed (menghapus isi database!)
+npm start                   # atau: npm run dev (auto-reload)
+npm test                    # tes integrasi API
+```
+
+Jika `npm run db:reset` gagal karena `psql` tidak ditemukan, jalankan manual di PowerShell (`PGCLIENTENCODING=UTF8` wajib agar karakter `•` tidak rusak):
+
+```powershell
+$env:Path += ";D:\PostgreSQL\bin"
+$env:PGCLIENTENCODING = "UTF8"
+$url = ((Get-Content .env | Where-Object { $_ -match '^DATABASE_URL=' }) -replace '^DATABASE_URL=','').Trim()
+psql $url -v ON_ERROR_STOP=1 -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO public;"
+psql $url -v ON_ERROR_STOP=1 -f db/campuscare_full.sql
+```
+
+**Variabel `.env` penting**
+
+| Variabel | Keterangan |
+| --- | --- |
+| `DATABASE_URL` | Koneksi PostgreSQL, mis. `postgres://postgres:PASSWORD@localhost:5432/campuscare` |
+| `JWT_SECRET` | Kunci penandatangan token (wajib diganti) |
+| `CORS_ORIGIN` | Alamat frontend yang diizinkan, dipisah koma (default: port 8000 dan 5500) |
+| `GOOGLE_CLIENT_ID` | Client ID OAuth 2.0 dari Google Cloud Console |
+| `ALLOWED_EMAIL_DOMAINS` | Domain email yang boleh login Google (`student.unsil.ac.id,unsil.ac.id`) |
+
+> `backend/.env` berisi rahasia (mis. `GOOGLE_CLIENT_SECRET`) dan **tidak boleh di-commit**. Setiap anggota membuat `.env` sendiri dari `.env.example`.
+
+Dokumentasi lengkap: [`docs/API.md`](docs/API.md) (endpoint) dan [`docs/db-contract.md`](docs/db-contract.md) (skema database).
+
+---
+
+## Login dengan Google (OAuth 2.0)
+
+- Buka frontend lewat **`http://localhost:8000`**. Google hanya mengizinkan alamat yang terdaftar di *Authorized JavaScript origins*.
+- Memakai alamat/port lain (mis. `http://localhost:5500` atau `http://127.0.0.1:5500`)? Daftarkan alamat itu di **Google Cloud Console → APIs & Services → Credentials → OAuth Client ID**, dan tambahkan juga di `CORS_ORIGIN`. `localhost` dan `127.0.0.1` dianggap berbeda.
+- Hanya email berdomain `@student.unsil.ac.id` atau `@unsil.ac.id` yang diterima. Akun Google baru selalu menjadi **mahasiswa**.
+- Jika aplikasi OAuth masih berstatus *Testing*, tambahkan email penguji di **OAuth consent screen → Test users**.
+
+| Pesan error | Penyebab & solusi |
+| --- | --- |
+| `Error 400: origin_mismatch` | Alamat frontend belum didaftarkan di Authorized JavaScript origins |
+| `Error 403: access_denied` | Email belum ada di Test users |
+| `localhost refused to connect` | Server frontend belum dijalankan di port tersebut |
+| Request ke API diblokir (CORS) | Alamat frontend belum ada di `CORS_ORIGIN`; restart backend setelah mengubah `.env` |
+
+---
+
 ## Mode Debug
 
 | Cara | Keterangan |
@@ -125,12 +190,12 @@ Dari console browser tersedia `ccDiagnose()` dan `ccDebug.report()`.
 
 ## Akun Demo
 
-Form login bersifat demo: **email valid + kata sandi apa pun** akan diterima. Pilih peran lewat chip di atas form.
+Login memakai akun yang tersimpan di database (hasil `npm run db:reset`) atau tombol **Masuk dengan Google**. Pilih peran lewat chip di atas form.
 
-| Peran | Email contoh | Tujuan |
-| --- | --- | --- |
-| Mahasiswa | `217006120@student.unsil.ac.id` | Portal mahasiswa (pemilik tiket seed) |
-| Admin Sarpras | `hendrawan@unsil.ac.id` | Dashboard admin Sarpras |
+| Peran | Email | Kata sandi | Tujuan |
+| --- | --- | --- | --- |
+| Mahasiswa | `217006120@student.unsil.ac.id` | `CampusCare#2026` | Portal mahasiswa (pemilik tiket seed) |
+| Admin Sarpras | `hendrawan@unsil.ac.id` | `CampusCare#2026` | Dashboard admin Sarpras |
 
 Registrasi baru juga tersedia (minimal 8 karakter, konfirmasi sandi harus sama, dan checkbox persetujuan wajib dicentang).
 
@@ -195,7 +260,9 @@ Registrasi baru juga tersedia (minimal 8 karakter, konfirmasi sandi harus sama, 
 - **Audit tampilan otomatis**: setiap perpindahan view diaudit; bila panel aktif tidak terlihat, peringatan tampil dan dicatat di mode debug.
 - Semua interaksi memakai **event delegation** (`data-action`, `data-student-tab`, `data-admin-tab`, `data-student-filter`, `data-admin-filter`, `data-dispatch-filter`, `data-inventory-filter`).
 - Partial boleh memuat partial lain (mis. modal di dalam `views/student.html`); pemuat partial menyelesaikannya secara rekursif.
-- Data disimpan **di memori** (`state`) sehingga perubahan hilang saat halaman dimuat ulang; ini cukup untuk demo tanpa backend.
+- **Tiket, status, dan disposisi tersimpan di PostgreSQL** lewat REST API (`js/core/api.js`, `js/features/tickets-api.js`). Disposisi admin (tim, PIC, teknisi pendukung, prioritas, instruksi) dikirim lewat `PATCH /api/tickets/:id/status` sehingga tetap ada setelah halaman di-refresh.
+- Data teknisi dan aset masih berasal dari seed di frontend (`js/data/technicians.js`, `js/data/assets.js`); endpoint khususnya tidak disediakan pada versi ini.
+- Seed tiket berjumlah 10 (`backend/db/seed.sql`). Perubahan seed harus diterapkan ulang dengan `npm run db:reset`.
 - Semua ID elemen unik dan setiap referensi `byId(...)` di modul JS sudah diverifikasi ada di partial terkait.
 
 ### Menyesuaikan Tailwind
