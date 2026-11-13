@@ -301,24 +301,6 @@ WITH seed_tickets (
       now() - INTERVAL '18 minutes', now() - INTERVAL '18 minutes', NULL
     ),
     (
-      '#CC-2026-0908',
-      'Proyektor Mati Total Ruang Kuliah R.204 GKB',
-      'Proyektor tidak menyala saat mata kuliah pagi. Kabel dan sumber listrik sudah dicek, tetapi lampu indikator tetap mati.',
-      'Ahmad Rizki (Mhs • 217006120)', '217006120',
-      'projector', 'GKB', 'GKB (Gedung Kuliah Bersama)', 'R.204', 'R.204 Lt. 2', 'AST-PRJ-0087',
-      'progress', 'Sedang', false, 65, 'av',
-      now() - INTERVAL '155 minutes', now() - INTERVAL '40 minutes', NULL
-    ),
-    (
-      '#CC-2026-0899',
-      'Kerusakan Pintu Geser & Saklar Toilet Pria Lt.1 Rektorat',
-      'Pintu geser tidak bisa menutup rapat dan saklar lampu toilet kadang tidak merespons. Perbaikan menunggu suku cadang engsel.',
-      'Siti Rahma (Tendik BAKPK)', NULL,
-      'sanitation', 'Rektorat', 'Gedung A (Rektorat)', 'Lt. 1', 'Lt. 1', 'AST-SAN-0063',
-      'waiting', 'Sedang', false, 45, 'civil',
-      now() - INTERVAL '1680 minutes', now() - INTERVAL '120 minutes', NULL
-    ),
-    (
       '#CC-2026-0885',
       'Lampu Sorot Lapangan Basket Sarpras Olahraga Putus',
       'Satu unit lampu sorot padam sehingga sebagian lapangan gelap saat latihan malam. Penggantian sudah selesai dan diuji.',
@@ -429,10 +411,6 @@ ON CONFLICT (ticket_code) DO NOTHING;
 -- ----------------------------------------------------------------------------
 WITH seed_assignments (ticket_code, technician_id, role, status, assigned_minutes_ago) AS (
   VALUES
-    ('#CC-2026-0908', 'fajar',  'PIC',       'active', 140),
-    ('#CC-2026-0908', 'yudi',   'Pendukung', 'active', 120),
-    ('#CC-2026-0899', 'dadi',   'PIC',       'active', 1600),
-    ('#CC-2026-0899', 'nanang', 'Pendukung', 'active', 1580),
     ('#CC-2026-0885', 'agus',   'PIC',       'done',   2880),
     ('#CC-2026-0864', 'iwan',   'PIC',       'done',   5760),
     ('#CC-2026-0845', 'nanang', 'PIC',       'done',   43110),
@@ -472,20 +450,6 @@ WITH seed_history (ticket_code, minutes_ago, label, actor, status, note) AS (
     -- #CC-2026-0912
     ('#CC-2026-0912', 18, 'Pengaduan diterima', 'Ahmad Rizki (Mhs • 217006120)', 'review',
      'Laporan masuk ke antrean verifikasi Biro Sarpras.'),
-    -- #CC-2026-0908
-    ('#CC-2026-0908', 155, 'Pengaduan diterima', 'Ahmad Rizki', 'review',
-     'Laporan masuk ke antrean verifikasi.'),
-    ('#CC-2026-0908', 140, 'Disposisi ke Tim Multimedia & AV', 'Ir. Hendrawan', 'progress',
-     'Prioritas sedang, target SLA 6 jam.'),
-    ('#CC-2026-0908', 40, 'Teknisi mulai menangani', 'Fajar', 'progress',
-     'Pemeriksaan unit dan jalur daya selesai.'),
-    -- #CC-2026-0899
-    ('#CC-2026-0899', 1680, 'Pengaduan diterima', 'Siti Rahma', 'review',
-     'Laporan masuk ke antrean verifikasi.'),
-    ('#CC-2026-0899', 1600, 'Disposisi ke Tim Sanitasi & Sipil', 'Ir. Hendrawan', 'progress',
-     'Pemeriksaan awal oleh tim sipil.'),
-    ('#CC-2026-0899', 120, 'Menunggu suku cadang', 'Dadi', 'waiting',
-     'Perbaikan tertunda sampai engsel pengganti tiba.'),
     -- #CC-2026-0885
     ('#CC-2026-0885', 4320, 'Pengaduan diterima', 'BEM Mahasiswa', 'review',
      'Laporan masuk ke antrean verifikasi.'),
@@ -568,30 +532,6 @@ WITH seed_comments (
   target_technician_id, body, is_public, minutes_ago
 ) AS (
   VALUES
-    (
-      '#CC-2026-0908', 'instruction', 'hendrawan@unsil.ac.id', 'Ir. Hendrawan',
-      'fajar',
-      'Gunakan unit proyektor cadangan dari gudang AV dan uji HDMI sebelum kelas berikutnya.',
-      false, 42
-    ),
-    (
-      '#CC-2026-0908', 'note', NULL, 'Fajar',
-      NULL,
-      'Unit proyektor sudah dibuka. Ballast lampu terindikasi lemah, sedang disiapkan unit pengganti.',
-      false, 38
-    ),
-    (
-      '#CC-2026-0899', 'instruction', 'hendrawan@unsil.ac.id', 'Ir. Hendrawan',
-      'dadi',
-      'Koordinasikan dengan vendor engsel; bila tiba, pasang bersama Nanang dan uji buka-tutup 20 kali.',
-      false, 125
-    ),
-    (
-      '#CC-2026-0899', 'note', NULL, 'Dadi',
-      NULL,
-      'Engsel pintu tipe geser sudah dipesan ke vendor. Estimasi tiba 2 hari kerja.',
-      false, 120
-    ),
     (
       '#CC-2026-0885', 'note', NULL, 'Agus',
       NULL,

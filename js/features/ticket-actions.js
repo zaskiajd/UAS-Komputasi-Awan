@@ -444,6 +444,12 @@ export function changeTicketPic(ticketId, techId) {
     note: `Penanggung jawab utama tiket kini ${technician.title}.`,
   });
 
+  updateStatusRequest(report, report.status, {
+    teamId: technician.teamId,
+    assignee: technician.id,
+    note: `Penanggung jawab utama tiket kini ${technician.title}.`,
+  }).catch(() => {});
+
   afterAssignmentChange(
     report,
     "PIC Diperbarui",

@@ -629,7 +629,7 @@ test.describe('Pengaduan — kepemilikan (hanya milik sendiri)', () => {
 
     const list = await api('GET', '/tickets?limit=100', { token: adminToken });
     assert.equal(list.status, 200);
-    assert.ok(list.body.meta.total >= 12);
+    assert.ok(list.body.meta.total >= 10);
     assert.ok(list.body.data.some((x) => x.ticketId === t.ticketId));
 
     const detail = await api('GET', `/tickets/${t.ticketId}`, { token: adminToken });
@@ -836,5 +836,36 @@ test.describe('Pengaduan — status oleh admin & aturan status', () => {
     assert.equal(reopen.body.data.history.at(-1).label, 'Tiket dibuka kembali');
     assert.equal(reopen.body.data.assignments[0].status, 'active');
     assert.ok(reopen.body.data.progress < 100);
+  });
+
+  test('disposisi penuh lewat PATCH /tickets/:id/status menyimpan tim, PIC, pendukung, prioritas, dan instruksi', async () => {
+    const { token } = await registerStudent();
+    const t = await newTicket(token, { priority: 'Sedang' });
+    const url = `/tickets/${t.ticketId}/status`;
+
+    const dispatch = await api('PATCH', url, {
+      token: adminToken,
+      body: {
+        status: 'progress',
+        progress: 35,
+        teamId: 'electrical',
+        assignee: 'hendra',
+        supporters: ['rian'],
+        priority: 'Tinggi',
+        note: 'Segera cek kompresor AC Lab AI.',
+        instruction: 'Segera cek kompresor AC Lab AI.',
+      },
+    });
+
+    assert.equal(dispatch.status, 200, JSON.stringify(dispatch.body));
+    assert.equal(dispatch.body.data.status, 'progress');
+    assert.equal(dispatch.body.data.teamId, 'electrical');
+    assert.equal(dispatch.body.data.assignee, 'hendra');
+    assert.equal(dispatch.body.data.priority, 'Tinggi');
+    assert.equal(dispatch.body.data.urgent, true);
+    assert.equal(dispatch.body.data.assignments.filter((a) => a.status === 'active').length, 2);
+    assert.equal(dispatch.body.data.instructions.length, 1);
+    assert.equal(dispatch.body.data.instructions[0].toTechId, 'hendra');
+    assert.equal(dispatch.body.data.instructions[0].text, 'Segera cek kompresor AC Lab AI.');
   });
 });

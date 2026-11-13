@@ -371,20 +371,77 @@ async function updateOwnTicket(ref, user, input) {
   return getTicketDetail({ by: 'id', value: ticketId }, user);
 }
 
-/** Admin mengubah status tiket + mencatat ke ticket_history (satu transaksi). */
+/** Admin mengubah status tiket (+ opsional disposisi tim/teknisi/prioritas) dan mencatat ke ticket_history. */
 async function updateTicketStatus(ref, user, input) {
   const ticketId = await withTransaction(async (client) => {
     const { where, params } = accessFilter(ref, user);
     const { rows } = await client.query(
-      `SELECT id, status, progress FROM tickets WHERE ${where} FOR UPDATE`,
+      `SELECT id, status, progress, team_id, priority FROM tickets WHERE ${where} FOR UPDATE`,
       params
     );
     if (rows.length === 0) throw notFound('Pengaduan tidak ditemukan.');
     const current = rows[0];
     const next = input.status;
 
-    if (next === current.status && input.progress === undefined && !input.note) {
+    const hasDispatchFields =
+      input.teamId !== undefined ||
+      input.assignee !== undefined ||
+      input.supporters !== undefined ||
+      input.priority !== undefined ||
+      input.instruction !== undefined;
+
+    if (next === current.status && input.progress === undefined && !input.note && !hasDispatchFields) {
       throw conflict(`Pengaduan sudah berstatus '${next}'.`);
+    }
+
+    // Validasi referensi tim & teknisi bila dikirim saat disposisi
+    let teamRow = null;
+    if (input.teamId !== undefined) {
+      const { rows: tRows } = await client.query('SELECT id, name FROM teams WHERE id = $1', [
+        input.teamId,
+      ]);
+      if (tRows.length === 0) {
+        throw new ApiError(422, 'Data yang dikirim tidak valid.', {
+          teamId: `Tim '${input.teamId}' tidak ditemukan.`,
+        });
+      }
+      teamRow = tRows[0];
+    }
+
+    let assigneeTech = null;
+    if (input.assignee !== undefined) {
+      const { rows: techRows } = await client.query(
+        'SELECT id, name, title, team_id FROM technicians WHERE id = $1 AND archived = false',
+        [input.assignee]
+      );
+      if (techRows.length === 0) {
+        throw new ApiError(422, 'Data yang dikirim tidak valid.', {
+          assignee: `Teknisi '${input.assignee}' tidak ditemukan.`,
+        });
+      }
+      assigneeTech = techRows[0];
+      if (!teamRow && assigneeTech.team_id) {
+        const { rows: tRows } = await client.query('SELECT id, name FROM teams WHERE id = $1', [
+          assigneeTech.team_id,
+        ]);
+        teamRow = tRows[0] || null;
+      }
+    }
+
+    const supporterIds = Array.isArray(input.supporters)
+      ? input.supporters.filter((id) => !assigneeTech || id !== assigneeTech.id)
+      : null;
+
+    if (supporterIds && supporterIds.length > 0) {
+      const { rows: supRows } = await client.query(
+        'SELECT id FROM technicians WHERE id = ANY($1::text[]) AND archived = false',
+        [supporterIds]
+      );
+      if (supRows.length !== supporterIds.length) {
+        throw new ApiError(422, 'Data yang dikirim tidak valid.', {
+          supporters: 'Salah satu teknisi pendukung tidak ditemukan.',
+        });
+      }
     }
 
     // Aturan progress mengikuti perilaku dashboard admin di frontend.
@@ -397,16 +454,69 @@ async function updateTicketStatus(ref, user, input) {
 
     const reopened = current.status === 'done' && next !== 'done';
 
-    await client.query(
-      `UPDATE tickets
-          SET status = $2,
-              progress = $3,
-              completed_at = CASE WHEN $2 = 'done' THEN now() ELSE NULL END
-        WHERE id = $1`,
-      [current.id, next, progress]
-    );
+    const sets = [
+      'status = $2',
+      'progress = $3',
+      "completed_at = CASE WHEN $2 = 'done' THEN now() ELSE NULL END",
+    ];
+    const updateParams = [current.id, next, progress];
 
-    if (next === 'done') {
+    if (teamRow) {
+      updateParams.push(teamRow.id);
+      sets.push(`team_id = $${updateParams.length}`);
+    }
+
+    if (input.priority !== undefined) {
+      updateParams.push(input.priority);
+      sets.push(`priority = $${updateParams.length}`);
+      updateParams.push(input.priority === 'Tinggi');
+      sets.push(`urgent = $${updateParams.length}`);
+      updateParams.push(new Date(Date.now() + SLA_HOURS[input.priority] * 3600 * 1000));
+      sets.push(`sla_due_at = $${updateParams.length}`);
+    }
+
+    await client.query(`UPDATE tickets SET ${sets.join(', ')} WHERE id = $1`, updateParams);
+
+    if (assigneeTech) {
+      const assignmentStatus = next === 'done' ? 'done' : 'active';
+      if (supporterIds !== null) {
+        await client.query(
+          `UPDATE ticket_assignments
+              SET status = 'replaced'
+            WHERE ticket_id = $1 AND status = 'active'`,
+          [current.id]
+        );
+      } else {
+        await client.query(
+          `UPDATE ticket_assignments
+              SET status = 'replaced'
+            WHERE ticket_id = $1 AND role = 'PIC' AND status = 'active'`,
+          [current.id]
+        );
+        await client.query(
+          `UPDATE ticket_assignments
+              SET status = 'removed'
+            WHERE ticket_id = $1 AND technician_id = $2 AND role <> 'PIC' AND status = 'active'`,
+          [current.id, assigneeTech.id]
+        );
+      }
+
+      await client.query(
+        `INSERT INTO ticket_assignments (ticket_id, technician_id, role, status, assigned_by)
+         VALUES ($1, $2, 'PIC', $3, $4)`,
+        [current.id, assigneeTech.id, assignmentStatus, user.id]
+      );
+
+      if (supporterIds && supporterIds.length > 0) {
+        for (const supId of supporterIds) {
+          await client.query(
+            `INSERT INTO ticket_assignments (ticket_id, technician_id, role, status, assigned_by)
+             VALUES ($1, $2, 'Pendukung', $3, $4)`,
+            [current.id, supId, assignmentStatus, user.id]
+          );
+        }
+      }
+    } else if (next === 'done') {
       await client.query(
         `UPDATE ticket_assignments SET status = 'done'
           WHERE ticket_id = $1 AND status = 'active'`,
@@ -450,12 +560,37 @@ async function updateTicketStatus(ref, user, input) {
       );
     }
 
+    const assigneeTitle = assigneeTech ? assigneeTech.title || assigneeTech.name : null;
+    const historyLabel =
+      assigneeTech && teamRow
+        ? `Disposisi ke ${teamRow.name} — ${assigneeTitle}`
+        : assigneeTech
+          ? `PIC diganti ke ${assigneeTitle}`
+          : reopened
+            ? 'Tiket dibuka kembali'
+            : STATUS_LABEL[next];
+
     await addHistory(client, current.id, {
-      label: reopened ? 'Tiket dibuka kembali' : STATUS_LABEL[next],
+      label: historyLabel,
       actor: user.name,
       status: next,
       note: input.note || `Status tiket diubah menjadi ${STATUS_SHORT[next]}.`,
     });
+
+    if (input.instruction) {
+      await client.query(
+        `INSERT INTO ticket_comments
+           (ticket_id, kind, author_id, author_name, target_technician_id, body, is_public)
+         VALUES ($1, 'instruction', $2, $3, $4, $5, false)`,
+        [current.id, user.id, user.name, assigneeTech ? assigneeTech.id : null, input.instruction]
+      );
+      await addHistory(client, current.id, {
+        label: `Instruksi terarah ke ${assigneeTitle || 'Teknisi'}`,
+        actor: user.name,
+        status: next,
+        note: input.instruction,
+      });
+    }
 
     return current.id;
   });

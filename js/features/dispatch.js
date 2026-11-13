@@ -273,6 +273,7 @@ export function handleDispatchSubmit(event) {
   const supportLabel = supporters.length
     ? ` Pendukung: ${supporters.map((technician) => technician.title).join(", ")}.`
     : "";
+  const defaultNote = `Prioritas ${priority}, target SLA ${SLA_HOURS[priority]} jam. PIC ${assignee.title}.${supportLabel}`;
 
   report.history = report.history || [];
   report.history.push({
@@ -280,9 +281,7 @@ export function handleDispatchSubmit(event) {
     label: `Disposisi ke ${team.name} — ${assignee.title}`,
     actor: ADMIN_NAME,
     status: "progress",
-    note:
-      note ||
-      `Prioritas ${priority}, target SLA ${SLA_HOURS[priority]} jam. PIC ${assignee.title}.${supportLabel}`,
+    note: note || defaultNote,
   });
 
   if (note) {
@@ -304,10 +303,15 @@ export function handleDispatchSubmit(event) {
     });
   }
 
-  // Penugasan teknisi belum punya endpoint; status tiket tetap disimpan ke backend.
+  // Simpan status, tim, PIC, pendukung, prioritas, dan instruksi disposisi ke backend.
   updateStatusRequest(report, "progress", {
     progress: report.progress,
-    note: `Disposisi ke ${team.name} — ${assignee.title}`,
+    teamId: team.id,
+    assignee: assignee.id,
+    supporters: supporters.map((technician) => technician.id),
+    priority,
+    note: note || defaultNote,
+    ...(note ? { instruction: note } : {}),
   }).catch((error) => {
     if (error.status !== 409) {
       showToast("Status Belum Tersimpan", error.message || "Disposisi hanya tersimpan sementara.", "error");

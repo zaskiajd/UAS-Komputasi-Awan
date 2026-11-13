@@ -167,7 +167,7 @@ function reportActions(report, mode) {
   }
 
   return `
-      <button type="button" class="h-11 px-5 rounded-full ${isOverdue(report) ? "bg-error text-white" : "bg-inverse-surface text-white"} text-xs font-bold hover:brightness-110 transition-all flex items-center gap-1.5 shadow-sm" data-action="open-detail" data-ticket="${escapeHtml(report.id)}">
+      <button type="button" class="h-11 px-5 rounded-full bg-inverse-surface text-white text-xs font-bold hover:brightness-110 transition-all flex items-center gap-1.5 shadow-sm" data-action="open-detail" data-ticket="${escapeHtml(report.id)}">
         <span>${report.status === "waiting" ? "Detail Tiket" : "Kelola Tiket"}</span>
         <span class="material-symbols-outlined text-base font-bold">arrow_forward</span>
       </button>`;

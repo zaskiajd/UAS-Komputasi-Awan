@@ -17,8 +17,13 @@ const refOf = (report) =>
 
 /** Menyamakan objek tiket dari API dengan bentuk yang dipakai renderer frontend. */
 export function normalizeTicket(ticket) {
+  const activePic = Array.isArray(ticket.assignments)
+    ? ticket.assignments.find(
+        (entry) => entry.role === "PIC" && (entry.status === "active" || entry.status === "done")
+      )
+    : null;
   return {
-    assignedAt: null,
+    assignedAt: activePic?.assignedAt || null,
     assignments: [],
     instructions: [],
     notes: [],
@@ -57,13 +62,22 @@ export async function createTicketRequest(payload) {
   return normalizeTicket(ticket);
 }
 
-export function updateStatusRequest(report, status, { progress, note } = {}) {
+export function updateStatusRequest(
+  report,
+  status,
+  { progress, note, teamId, assignee, supporters, priority, instruction } = {}
+) {
   return apiRequest(`/tickets/${refOf(report)}/status`, {
     method: "PATCH",
     body: {
       status,
       ...(progress !== undefined ? { progress } : {}),
       ...(note ? { note } : {}),
+      ...(teamId !== undefined ? { teamId } : {}),
+      ...(assignee !== undefined ? { assignee } : {}),
+      ...(supporters !== undefined ? { supporters } : {}),
+      ...(priority !== undefined ? { priority } : {}),
+      ...(instruction ? { instruction } : {}),
     },
   });
 }

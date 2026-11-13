@@ -109,9 +109,20 @@ tetap diterima (disimpan sebagai teks lokasi).
 
 ### Body `PATCH /tickets/:id/status` (admin)
 ```json
-{ "status": "progress", "progress": 60, "note": "Teknisi menuju lokasi." }
+{
+  "status": "progress",
+  "progress": 35,
+  "teamId": "electrical",
+  "assignee": "hendra",
+  "supporters": ["dimas"],
+  "priority": "Tinggi",
+  "note": "Teknisi menuju lokasi.",
+  "instruction": "Segera cek kompresor AC."
+}
 ```
-`progress` dan `note` opsional. `done` → progress 100, `completed_at` terisi, penugasan aktif ditutup.
+`progress`, `teamId`, `assignee`, `supporters`, `priority`, `note`, dan `instruction` opsional.
+Saat disposisi dikirim bersama `teamId`/`assignee`/`supporters`/`priority`, server otomatis menyimpan tim penanganan, PIC + teknisi pendukung ke `ticket_assignments`, prioritas + SLA baru, dan instruksi ke `ticket_comments`.
+`done` → progress 100, `completed_at` terisi, penugasan aktif ditutup.
 `rejected` → penugasan aktif dilepas. Dari `done` ke status lain = **buka kembali** (penugasan terakhir diaktifkan lagi).
 Status yang sama tanpa perubahan lain → `409`.
 

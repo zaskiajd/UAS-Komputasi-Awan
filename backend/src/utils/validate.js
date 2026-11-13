@@ -173,6 +173,50 @@ function validateStatusUpdate(body = {}) {
     else if (note) value.note = note;
   }
 
+  if (body.teamId !== undefined && body.teamId !== null && body.teamId !== '') {
+    const teamId = str(body.teamId);
+    if (!teamId || !/^[a-z0-9_-]{1,40}$/.test(teamId)) {
+      errors.teamId = 'ID tim tidak valid.';
+    } else value.teamId = teamId;
+  }
+
+  if (body.assignee !== undefined && body.assignee !== null && body.assignee !== '') {
+    const assignee = str(body.assignee);
+    if (!assignee || !/^[a-z0-9_-]{1,40}$/.test(assignee)) {
+      errors.assignee = 'ID teknisi PIC tidak valid.';
+    } else value.assignee = assignee;
+  }
+
+  if (body.supporters !== undefined && body.supporters !== null) {
+    if (!Array.isArray(body.supporters) || body.supporters.length > 20) {
+      errors.supporters = 'Daftar teknisi pendukung harus berupa array (maks. 20).';
+    } else {
+      const cleaned = [];
+      for (const item of body.supporters) {
+        const techId = str(item);
+        if (!techId || !/^[a-z0-9_-]{1,40}$/.test(techId)) {
+          errors.supporters = 'ID teknisi pendukung tidak valid.';
+          break;
+        }
+        if (!cleaned.includes(techId)) cleaned.push(techId);
+      }
+      if (!errors.supporters) value.supporters = cleaned;
+    }
+  }
+
+  if (body.priority !== undefined && body.priority !== null && body.priority !== '') {
+    if (!PRIORITIES.includes(body.priority)) {
+      errors.priority = `Prioritas harus salah satu dari: ${PRIORITIES.join(', ')}.`;
+    } else value.priority = body.priority;
+  }
+
+  if (body.instruction !== undefined && body.instruction !== null) {
+    const instruction = str(body.instruction);
+    if (instruction === undefined || instruction.length > 1000) {
+      errors.instruction = 'Instruksi maksimal 1000 karakter.';
+    } else if (instruction) value.instruction = instruction;
+  }
+
   return { value, errors };
 }
 

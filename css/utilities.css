@@ -33,6 +33,10 @@
   background-color: #ef4444;
 }
 
+.bg-error {
+  background-color: #ba1a1a;
+}
+
 .text-right {
   text-align: right;
 }
