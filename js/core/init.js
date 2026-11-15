@@ -6,7 +6,6 @@ import { resetReportSequence, state } from "./state.js";
 import { setView } from "./router.js";
 import { seedReports } from "../data/reports.js";
 import { seedTechnicians } from "../data/technicians.js";
-import { seedAssets } from "../data/assets.js";
 import { bindEvents } from "../events.js";
 import { setAuthRole, setAuthTab, initGoogleAuth } from "../views/auth.js";
 import { fillDispatchOptions } from "../features/dispatch.js";
@@ -18,6 +17,7 @@ import { renderPublicView } from "../views/public.js";
 import { clearToken, fetchMe, getToken, setUnauthorizedHandler } from "./api.js";
 import { loginAs, logout } from "../features/session.js";
 import { loadTicketsSafely } from "../features/tickets-api.js";
+import { loadAssetsSafely } from "../features/assets-api.js";
 
 /** Memulihkan sesi dari token tersimpan; token tidak valid dibuang secara aman. */
 async function restoreSession() {
@@ -37,6 +37,10 @@ async function restoreSession() {
         : null;
     await loadTicketsSafely();
     renderReports();
+    if (user.role === "admin") {
+      await loadAssetsSafely();
+      renderInventory();
+    }
     loginAs(user.role, { name: user.name });
   } catch (error) {
     clearToken();
@@ -55,7 +59,7 @@ export function init() {
 
   state.reports = seedReports();
   state.technicians = seedTechnicians();
-  state.assets = seedAssets();
+  state.assets = []; // diisi dari API setelah admin login
   resetReportSequence();
 
   setUnauthorizedHandler((message) => {

@@ -574,9 +574,10 @@ Keputusan:
 
 ### 6.4 Alur CRUD inventaris aset (admin)
 
-Ruang lingkup revisi ini hanya database + dokumentasi. Backend saat ini baru
-memiliki endpoint auth dan tiket; **endpoint aset belum ada**. CRUD kategori dan
-lokasi juga sengaja dilewati; `categories`/`locations` hanya data referensi.
+Ruang lingkup revisi ini awalnya hanya database + dokumentasi. Endpoint aset
+sekarang sudah tersedia di backend (`/api/assets`, khusus admin) dan memakai
+kontrak pada bagian ini. CRUD kategori dan lokasi juga sengaja dilewati;
+`categories`/`locations` hanya data referensi.
 
 #### 6.4.1 Pembuatan ID aset
 
@@ -1205,9 +1206,8 @@ Diuji ulang pada PostgreSQL 18.6 (target tetap 14+):
     bagian dari tugas database ini.
 11. `rejected` tersedia di CHECK tetapi belum dipakai UI.
 12. Password demo `CampusCare#2026` **wajib diganti** sebelum rilis.
-13. Backend saat ini hanya memiliki endpoint auth dan tiket; **endpoint aset
-    belum ada**. Perubahan skema ini menyiapkan kontraknya agar endpoint aset
-    dapat ditambahkan tanpa migrasi baru.
+13. Endpoint aset sekarang tersedia di backend (`/api/assets`, khusus admin).
+    Perubahan skema ini menyiapkan kontraknya tanpa migrasi baru.
 14. `db/reset.sh` bersifat destruktif (drop schema `public`) dan hanya untuk
     database development/demo.
 15. Aset diarsipkan, bukan dihapus. Hapus permanen hanya untuk aset terarsip

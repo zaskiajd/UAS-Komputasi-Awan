@@ -10,6 +10,7 @@ import { setStudentTab } from "../views/student.js";
 import { setAdminTab } from "../views/admin.js";
 import { setAuthTab, clearFieldError, clearLoginError } from "../views/auth.js";
 import { renderReports } from "./reports.js";
+import { renderInventory } from "./inventory.js";
 import { closeDrawers } from "../ui/sidebar.js";
 import { clearToken } from "../core/api.js";
 import { seedReports } from "../data/reports.js";
@@ -61,12 +62,14 @@ export function logout(options = {}) {
   state.student = null;
   state.role = "public";
   state.reports = seedReports(); // buang data tiket milik sesi sebelumnya
+  state.assets = []; // data inventaris hanya dimuat untuk admin yang login
   setView("auth");
   setAuthTab("login");
   state.studentFilter = "all";
   state.adminFilter = "all";
   state.dispatchFilter = "all";
   state.inventoryFilter = "all";
+  state.assetStatusFilter = "active";
   state.studentQuery = "";
   state.adminQuery = "";
   state.dispatchQuery = "";
@@ -84,7 +87,10 @@ export function logout(options = {}) {
   if (adminSearch) adminSearch.value = "";
   if (dispatchSearch) dispatchSearch.value = "";
   if (inventorySearch) inventorySearch.value = "";
+  const assetStatusFilter = byId("asset-status-filter");
+  if (assetStatusFilter) assetStatusFilter.value = "active";
   renderReports();
+  renderInventory();
 
   const loginEmail = byId("login-email");
   if (loginEmail) loginEmail.value = "";

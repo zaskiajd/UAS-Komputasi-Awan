@@ -57,7 +57,7 @@ js/
     reports.js              # Metadata kategori/status/prioritas & seed tiket
     assignments.js          # Helper PIC, pendukung, dan load balancing
     technicians.js          # 4 tim & 15 personil teknisi
-    assets.js               # Seed aset, kondisi, dan riwayat perawatan
+    assets.js               # Metadata kondisi aset untuk tampilan
   ui/
     toast.js, modal.js, menu.js, sidebar.js
   views/
@@ -72,6 +72,7 @@ js/
     ticket-actions.js       # Detail tiket admin & siklus status
     technicians.js          # Kartu tim, detail teknisi, status siaga
     inventory.js            # Tabel aset, filter, detail, servis
+    assets-api.js           # Sinkronisasi inventaris aset dengan backend
     export.js               # Ekspor CSV per tab (tiket, antrean, teknisi, aset, SLA, kerusakan)
 assets/fonts/               # Font WOFF2 lokal (teks + Material Symbols)
 tailwind.config.js          # Tema & daftar berkas yang dipindai Tailwind
@@ -238,7 +239,7 @@ Registrasi baru juga tersedia (minimal 8 karakter, konfirmasi sandi harus sama, 
 - **Manajemen teknisi** — 4 tim, 15 personil awal, tabel personil dengan pencarian/filter tim & status, jumlah tiket aktif/selesai, keahlian, detail keahlian/kontak/tiket, serta toggle status bertugas/standby yang dijaga selama teknisi masih memegang tiket aktif.
 - **CRUD teknisi** — admin dapat menambah personil baru, mengedit nama/tim/peran/telepon/keahlian/status, serta menghapus atau mengarsipkan teknisi. Teknisi yang sudah memiliki riwayat tiket diarsipkan agar histori tetap utuh, dan dapat dipulihkan lewat filter status "Diarsipkan". Koordinator otomatis diganti bila pindah tim, turun peran, atau dihapus, sehingga setiap tim tetap memiliki satu koordinator.
 - **Beban kerja personil** — analitik per teknisi (PIC + pendukung) dan pemilihan PIC otomatis berdasarkan beban tiket paling ringan saat disposisi.
-- **Inventaris** - 7 aset seed, kondisi berbobot, pencarian, filter kondisi, filter status (Aktif/Diarsipkan/Semua), tambah & edit aset, detail riwayat perawatan, tiket terkait, aksi "Tandai Selesai Servis", arsip (soft delete), pemulihan aset, dan hapus permanen ter-guard untuk aset terarsip tanpa riwayat servis/tiket aktif.
+- **Inventaris** - data aset tersimpan di PostgreSQL lewat API `/api/assets` (khusus admin), kondisi berbobot, pencarian, filter kondisi, filter status (Aktif/Diarsipkan/Semua), tambah & edit aset dengan kode otomatis, detail riwayat perawatan, tiket terkait, aksi "Tandai Selesai Servis", arsip (soft delete), pemulihan aset, dan hapus permanen ter-guard untuk aset terarsip tanpa riwayat servis/tiket terkait.
 - **Laporan & SLA** — rata-rata penyelesaian, persentase SLA dihitung dari tiket selesai tepat waktu, tiket selesai, backlog, tren 6 bulan, dan capaian per kategori.
 - **Rekapitulasi Kerusakan** — ringkasan tiket aktif, prioritas tinggi aktif, dan aset yang perlu perhatian; rekap per kategori; serta daftar tiket kerusakan dengan status SLA. Setiap baris terhubung ke detail tiket atau detail aset.
 - **Ekspor CSV per tab** — satu tombol ekspor di tiap tab: Dashboard (rekap tiket), Disposisi (antrean), Teknisi (data personil), Inventaris (aset), Laporan SLA (ringkasan + tren + kategori + rincian status SLA), dan Rekapitulasi Kerusakan (ringkasan + aset terdampak + tiket). Semua ekspor mengikuti filter/pencarian aktif, memakai `Blob` + `URL.createObjectURL`, dan kompatibel dibuka di Excel tanpa dependency tambahan. Tiap file diawali blok identitas (jenis laporan, waktu ekspor, filter, pencarian, jumlah baris) sehingga isinya mudah dibedakan.
@@ -261,7 +262,7 @@ Registrasi baru juga tersedia (minimal 8 karakter, konfirmasi sandi harus sama, 
 - Semua interaksi memakai **event delegation** (`data-action`, `data-student-tab`, `data-admin-tab`, `data-student-filter`, `data-admin-filter`, `data-dispatch-filter`, `data-inventory-filter`).
 - Partial boleh memuat partial lain (mis. modal di dalam `views/student.html`); pemuat partial menyelesaikannya secara rekursif.
 - **Tiket, status, dan disposisi tersimpan di PostgreSQL** lewat REST API (`js/core/api.js`, `js/features/tickets-api.js`). Disposisi admin (tim, PIC, teknisi pendukung, prioritas, instruksi) dikirim lewat `PATCH /api/tickets/:id/status` sehingga tetap ada setelah halaman di-refresh.
-- Data teknisi dan aset masih berasal dari seed di frontend (`js/data/technicians.js`, `js/data/assets.js`); endpoint khususnya tidak disediakan pada versi ini.
+- **Aset/inventaris tersimpan di PostgreSQL** dan disinkronkan lewat endpoint khusus admin `/api/assets` (`js/features/assets-api.js`). Data hanya dimuat setelah admin login; mahasiswa tidak memiliki akses. Data teknisi masih berasal dari seed di frontend (`js/data/technicians.js`).
 - Seed tiket berjumlah 10 (`backend/db/seed.sql`). Perubahan seed harus diterapkan ulang dengan `npm run db:reset`.
 - Semua ID elemen unik dan setiap referensi `byId(...)` di modul JS sudah diverifikasi ada di partial terkait.
 

@@ -27,6 +27,7 @@ import { setAdminTab } from "./views/admin.js";
 import { handleAuthSuccess, logout } from "./features/session.js";
 import { ApiError, loginRequest, registerRequest } from "./core/api.js";
 import { loadTicketsSafely } from "./features/tickets-api.js";
+import { loadAssetsSafely } from "./features/assets-api.js";
 import {
   handleDispatchSubmit,
   openDispatch,
@@ -537,6 +538,10 @@ export function bindEvents() {
   setOnAuthSuccess(async (user) => {
     await loadTicketsSafely();
     renderReports();
+    if (user.role === "admin") {
+      await loadAssetsSafely();
+      renderInventory();
+    }
     handleAuthSuccess(user);
   });
 
@@ -565,6 +570,10 @@ export function bindEvents() {
         if (passEl) passEl.value = "";
         await loadTicketsSafely();
         renderReports();
+        if (user.role === "admin") {
+          await loadAssetsSafely();
+          renderInventory();
+        }
         handleAuthSuccess(user);
       } catch (error) {
         const message =

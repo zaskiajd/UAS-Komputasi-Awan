@@ -3,7 +3,8 @@
    ========================================================================== */
 
 export const $ = (selector, root = document) => root.querySelector(selector);
-export const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+export const $$ = (selector, root = document) =>
+  Array.from(root.querySelectorAll(selector));
 export const byId = (id) => document.getElementById(id);
 
 export const escapeHtml = (value) =>
@@ -37,6 +38,7 @@ const MONTHS_SHORT = [
 ];
 
 const toDate = (value) => {
+  if (value === null || value === undefined || value === "") return null;
   if (value instanceof Date) return value;
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
@@ -79,7 +81,9 @@ export const todayLabel = (value = new Date()) => {
   const date = toDate(value) || new Date();
   const startOfDay = (input) =>
     new Date(input.getFullYear(), input.getMonth(), input.getDate()).getTime();
-  const diffDays = Math.round((startOfDay(new Date()) - startOfDay(date)) / 86400000);
+  const diffDays = Math.round(
+    (startOfDay(new Date()) - startOfDay(date)) / 86400000,
+  );
   const time = `${pad2(date.getHours())}:${pad2(date.getMinutes())} WIB`;
   if (diffDays === 0) return `Hari ini, ${time}`;
   if (diffDays === 1) return `Kemarin, ${time}`;

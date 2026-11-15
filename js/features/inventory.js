@@ -4,17 +4,108 @@
 
 import { byId, escapeHtml, formatDate } from "../core/dom.js";
 import { state } from "../core/state.js";
-import { ASSET_CONDITION, assetCondition, nextAssetId } from "../data/assets.js";
+import { ASSET_CONDITION, assetCondition } from "../data/assets.js";
 import { CATEGORY_META } from "../data/reports.js";
 import { TEAMS, TEAM_BY_ID } from "../data/technicians.js";
 import { closeModal, openModal } from "../ui/modal.js";
 import { showToast } from "../ui/toast.js";
 import { renderAnalytics } from "./analytics.js";
-
-const ADMIN_NAME = "Ir. Hendrawan";
+import {
+  archiveAssetRequest,
+  createAssetRequest,
+  deleteAssetRequest,
+  loadAssetsSafely,
+  restoreAssetRequest,
+  serviceAssetRequest,
+  updateAssetRequest,
+} from "./assets-api.js";
 
 /** Aksi arsip/hapus yang menunggu konfirmasi pada modal. */
 let pendingAssetAction = null;
+
+const ASSET_FIELD_IDS = {
+  name: "asset-form-name",
+  category: "asset-form-cat",
+  location: "asset-form-location",
+  zone: "asset-form-zone",
+  teamId: "asset-form-team",
+  condition: "asset-form-condition",
+  note: "asset-form-note",
+};
+
+/** Ganti aset di state dengan versi terbaru dari API (atau tambahkan bila baru). */
+function replaceAsset(updated) {
+  const index = state.assets.findIndex((asset) => asset.id === updated.id);
+  if (index >= 0) state.assets[index] = updated;
+  else state.assets.push(updated);
+}
+
+function removeAsset(assetId) {
+  state.assets = state.assets.filter((asset) => asset.id !== assetId);
+}
+
+/** Kumpulan tombol aksi untuk satu aset (bisa ada di tabel & modal detail). */
+function assetActionButtons(action, assetId) {
+  return Array.from(document.querySelectorAll(`[data-action="${action}"]`)).filter(
+    (button) => button.dataset.asset === assetId
+  );
+}
+
+function setAssetActionBusy(action, assetId, busy) {
+  assetActionButtons(action, assetId).forEach((button) => {
+    button.disabled = busy;
+    button.classList.toggle("opacity-60", busy);
+    button.classList.toggle("pointer-events-none", busy);
+  });
+}
+
+const isActionBusy = (action, assetId) =>
+  assetActionButtons(action, assetId).some((button) => button.disabled);
+
+/** Pesan error server: detail validasi per field lebih informatif daripada pesan umum. */
+function assetErrorMessage(error, fallback) {
+  if (error?.errors) {
+    const message = Object.values(error.errors).find(Boolean);
+    if (message) return message;
+  }
+  return error?.message || fallback;
+}
+
+function clearAssetFieldErrors() {
+  Object.values(ASSET_FIELD_IDS).forEach((id) => byId(id)?.classList.remove("input-invalid"));
+}
+
+/** Tandai field yang ditolak server dan kembalikan pesan pertama. */
+function applyAssetFieldErrors(errors) {
+  if (!errors) return "";
+  let firstInput = null;
+  let firstMessage = "";
+  Object.entries(errors).forEach(([field, message]) => {
+    const input = byId(ASSET_FIELD_IDS[field]);
+    if (!input || !message) return;
+    input.classList.add("input-invalid");
+    if (!firstInput) {
+      firstInput = input;
+      firstMessage = message;
+    }
+  });
+  if (firstInput) firstInput.focus();
+  return firstMessage || Object.values(errors).find(Boolean) || "";
+}
+
+/** Setelah 404/409, salinan lokal sudah tidak akurat: muat ulang dari server. */
+async function reloadAssetsAfter(error) {
+  if (error?.status === 404 || error?.status === 409) {
+    await loadAssetsSafely();
+    renderInventory();
+  }
+}
+
+function closeAssetDetailFor(assetId) {
+  const detail = byId("modal-asset-detail");
+  const body = byId("asset-detail-body");
+  if (detail && !detail.hidden && body?.dataset.asset === assetId) closeModal(detail);
+}
 
 function matchesAssetQuery(asset, query) {
   if (!query) return true;
@@ -124,9 +215,12 @@ function relatedTickets(asset) {
     .slice(0, 3);
 }
 
-/** Hapus permanen hanya untuk aset terarsip tanpa riwayat servis & tiket aktif. */
+/**
+ * Hapus permanen hanya untuk aset terarsip tanpa riwayat servis.
+ * Relasi tiket diperiksa otoritatif oleh server (tickets.asset_id).
+ */
 function canDeleteAssetPermanently(asset) {
-  return Boolean(asset.archived) && !asset.lastServiceAt && relatedTickets(asset).length === 0;
+  return Boolean(asset.archived) && !asset.lastServiceAt;
 }
 
 function assetDetailMarkup(asset) {
@@ -142,7 +236,7 @@ function assetDetailMarkup(asset) {
         ${
           canDeleteAssetPermanently(asset)
             ? `<button type="button" class="h-10 px-4 rounded-full bg-[#b91c1c] text-white text-xs font-bold hover:bg-[#991b1b] transition" data-action="asset-delete" data-asset="${escapeHtml(asset.id)}">Hapus Permanen</button>`
-            : `<span class="max-w-[240px] text-[10px] text-secondary leading-relaxed">Hapus permanen terkunci: aset memiliki riwayat servis atau tiket aktif.</span>`
+            : `<span class="max-w-[240px] text-[10px] text-secondary leading-relaxed">Hapus permanen terkunci: aset memiliki riwayat servis.</span>`
         }
       </div>`
     : `
@@ -342,8 +436,11 @@ export function openAssetForm(assetId) {
   openModal(modal);
 }
 
-export function handleAssetFormSubmit(event) {
+export async function handleAssetFormSubmit(event) {
   event.preventDefault();
+
+  const submit = byId("asset-form-submit");
+  if (submit?.disabled) return;
 
   const id = byId("asset-form-id").value.trim();
   const name = byId("asset-form-name").value.trim();
@@ -354,6 +451,8 @@ export function handleAssetFormSubmit(event) {
   const condition = byId("asset-form-condition").value;
   const note = byId("asset-form-note").value.trim();
   const team = TEAM_BY_ID[teamId];
+
+  clearAssetFieldErrors();
 
   if (!name) {
     showToast("Nama Aset Wajib Diisi", "Masukkan nama fasilitas terlebih dahulu.", "error");
@@ -397,95 +496,66 @@ export function handleAssetFormSubmit(event) {
     return;
   }
 
-  const now = new Date().toISOString();
-  const asset =
-    existing ||
-    ({
-      id: nextAssetId(cat, state.assets),
-      archived: false,
-      lastServiceAt: null,
-      history: [],
-    });
-
-  const previous = existing
-    ? {
-        name: existing.name,
-        cat: existing.cat,
-        location: existing.location,
-        zone: existing.zone,
-        teamId: existing.teamId,
-        condition: existing.condition,
-      }
-    : null;
-
-  asset.name = name;
-  asset.cat = cat;
-  asset.location = location;
-  asset.zone = zone;
-  asset.teamId = team.id;
-  asset.condition = condition;
-  asset.note = note || "Tidak ada catatan.";
-  asset.history = asset.history || [];
-
-  if (!existing) {
-    asset.history.push({
-      at: now,
-      label: "Aset terdaftar",
-      actor: ADMIN_NAME,
-      note: "Aset baru ditambahkan ke inventaris Sarpras.",
-    });
-    state.assets.push(asset);
-
-    // Pastikan aset baru langsung terlihat pada daftar aktif.
-    state.assetStatusFilter = "active";
-    const statusFilter = byId("asset-status-filter");
-    if (statusFilter) statusFilter.value = "active";
-  } else {
-    const changes = [];
-    if (previous.name !== name) changes.push(`nama: ${previous.name} → ${name}`);
-    if (previous.cat !== cat) {
-      changes.push(
-        `kategori: ${CATEGORY_META[previous.cat]?.label || previous.cat} → ${CATEGORY_META[cat].label}`
-      );
-    }
-    if (previous.location !== location) {
-      changes.push(`lokasi: ${previous.location} → ${location}`);
-    }
-    if (previous.zone !== zone) changes.push(`zona: ${previous.zone} → ${zone}`);
-    if (previous.teamId !== team.id) {
-      changes.push(
-        `tim: ${TEAM_BY_ID[previous.teamId]?.name || previous.teamId} → ${team.name}`
-      );
-    }
-    if (previous.condition !== condition) {
-      changes.push(
-        `kondisi: ${assetCondition(previous.condition).label} → ${assetCondition(condition).label}`
-      );
-    }
-
-    asset.history.push({
-      at: now,
-      label: "Data aset diperbarui",
-      actor: ADMIN_NAME,
-      note: changes.length
-        ? changes.join("; ")
-        : "Detail aset diperbarui tanpa perubahan kondisi.",
-    });
+  const idleText = existing ? "Simpan Perubahan" : "Tambah Aset";
+  if (submit) {
+    submit.disabled = true;
+    submit.textContent = existing ? "Menyimpan..." : "Menambahkan...";
   }
 
-  closeModal(byId("modal-asset-form"));
-  renderInventory();
+  const payload = {
+    name,
+    category: cat,
+    location,
+    zone,
+    teamId: team.id,
+    condition,
+    note,
+  };
 
-  showToast(
-    existing ? "Aset Diperbarui" : "Aset Ditambahkan",
-    existing
-      ? `${asset.id} berhasil diperbarui.`
-      : `${asset.id} ditambahkan ke inventaris aktif.`,
-    "success"
-  );
+  try {
+    const saved = existing
+      ? await updateAssetRequest(existing, payload)
+      : await createAssetRequest(payload);
+
+    replaceAsset(saved);
+
+    if (!existing) {
+      // Pastikan aset baru langsung terlihat pada daftar aktif.
+      state.assetStatusFilter = "active";
+      const statusFilter = byId("asset-status-filter");
+      if (statusFilter) statusFilter.value = "active";
+    }
+
+    closeModal(byId("modal-asset-form"));
+    renderInventory();
+
+    showToast(
+      existing ? "Aset Diperbarui" : "Aset Ditambahkan",
+      existing
+        ? `${saved.id} berhasil diperbarui.`
+        : `${saved.id} ditambahkan ke inventaris aktif.`,
+      "success"
+    );
+  } catch (error) {
+    const fieldMessage = applyAssetFieldErrors(error?.errors);
+    showToast(
+      existing ? "Gagal Menyimpan Aset" : "Gagal Menambahkan Aset",
+      fieldMessage || assetErrorMessage(error, "Data aset tidak dapat disimpan."),
+      "error"
+    );
+    await reloadAssetsAfter(error);
+    if (error?.status === 404 || error?.status === 409) {
+      closeModal(byId("modal-asset-form"));
+    }
+  } finally {
+    if (submit) {
+      submit.disabled = false;
+      submit.textContent = idleText;
+    }
+  }
 }
 
-export function markAssetServiced(assetId) {
+export async function markAssetServiced(assetId) {
   const asset = state.assets.find((item) => item.id === assetId);
   if (!asset) return;
 
@@ -497,27 +567,31 @@ export function markAssetServiced(assetId) {
     );
     return;
   }
+  if (isActionBusy("asset-service", asset.id)) return;
 
-  const now = new Date().toISOString();
-  asset.condition = "good";
-  asset.lastServiceAt = now;
-  asset.note = "Servis selesai dan aset dinyatakan kembali dalam kondisi baik.";
-  asset.history = asset.history || [];
-  asset.history.push({
-    at: now,
-    label: "Servis selesai",
-    actor: ADMIN_NAME,
-    note: "Kondisi aset divalidasi dan dikembalikan ke status baik.",
-  });
+  setAssetActionBusy("asset-service", asset.id, true);
+  try {
+    const updated = await serviceAssetRequest(asset);
+    replaceAsset(updated);
 
-  renderInventory();
+    renderInventory();
 
-  const body = byId("asset-detail-body");
-  if (body && body.dataset.asset === asset.id) {
-    body.innerHTML = assetDetailMarkup(asset);
+    const body = byId("asset-detail-body");
+    if (body && body.dataset.asset === updated.id) {
+      body.innerHTML = assetDetailMarkup(updated);
+    }
+
+    showToast("Aset Diperbarui", `${updated.id} ditandai selesai servis.`, "success");
+  } catch (error) {
+    showToast(
+      "Gagal Menandai Servis",
+      assetErrorMessage(error, "Status servis aset tidak dapat diperbarui."),
+      "error"
+    );
+    await reloadAssetsAfter(error);
+  } finally {
+    setAssetActionBusy("asset-service", asset.id, false);
   }
-
-  showToast("Aset Diperbarui", `${asset.id} ditandai selesai servis.`, "success");
 }
 
 function openAssetConfirm(mode, asset) {
@@ -559,7 +633,7 @@ export function requestAssetDelete(assetId) {
   if (!canDeleteAssetPermanently(asset)) {
     showToast(
       "Hapus Permanen Terkunci",
-      "Aset memiliki riwayat servis atau tiket aktif. Gunakan arsip agar histori tetap utuh.",
+      "Aset memiliki riwayat servis. Gunakan arsip agar histori tetap utuh.",
       "error"
     );
     return;
@@ -568,92 +642,111 @@ export function requestAssetDelete(assetId) {
   openAssetConfirm("delete", asset);
 }
 
-export function confirmAssetAction() {
+export async function confirmAssetAction() {
   if (!pendingAssetAction) return;
 
   const { mode, id } = pendingAssetAction;
-  pendingAssetAction = null;
-
   const asset = state.assets.find((item) => item.id === id);
   const confirmModal = byId("modal-asset-confirm");
-  if (confirmModal) closeModal(confirmModal);
-  if (!asset) return;
+  const submit = byId("asset-confirm-submit");
 
-  const now = new Date().toISOString();
-  const detail = byId("modal-asset-detail");
-
-  if (mode === "archive") {
-    asset.archived = true;
-    asset.archivedAt = now;
-    asset.history = asset.history || [];
-    asset.history.push({
-      at: now,
-      label: "Aset diarsipkan",
-      actor: ADMIN_NAME,
-      note: "Aset dikeluarkan dari daftar aktif tanpa menghapus riwayat.",
-    });
-
-    if (detail && !detail.hidden) closeModal(detail);
-    renderInventory();
-    showToast(
-      "Aset Diarsipkan",
-      `${asset.id} dipindahkan ke arsip dan dapat dipulihkan.`,
-      "success"
-    );
+  if (!asset) {
+    pendingAssetAction = null;
+    if (confirmModal) closeModal(confirmModal);
     return;
   }
+  if (submit?.disabled) return;
 
-  if (mode === "delete") {
-    if (!canDeleteAssetPermanently(asset)) {
+  const idleText = mode === "delete" ? "Hapus Permanen" : "Arsipkan Aset";
+  if (submit) {
+    submit.disabled = true;
+    submit.textContent = "Memproses...";
+  }
+
+  try {
+    if (mode === "archive") {
+      const updated = await archiveAssetRequest(asset);
+      replaceAsset(updated);
+      pendingAssetAction = null;
+      if (confirmModal) closeModal(confirmModal);
+      closeAssetDetailFor(asset.id);
+      renderInventory();
       showToast(
-        "Hapus Permanen Terkunci",
-        "Aset memiliki riwayat servis atau tiket aktif.",
-        "error"
+        "Aset Diarsipkan",
+        `${updated.id} dipindahkan ke arsip dan dapat dipulihkan.`,
+        "success"
       );
       return;
     }
 
-    state.assets = state.assets.filter((item) => item.id !== asset.id);
-    if (detail && !detail.hidden) closeModal(detail);
-    renderInventory();
+    if (mode === "delete") {
+      await deleteAssetRequest(asset);
+      removeAsset(asset.id);
+      pendingAssetAction = null;
+      if (confirmModal) closeModal(confirmModal);
+      closeAssetDetailFor(asset.id);
+      renderInventory();
+      showToast(
+        "Aset Dihapus Permanen",
+        `${asset.id} telah dihapus dari inventaris.`,
+        "success"
+      );
+    }
+  } catch (error) {
     showToast(
-      "Aset Dihapus Permanen",
-      `${asset.id} telah dihapus dari inventaris.`,
-      "success"
+      mode === "delete" ? "Hapus Permanen Gagal" : "Gagal Mengarsipkan",
+      assetErrorMessage(error, "Aksi aset tidak dapat diselesaikan."),
+      "error"
     );
+    await reloadAssetsAfter(error);
+    if (error?.status === 404 || error?.status === 409) {
+      pendingAssetAction = null;
+      if (confirmModal) closeModal(confirmModal);
+      closeAssetDetailFor(asset.id);
+    }
+  } finally {
+    if (submit) {
+      submit.disabled = false;
+      submit.textContent = idleText;
+    }
   }
 }
 
-export function restoreAsset(assetId) {
+export async function restoreAsset(assetId) {
   const asset = state.assets.find((item) => item.id === assetId);
   if (!asset || !asset.archived) return;
+  if (isActionBusy("asset-restore", asset.id)) return;
 
-  const now = new Date().toISOString();
-  asset.archived = false;
-  delete asset.archivedAt;
-  asset.history = asset.history || [];
-  asset.history.push({
-    at: now,
-    label: "Aset dipulihkan",
-    actor: ADMIN_NAME,
-    note: "Aset dikembalikan ke daftar inventaris aktif.",
-  });
+  setAssetActionBusy("asset-restore", asset.id, true);
+  try {
+    const updated = await restoreAssetRequest(asset);
+    replaceAsset(updated);
 
-  // Kembali ke tampilan aktif agar aset yang dipulihkan langsung terlihat.
-  state.assetStatusFilter = "active";
-  const statusFilter = byId("asset-status-filter");
-  if (statusFilter) statusFilter.value = "active";
+    // Kembali ke tampilan aktif agar aset yang dipulihkan langsung terlihat.
+    state.assetStatusFilter = "active";
+    const statusFilter = byId("asset-status-filter");
+    if (statusFilter) statusFilter.value = "active";
 
-  renderInventory();
+    renderInventory();
 
-  const body = byId("asset-detail-body");
-  if (body && body.dataset.asset === asset.id) {
-    body.innerHTML = assetDetailMarkup(asset);
+    const body = byId("asset-detail-body");
+    if (body && body.dataset.asset === updated.id) {
+      body.innerHTML = assetDetailMarkup(updated);
+    }
+
+    showToast(
+      "Aset Dipulihkan",
+      `${updated.id} kembali ke daftar inventaris aktif.`,
+      "success"
+    );
+  } catch (error) {
+    showToast(
+      "Gagal Memulihkan Aset",
+      assetErrorMessage(error, "Aset tidak dapat dipulihkan."),
+      "error"
+    );
+    await reloadAssetsAfter(error);
+  } finally {
+    setAssetActionBusy("asset-restore", asset.id, false);
   }
-
-  showToast(
-    "Aset Dipulihkan",
-    `${asset.id} kembali ke daftar inventaris aktif.`,
-    "success"
-  );
 }
