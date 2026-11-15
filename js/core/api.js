@@ -12,7 +12,7 @@ export const API_BASE = (
   window.CAMPUSCARE_API ||
   window.CC_API_URL ||
   CONFIG.API_URL ||
-  "http://localhost:3000/api"
+  "/api" // cadangan: same-origin lewat Nginx (logika lokal ada di config.js)
 ).replace(/\/+$/, "");
 
 const TOKEN_KEY = "cc-token";

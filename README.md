@@ -155,6 +155,14 @@ Dokumentasi lengkap: [`docs/API.md`](docs/API.md) (endpoint) dan [`docs/db-contr
 
 ---
 
+## Deployment (Docker + Server)
+
+Untuk memasang CampusCare (frontend Nginx + backend Express) ke server produksi menggunakan Docker dan Cloudflare Tunnel dengan database PostgreSQL terpisah, ikuti panduan langkah demi langkah di [`docs/DEPLOY.md`](docs/DEPLOY.md).
+
+Template konfigurasi produksi tersedia di `.env.production.example`, dan skrip bantu deploy/database berada di `deploy/scripts/`.
+
+---
+
 ## Login dengan Google (OAuth 2.0)
 
 - Buka frontend lewat **`http://localhost:8000`**. Google hanya mengizinkan alamat yang terdaftar di *Authorized JavaScript origins*.

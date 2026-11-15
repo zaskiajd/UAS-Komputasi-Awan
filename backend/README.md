@@ -79,10 +79,13 @@ validasi input, aturan status (edit/hapus), soft delete, ubah status oleh admin 
    psql "$DATABASE_URL" -f db/migrations/002_google_auth.sql
    ```
 
-## Deploy (catatan untuk anggota 5)
+## Deploy (Docker / Server)
 
-- Start command: `npm start` — Root/working directory: `backend`.
-- Set semua env var di atas di dashboard PaaS; `DATABASE_URL` dari database cloud, `DB_SSL=true` bila diwajibkan.
-- Jalankan `db/campuscare_full.sql` ke database cloud sekali (bukan `db:reset` bila sudah ada data nyata).
+Panduan lengkap pemasangan aplikasi menggunakan Docker Compose (`docker-compose.yml`), Nginx reverse proxy, dan database PostgreSQL terpisah tersedia di [`../docs/DEPLOY.md`](../docs/DEPLOY.md).
+
+Ringkasan cepat untuk server:
+- Gunakan template `../.env.production.example` di root repo sebagai `.env` (bukan `backend/.env.example`, karena `backend/.env.example` hanya untuk pengembangan lokal).
+- `backend/Dockerfile` membangun image production (`NODE_ENV=production`, port `3000`, user non-root `node`).
+- Impor database awal (`db/campuscare_full.sql`) cukup dijalankan **sekali** lewat `../deploy/scripts/import-db.sh`, lalu segera ganti sandi akun demo dengan `../deploy/scripts/set-demo-passwords.sh`.
 - Health check: `GET /api/health` (mengecek koneksi database).
-- Isi `CORS_ORIGIN` dengan URL frontend publik, mis. `https://campuscare.example.com`.
+- Isi `CORS_ORIGIN` dengan URL publik frontend, mis. `https://campuscare.example.com`.
