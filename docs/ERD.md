@@ -66,6 +66,8 @@ erDiagram
         text team_id FK
         timestamptz last_service_at
         text note
+        boolean archived "arsip; default false"
+        timestamptz archived_at "nullable; wajib saat archived = true"
         timestamptz created_at
     }
 
@@ -151,7 +153,7 @@ erDiagram
     locations ||--o{ assets : "location_id"
     locations o|--o{ tickets : "location_id"
 
-    assets o|--o{ tickets : "asset_id"
+    assets o|--o{ tickets : "asset_id (RESTRICT)"
     assets ||--o{ asset_history : "asset_id"
 
     tickets ||--o{ ticket_assignments : "ticket_id"
@@ -195,8 +197,20 @@ level-gedung.
 
 ### assets → asset_history
 Riwayat perawatan aset. `ON DELETE CASCADE`: jika aset benar-benar dihapus,
-riwayatnya ikut terhapus. Tiket yang menunjuk aset memakai `ON DELETE SET NULL`
-agar tiket tidak hilang saat aset dihapus.
+riwayatnya ikut terhapus.
+
+### Aset dan arsip
+Aset tidak dihapus saat "dihapus" dari daftar aktif. Frontend memakai
+`archived = true` dan menyimpan waktu arsip di `archived_at`. Constraint
+`chk_assets_archived_at` mewajibkan `archived_at` terisi **hanya** ketika
+`archived = true`. Aset terarsip dapat dipulihkan (`archived = false`,
+`archived_at = NULL`).
+
+Tiket yang masih menunjuk aset memakai `ON DELETE RESTRICT` pada
+`tickets.asset_id`: aset yang punya tiket tidak boleh dihapus permanen. Hapus
+permanen hanya untuk aset terarsip yang tidak punya tiket dan belum pernah
+diservis (`last_service_at IS NULL`); `asset_history` milik aset tersebut ikut
+terhapus lewat `CASCADE`.
 
 ### tickets → ticket_assignments
 Satu tiket punya banyak penugasan (satu PIC + beberapa pendukung, plus riwayat
@@ -231,8 +245,8 @@ menambahkan `deleted_by_student_at IS NULL`.
 
 | View | Isi |
 | --- | --- |
-| `v_ticket_summary` | Tiket + label kategori, lokasi, tim, PIC, dan flag `is_overdue` (SLA lewat untuk tiket yang belum `done`/`rejected`). |
-| `v_technician_workload` | Per teknisi: `active_ticket_count`, `done_ticket_count`, `total_ticket_count`. |
+| `v_ticket_summary` | Tiket + label kategori, lokasi, tim, PIC, dan flag `is_overdue` (SLA lewat untuk tiket yang belum `done`/`rejected`). Menampilkan `asset_id` tanpa join ke `assets`. |
+| `v_technician_workload` | Per teknisi: `active_ticket_count`, `done_ticket_count`, `total_ticket_count`. Tidak memakai tabel `assets`. |
 
 ## ON DELETE
 
@@ -241,7 +255,7 @@ menambahkan `deleted_by_student_at IS NULL`.
 | `tickets.owner_id` | `SET NULL` | Tiket tetap ada meski akun dihapus. |
 | `tickets.category_id` | `RESTRICT` | Kategori yang dipakai tidak boleh hilang. |
 | `tickets.location_id` | `SET NULL` | Tiket tetap ada meski lokasi dihapus. |
-| `tickets.asset_id` | `SET NULL` | Tiket tetap ada meski aset dihapus. |
+| `tickets.asset_id` | `RESTRICT` | Aset yang punya tiket tidak boleh dihapus permanen; gunakan `archived`. |
 | `tickets.team_id` | `SET NULL` | Tiket tetap ada meski tim dibubarkan. |
 | `ticket_assignments.ticket_id` | `CASCADE` | Penugasan milik tiket. |
 | `ticket_assignments.technician_id` | `RESTRICT` | Riwayat teknisi harus utuh (pakai `archived`). |

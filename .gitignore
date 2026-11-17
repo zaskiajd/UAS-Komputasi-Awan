@@ -1,9 +1,17 @@
 node_modules/
 
-# Environment files (keep the example template)
+# Environment files (keep the example templates)
 .env
 .env.*
 !.env.example
+!.env.*.example
+
+# Backup database/uploads dari deploy/scripts/backup-*.sh (berisi data, jangan di-commit)
+backups/
+
+# Foto pengaduan hasil unggahan runtime (jangan di-commit)
+backend/uploads/
+uploads/
 
 # Logs
 *.log

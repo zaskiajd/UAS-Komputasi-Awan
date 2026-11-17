@@ -38,19 +38,26 @@ CREATE TABLE IF NOT EXISTS users (
   nim           TEXT UNIQUE,
   name          TEXT NOT NULL,
   email         TEXT NOT NULL UNIQUE,
-  password_hash TEXT NOT NULL,
+  password_hash TEXT,
   role          TEXT NOT NULL DEFAULT 'student'
                   CHECK (role IN ('student', 'admin')),
   faculty       TEXT,
+  google_id     TEXT UNIQUE,
+  auth_provider TEXT NOT NULL DEFAULT 'local'
+                  CHECK (auth_provider IN ('local', 'google')),
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
 
   CONSTRAINT users_email_lowercase_chk CHECK (email = lower(email)),
   CONSTRAINT users_nim_format_chk
-    CHECK (nim IS NULL OR nim ~ '^[0-9]{6,20}$')
+    CHECK (nim IS NULL OR nim ~ '^[0-9]{6,20}$'),
+  CONSTRAINT users_auth_local_password_chk
+    CHECK (auth_provider <> 'local' OR password_hash IS NOT NULL)
 );
 
 COMMENT ON COLUMN users.nim IS 'NIM mahasiswa; NULL untuk admin/tendik.';
-COMMENT ON COLUMN users.password_hash IS 'Hash bcrypt (pgcrypto crypt/bf atau bcrypt Node).';
+COMMENT ON COLUMN users.password_hash IS 'Hash bcrypt (pgcrypto crypt/bf atau bcrypt Node); NULL untuk akun Google OAuth.';
+COMMENT ON COLUMN users.google_id IS 'Subject ID unik Google OAuth (Google Identity Services).';
+COMMENT ON COLUMN users.auth_provider IS 'Penyedia autentikasi: local (email + sandi) atau google (Google OAuth).';
 
 -- ----------------------------------------------------------------------------
 -- 2. teams
@@ -149,8 +156,39 @@ CREATE TABLE IF NOT EXISTS assets (
   team_id         TEXT REFERENCES teams(id) ON DELETE SET NULL,
   last_service_at TIMESTAMPTZ,
   note            TEXT,
-  created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+  archived        BOOLEAN NOT NULL DEFAULT false,
+  archived_at     TIMESTAMPTZ,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+  -- Arsip dan waktu arsip harus konsisten: keduanya terisi atau keduanya kosong.
+  CONSTRAINT chk_assets_archived_at CHECK (
+    (archived AND archived_at IS NOT NULL) OR
+    (NOT archived AND archived_at IS NULL)
+  )
 );
+
+-- Untuk database lama yang tabel assets-nya sudah dibuat sebelum revisi ini.
+ALTER TABLE assets ADD COLUMN IF NOT EXISTS archived BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE assets ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'chk_assets_archived_at'
+  ) THEN
+    ALTER TABLE assets
+      ADD CONSTRAINT chk_assets_archived_at CHECK (
+        (archived AND archived_at IS NOT NULL) OR
+        (NOT archived AND archived_at IS NULL)
+      );
+  END IF;
+END
+$$;
+
+COMMENT ON COLUMN assets.archived IS
+  'true = diarsipkan; tidak tampil di daftar aktif, riwayat tetap utuh.';
+COMMENT ON COLUMN assets.archived_at IS
+  'Waktu aset diarsipkan; NULL bila archived = false, wajib terisi bila archived = true.';
 
 -- ----------------------------------------------------------------------------
 -- 7. asset_history
@@ -188,7 +226,7 @@ CREATE TABLE IF NOT EXISTS tickets (
   category_id            INTEGER NOT NULL REFERENCES categories(id) ON DELETE RESTRICT,
   location_id            INTEGER REFERENCES locations(id) ON DELETE SET NULL,
   location_detail        TEXT,
-  asset_id               TEXT REFERENCES assets(id) ON DELETE SET NULL,
+  asset_id               TEXT REFERENCES assets(id) ON DELETE RESTRICT,
   status                 TEXT NOT NULL DEFAULT 'review'
                            CHECK (status IN ('review', 'progress', 'waiting', 'done', 'rejected')),
   priority               TEXT NOT NULL DEFAULT 'Sedang'
@@ -208,10 +246,17 @@ CREATE TABLE IF NOT EXISTS tickets (
     CHECK (ticket_code ~ '^#CC-[0-9]{4}-[0-9]{4,}$')
 );
 
+-- Aset yang masih dirujuk tiket tidak boleh dihapus permanen. RESTRICT menjaga
+-- integritas relasi; aset cukup diarsipkan (archived = true).
+ALTER TABLE tickets DROP CONSTRAINT IF EXISTS tickets_asset_id_fkey;
+ALTER TABLE tickets
+  ADD CONSTRAINT tickets_asset_id_fkey
+  FOREIGN KEY (asset_id) REFERENCES assets(id) ON DELETE RESTRICT;
+
 COMMENT ON COLUMN tickets.deleted_by_student_at IS
   'Soft delete dari fitur "hapus riwayat" mahasiswa. NULL = masih tampil bagi mahasiswa.';
 COMMENT ON COLUMN tickets.photo_url IS
-  'URL object storage untuk fitur unggah foto (belum diimplementasikan di frontend).';
+  'URL foto utama (foto pertama). Disinkronkan dari ticket_photos; NULL bila belum ada foto.';
 
 -- Trigger:
 --   1) updated_at selalu diisi now() saat UPDATE.
@@ -308,6 +353,27 @@ CREATE TABLE IF NOT EXISTS ticket_comments (
 );
 
 -- ----------------------------------------------------------------------------
+-- 12. ticket_photos
+--     Metadata foto pengaduan; berkas fisik disimpan di UPLOAD_DIR.
+--     Maksimal 3 foto per tiket ditegakkan di lapisan aplikasi (row lock).
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS ticket_photos (
+  id            BIGSERIAL PRIMARY KEY,
+  ticket_id     INTEGER NOT NULL REFERENCES tickets(id) ON DELETE CASCADE,
+  file_name     TEXT NOT NULL UNIQUE,
+  original_name TEXT,
+  mime_type     TEXT NOT NULL
+                  CHECK (mime_type IN ('image/jpeg', 'image/png', 'image/webp')),
+  size_bytes    BIGINT NOT NULL CHECK (size_bytes > 0),
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+COMMENT ON COLUMN ticket_photos.file_name IS
+  'Nama berkas UUID + ekstensi di UPLOAD_DIR; dipakai untuk URL /uploads/<file_name>.';
+COMMENT ON COLUMN ticket_photos.original_name IS
+  'Nama asli dari klien setelah sanitasi (hanya untuk informasi).';
+
+-- ----------------------------------------------------------------------------
 -- Indexes
 -- ----------------------------------------------------------------------------
 CREATE INDEX IF NOT EXISTS idx_tickets_owner_id        ON tickets (owner_id);
@@ -324,9 +390,11 @@ CREATE INDEX IF NOT EXISTS idx_ticket_assignments_ticket     ON ticket_assignmen
 CREATE INDEX IF NOT EXISTS idx_ticket_assignments_technician ON ticket_assignments (technician_id);
 CREATE INDEX IF NOT EXISTS idx_ticket_history_ticket         ON ticket_history (ticket_id, at DESC);
 CREATE INDEX IF NOT EXISTS idx_ticket_comments_ticket        ON ticket_comments (ticket_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ticket_photos_ticket          ON ticket_photos (ticket_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_technicians_team_id           ON technicians (team_id);
 CREATE INDEX IF NOT EXISTS idx_assets_category_id            ON assets (category_id);
 CREATE INDEX IF NOT EXISTS idx_assets_location_id            ON assets (location_id);
+CREATE INDEX IF NOT EXISTS idx_assets_archived               ON assets (archived);
 CREATE INDEX IF NOT EXISTS idx_asset_history_asset           ON asset_history (asset_id, at DESC);
 
 -- ----------------------------------------------------------------------------
@@ -599,7 +667,7 @@ ON CONFLICT DO NOTHING;
 -- ----------------------------------------------------------------------------
 -- Aset (7) + riwayat
 -- ----------------------------------------------------------------------------
-INSERT INTO assets (id, name, location_id, category_id, condition, team_id, last_service_at, note)
+INSERT INTO assets (id, name, location_id, category_id, condition, team_id, last_service_at, note, archived, archived_at)
 VALUES
   (
     'AST-AC-0312',
@@ -607,7 +675,8 @@ VALUES
     (SELECT id FROM locations WHERE building = 'Gedung F (Fakultas Teknik)' AND room = 'Lt. 2'),
     (SELECT id FROM categories WHERE code = 'ac'),
     'service', 'electrical', now() - INTERVAL '26 days',
-    'Drainase kondensat tersumbat dan unit mengeluarkan tetesan air.'
+    'Drainase kondensat tersumbat dan unit mengeluarkan tetesan air.',
+    false, NULL
   ),
   (
     'AST-PRJ-0087',
@@ -615,7 +684,8 @@ VALUES
     (SELECT id FROM locations WHERE building = 'GKB (Gedung Kuliah Bersama)' AND room = 'R.204'),
     (SELECT id FROM categories WHERE code = 'projector'),
     'broken', 'av', now() - INTERVAL '66 days',
-    'Lampu indikator mati total, ballast terindikasi lemah.'
+    'Lampu indikator mati total, ballast terindikasi lemah.',
+    false, NULL
   ),
   (
     'AST-WIFI-0145',
@@ -623,7 +693,8 @@ VALUES
     (SELECT id FROM locations WHERE building = 'Gedung D (Perpustakaan Pusat)' AND room = 'Lt. 2'),
     (SELECT id FROM categories WHERE code = 'network'),
     'disrupted', 'network', now() - INTERVAL '20 days',
-    'Koneksi terputus berkala, perlu audit jalur uplink.'
+    'Koneksi terputus berkala, perlu audit jalur uplink.',
+    false, NULL
   ),
   (
     'AST-LFT-0004',
@@ -631,7 +702,8 @@ VALUES
     (SELECT id FROM locations WHERE building = 'Gedung A (Rektorat)' AND room IS NULL),
     (SELECT id FROM categories WHERE code = 'lift'),
     'good', 'civil', now() - INTERVAL '10 days',
-    'Inspeksi bulanan selesai, seluruh sensor berfungsi normal.'
+    'Inspeksi bulanan selesai, seluruh sensor berfungsi normal.',
+    false, NULL
   ),
   (
     'AST-MJR-0210',
@@ -639,7 +711,8 @@ VALUES
     (SELECT id FROM locations WHERE building = 'Gedung F (Fakultas Teknik)' AND room = 'R.301'),
     (SELECT id FROM categories WHERE code = 'furniture'),
     'good', 'civil', now() - INTERVAL '33 days',
-    'Kondisi stabil, tidak ada keluhan aktif.'
+    'Kondisi stabil, tidak ada keluhan aktif.',
+    false, NULL
   ),
   (
     'AST-SAN-0063',
@@ -647,7 +720,8 @@ VALUES
     (SELECT id FROM locations WHERE building = 'Gedung A (Rektorat)' AND room = 'Lt. 1'),
     (SELECT id FROM categories WHERE code = 'sanitation'),
     'service', 'civil', now() - INTERVAL '47 days',
-    'Engsel pengganti masih dalam pengiriman vendor.'
+    'Engsel pengganti masih dalam pengiriman vendor.',
+    false, NULL
   ),
   (
     'AST-LMP-0455',
@@ -655,7 +729,8 @@ VALUES
     (SELECT id FROM locations WHERE building = 'Gelanggang Olahraga' AND room IS NULL),
     (SELECT id FROM categories WHERE code = 'electrical'),
     'good', 'electrical', now() - INTERVAL '3 days',
-    'Penggantian lampu selesai dan lolos uji nyala.'
+    'Penggantian lampu selesai dan lolos uji nyala.',
+    false, NULL
   )
 ON CONFLICT (id) DO UPDATE SET
   name            = EXCLUDED.name,
@@ -664,7 +739,9 @@ ON CONFLICT (id) DO UPDATE SET
   condition       = EXCLUDED.condition,
   team_id         = EXCLUDED.team_id,
   last_service_at = EXCLUDED.last_service_at,
-  note            = EXCLUDED.note;
+  note            = EXCLUDED.note,
+  archived        = EXCLUDED.archived,
+  archived_at     = EXCLUDED.archived_at;
 
 WITH seed_asset_history (asset_id, days_ago, label, actor, note) AS (
   VALUES
@@ -729,24 +806,6 @@ WITH seed_tickets (
       'ac', 'FT', 'Gedung F (Fakultas Teknik)', 'Lab Komputer 3 (Lt. 2)', 'Lab Komp 3 (Lt. 2)', 'AST-AC-0312',
       'review', 'Tinggi', true, 0, NULL,
       now() - INTERVAL '18 minutes', now() - INTERVAL '18 minutes', NULL
-    ),
-    (
-      '#CC-2026-0908',
-      'Proyektor Mati Total Ruang Kuliah R.204 GKB',
-      'Proyektor tidak menyala saat mata kuliah pagi. Kabel dan sumber listrik sudah dicek, tetapi lampu indikator tetap mati.',
-      'Ahmad Rizki (Mhs • 217006120)', '217006120',
-      'projector', 'GKB', 'GKB (Gedung Kuliah Bersama)', 'R.204', 'R.204 Lt. 2', 'AST-PRJ-0087',
-      'progress', 'Sedang', false, 65, 'av',
-      now() - INTERVAL '155 minutes', now() - INTERVAL '40 minutes', NULL
-    ),
-    (
-      '#CC-2026-0899',
-      'Kerusakan Pintu Geser & Saklar Toilet Pria Lt.1 Rektorat',
-      'Pintu geser tidak bisa menutup rapat dan saklar lampu toilet kadang tidak merespons. Perbaikan menunggu suku cadang engsel.',
-      'Siti Rahma (Tendik BAKPK)', NULL,
-      'sanitation', 'Rektorat', 'Gedung A (Rektorat)', 'Lt. 1', 'Lt. 1', 'AST-SAN-0063',
-      'waiting', 'Sedang', false, 45, 'civil',
-      now() - INTERVAL '1680 minutes', now() - INTERVAL '120 minutes', NULL
     ),
     (
       '#CC-2026-0885',
@@ -859,10 +918,6 @@ ON CONFLICT (ticket_code) DO NOTHING;
 -- ----------------------------------------------------------------------------
 WITH seed_assignments (ticket_code, technician_id, role, status, assigned_minutes_ago) AS (
   VALUES
-    ('#CC-2026-0908', 'fajar',  'PIC',       'active', 140),
-    ('#CC-2026-0908', 'yudi',   'Pendukung', 'active', 120),
-    ('#CC-2026-0899', 'dadi',   'PIC',       'active', 1600),
-    ('#CC-2026-0899', 'nanang', 'Pendukung', 'active', 1580),
     ('#CC-2026-0885', 'agus',   'PIC',       'done',   2880),
     ('#CC-2026-0864', 'iwan',   'PIC',       'done',   5760),
     ('#CC-2026-0845', 'nanang', 'PIC',       'done',   43110),
@@ -902,20 +957,6 @@ WITH seed_history (ticket_code, minutes_ago, label, actor, status, note) AS (
     -- #CC-2026-0912
     ('#CC-2026-0912', 18, 'Pengaduan diterima', 'Ahmad Rizki (Mhs • 217006120)', 'review',
      'Laporan masuk ke antrean verifikasi Biro Sarpras.'),
-    -- #CC-2026-0908
-    ('#CC-2026-0908', 155, 'Pengaduan diterima', 'Ahmad Rizki', 'review',
-     'Laporan masuk ke antrean verifikasi.'),
-    ('#CC-2026-0908', 140, 'Disposisi ke Tim Multimedia & AV', 'Ir. Hendrawan', 'progress',
-     'Prioritas sedang, target SLA 6 jam.'),
-    ('#CC-2026-0908', 40, 'Teknisi mulai menangani', 'Fajar', 'progress',
-     'Pemeriksaan unit dan jalur daya selesai.'),
-    -- #CC-2026-0899
-    ('#CC-2026-0899', 1680, 'Pengaduan diterima', 'Siti Rahma', 'review',
-     'Laporan masuk ke antrean verifikasi.'),
-    ('#CC-2026-0899', 1600, 'Disposisi ke Tim Sanitasi & Sipil', 'Ir. Hendrawan', 'progress',
-     'Pemeriksaan awal oleh tim sipil.'),
-    ('#CC-2026-0899', 120, 'Menunggu suku cadang', 'Dadi', 'waiting',
-     'Perbaikan tertunda sampai engsel pengganti tiba.'),
     -- #CC-2026-0885
     ('#CC-2026-0885', 4320, 'Pengaduan diterima', 'BEM Mahasiswa', 'review',
      'Laporan masuk ke antrean verifikasi.'),
@@ -998,30 +1039,6 @@ WITH seed_comments (
   target_technician_id, body, is_public, minutes_ago
 ) AS (
   VALUES
-    (
-      '#CC-2026-0908', 'instruction', 'hendrawan@unsil.ac.id', 'Ir. Hendrawan',
-      'fajar',
-      'Gunakan unit proyektor cadangan dari gudang AV dan uji HDMI sebelum kelas berikutnya.',
-      false, 42
-    ),
-    (
-      '#CC-2026-0908', 'note', NULL, 'Fajar',
-      NULL,
-      'Unit proyektor sudah dibuka. Ballast lampu terindikasi lemah, sedang disiapkan unit pengganti.',
-      false, 38
-    ),
-    (
-      '#CC-2026-0899', 'instruction', 'hendrawan@unsil.ac.id', 'Ir. Hendrawan',
-      'dadi',
-      'Koordinasikan dengan vendor engsel; bila tiba, pasang bersama Nanang dan uji buka-tutup 20 kali.',
-      false, 125
-    ),
-    (
-      '#CC-2026-0899', 'note', NULL, 'Dadi',
-      NULL,
-      'Engsel pintu tipe geser sudah dipesan ke vendor. Estimasi tiba 2 hari kerja.',
-      false, 120
-    ),
     (
       '#CC-2026-0885', 'note', NULL, 'Agus',
       NULL,

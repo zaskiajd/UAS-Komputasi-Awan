@@ -1,0 +1,131 @@
+# =============================================================================
+# docker-compose.yml — Menjalankan CampusCare (frontend + backend) dengan Docker
+# -----------------------------------------------------------------------------
+#   pengguna → Cloudflare → cloudflared (milik tim, sudah ada)
+#            → web (Nginx, port host ${WEB_PORT}) → api (Express, port 3000)
+#            → PostgreSQL di VM lain (lewat DATABASE_URL)
+#
+# Database TIDAK dibuat di sini. Semua nilai rahasia dibaca dari berkas .env
+# di folder yang sama (salin dari .env.production.example, JANGAN di-commit).
+#
+# Perintah dasar (jalankan di folder repo):
+#   docker compose up -d --build     # build lalu jalankan di latar belakang
+#   docker compose ps                # lihat status
+#   docker compose logs -f api       # lihat log backend
+#   docker compose down              # hentikan dan hapus container
+# Cara yang lebih mudah: deploy/scripts/deploy.sh (lihat docs/DEPLOY.md).
+# =============================================================================
+
+name: campuscare
+
+# Pengaturan log bersama: tiap container maksimal 3 berkas x 10 MB,
+# supaya disk VM tidak penuh oleh log.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  # ---------------------------------------------------------------------------
+  # api — backend Express (Node 20). Tidak dibuka ke host; hanya bisa diakses
+  # oleh container lain di network "campuscare" (yaitu Nginx).
+  # ---------------------------------------------------------------------------
+  api:
+    build:
+      context: ./backend
+    image: campuscare-api:latest
+    env_file: .env
+    environment:
+      # Dipaksa production walau .env lupa diisi, agar JWT_SECRET lemah ditolak.
+      NODE_ENV: production
+      # Foto pengaduan disimpan di named volume, bukan di lapisan container.
+      UPLOAD_DIR: /app/uploads
+    restart: unless-stopped
+    expose:
+      - "3000"
+    volumes:
+      # Named volume "campuscare_uploads" (lihat blok volumes di bawah).
+      # JANGAN hapus dengan "docker compose down -v" kecuali foto memang
+      # ingin dihapus; backup dulu dengan deploy/scripts/backup-uploads.sh.
+      - uploads:/app/uploads
+    healthcheck:
+      # $$ = tanda $ biasa (bukan variabel compose). /api/health ikut mengecek DB.
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:$${PORT:-3000}/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    mem_limit: 512m
+    logging: *default-logging
+    networks:
+      - campuscare
+    # Postgres ada di VM lain? Tidak perlu apa-apa lagi: cukup isi DATABASE_URL
+    # dengan IP VM database, mis. postgres://user:pass@192.168.1.20:5432/campuscare
+    #
+    # Postgres ada di HOST YANG SAMA dengan Docker ini? Hapus tanda # pada dua
+    # baris di bawah, lalu pakai host.docker.internal di DATABASE_URL, mis.
+    # postgres://user:pass@host.docker.internal:5432/campuscare
+    # (Postgres di host juga harus mau menerima koneksi dari jaringan Docker.)
+    # extra_hosts:
+    #   - "host.docker.internal:host-gateway"
+
+  # ---------------------------------------------------------------------------
+  # web — Nginx: melayani file statis frontend, meneruskan /api dan /uploads
+  # ke "api". Port host inilah yang ditunjuk Cloudflare Tunnel.
+  # ---------------------------------------------------------------------------
+  web:
+    build:
+      context: .
+      dockerfile: deploy/nginx/Dockerfile
+    image: campuscare-web:latest
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      # Format "PORT_HOST:PORT_CONTAINER". Ganti WEB_PORT di .env bila perlu.
+      # Bila cloudflared berjalan langsung di VM ini (bukan di mesin lain), boleh
+      # dipersempit menjadi "127.0.0.1:${WEB_PORT:-8080}:80" agar port ini tidak
+      # bisa dibuka dari jaringan lokal tanpa lewat Cloudflare.
+      - "${WEB_PORT:-8080}:80"
+    restart: unless-stopped
+    mem_limit: 128m
+    logging: *default-logging
+    networks:
+      - campuscare
+
+  # ---------------------------------------------------------------------------
+  # cloudflared — OPSIONAL, mati secara default (profile "tunnel").
+  # Tim SUDAH punya tunnel, jadi service ini biasanya TIDAK dipakai.
+  # Pakai hanya bila ingin membuat tunnel baru khusus CampusCare:
+  #   1. Buat tunnel di Cloudflare Zero Trust → Networks → Tunnels, salin tokennya
+  #      ke CLOUDFLARE_TUNNEL_TOKEN di .env.
+  #   2. Atur Public hostname tunnel itu ke  http://web:80
+  #      (nama service, karena cloudflared ini berada di network yang sama).
+  #   3. Jalankan: docker compose --profile tunnel up -d
+  # ---------------------------------------------------------------------------
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    profiles: ["tunnel"]
+    command: tunnel --no-autoupdate run
+    environment:
+      # cloudflared membaca token dari variabel TUNNEL_TOKEN (tidak tampil di "ps").
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    depends_on:
+      - web
+    restart: unless-stopped
+    mem_limit: 128m
+    logging: *default-logging
+    networks:
+      - campuscare
+
+networks:
+  campuscare:
+    name: campuscare
+    driver: bridge
+
+volumes:
+  # Nama tetap (tanpa awalan project) agar deploy/scripts/backup-uploads.sh
+  # dan prosedur restore di docs/DEPLOY.md selalu menunjuk volume yang sama.
+  uploads:
+    name: campuscare_uploads

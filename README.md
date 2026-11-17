@@ -57,7 +57,7 @@ js/
     reports.js              # Metadata kategori/status/prioritas & seed tiket
     assignments.js          # Helper PIC, pendukung, dan load balancing
     technicians.js          # 4 tim & 15 personil teknisi
-    assets.js               # Seed aset, kondisi, dan riwayat perawatan
+    assets.js               # Metadata kondisi aset untuk tampilan
   ui/
     toast.js, modal.js, menu.js, sidebar.js
   views/
@@ -67,15 +67,19 @@ js/
     analytics.js            # KPI, SLA, kesiapan, beban kerja, audit log, tren
     dispatch.js             # Alur disposisi & penyimpanan penugasan
     complaint.js            # Pengaduan baru mahasiswa
+    photo-gallery.js        # Galeri foto, thumbnail, lightbox, resolver URL
     session.js              # Masuk & keluar sesi demo
     timeline.js             # Detail progres tiket mahasiswa
     ticket-actions.js       # Detail tiket admin & siklus status
     technicians.js          # Kartu tim, detail teknisi, status siaga
     inventory.js            # Tabel aset, filter, detail, servis
+    assets-api.js           # Sinkronisasi inventaris aset dengan backend
     export.js               # Ekspor CSV per tab (tiket, antrean, teknisi, aset, SLA, kerusakan)
 assets/fonts/               # Font WOFF2 lokal (teks + Material Symbols)
 tailwind.config.js          # Tema & daftar berkas yang dipindai Tailwind
 package.json                # Skrip build CSS (opsional, hanya maintainer)
+backend/                    # REST API Express + PostgreSQL (src/, db/, tests/)
+docs/                       # API.md dan db-contract.md
 README.md
 ```
 
@@ -107,6 +111,79 @@ Tanpa koneksi internet aplikasi tetap berfungsi penuh: Tailwind sudah dikompilas
 
 ---
 
+## Menjalankan Backend (REST API + PostgreSQL)
+
+Frontend memanggil REST API di `http://localhost:3000/api` (Express + PostgreSQL, folder `backend/`). Backend dan frontend dijalankan terpisah, jadi **keduanya harus hidup**.
+
+**Prasyarat**
+
+- Node.js 18+
+- PostgreSQL 14+ beserta `psql`. Di Windows, tambahkan folder `bin` PostgreSQL (mis. `D:\PostgreSQL\bin`) ke `PATH`.
+- Untuk `npm run db:reset` di Windows dibutuhkan `bash` (Git Bash).
+
+**Langkah**
+
+```powershell
+cd backend
+npm install
+copy .env.example .env      # lalu isi DATABASE_URL, JWT_SECRET, GOOGLE_CLIENT_ID, dll.
+npm run db:reset            # buat ulang skema + data seed (menghapus isi database!)
+npm start                   # atau: npm run dev (auto-reload)
+npm test                    # tes integrasi API
+```
+
+Jika `npm run db:reset` gagal karena `psql` tidak ditemukan, jalankan manual di PowerShell (`PGCLIENTENCODING=UTF8` wajib agar karakter `•` tidak rusak):
+
+```powershell
+$env:Path += ";D:\PostgreSQL\bin"
+$env:PGCLIENTENCODING = "UTF8"
+$url = ((Get-Content .env | Where-Object { $_ -match '^DATABASE_URL=' }) -replace '^DATABASE_URL=','').Trim()
+psql $url -v ON_ERROR_STOP=1 -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO public;"
+psql $url -v ON_ERROR_STOP=1 -f db/campuscare_full.sql
+```
+
+**Variabel `.env` penting**
+
+| Variabel | Keterangan |
+| --- | --- |
+| `DATABASE_URL` | Koneksi PostgreSQL, mis. `postgres://postgres:PASSWORD@localhost:5432/campuscare` |
+| `JWT_SECRET` | Kunci penandatangan token (wajib diganti) |
+| `CORS_ORIGIN` | Alamat frontend yang diizinkan, dipisah koma (default: port 8000 dan 5500) |
+| `UPLOAD_DIR` | Folder foto pengaduan (default `backend/uploads`; Docker memakai `/app/uploads`) |
+| `UPLOAD_RATE_LIMIT` | Batas unggah/hapus foto per IP per 15 menit (default 30) |
+| `GOOGLE_CLIENT_ID` | Client ID OAuth 2.0 dari Google Cloud Console |
+| `ALLOWED_EMAIL_DOMAINS` | Domain email yang boleh login Google (`student.unsil.ac.id,unsil.ac.id`) |
+
+> `backend/.env` berisi rahasia (mis. `GOOGLE_CLIENT_SECRET`) dan **tidak boleh di-commit**. Setiap anggota membuat `.env` sendiri dari `.env.example`.
+
+Dokumentasi lengkap: [`docs/API.md`](docs/API.md) (endpoint) dan [`docs/db-contract.md`](docs/db-contract.md) (skema database).
+
+---
+
+## Deployment (Docker + Server)
+
+Untuk memasang CampusCare (frontend Nginx + backend Express) ke server produksi menggunakan Docker dan Cloudflare Tunnel dengan database PostgreSQL terpisah, ikuti panduan langkah demi langkah di [`docs/DEPLOY.md`](docs/DEPLOY.md).
+
+Template konfigurasi produksi tersedia di `.env.production.example`, dan skrip bantu deploy/database berada di `deploy/scripts/`. Foto pengaduan disimpan di named volume Docker `campuscare_uploads`; backup database dan foto dengan `deploy/scripts/backup-db.sh` serta `deploy/scripts/backup-uploads.sh`.
+
+---
+
+## Login dengan Google (OAuth 2.0)
+
+- Buka frontend lewat **`http://localhost:8000`**. Google hanya mengizinkan alamat yang terdaftar di *Authorized JavaScript origins*.
+- Memakai alamat/port lain (mis. `http://localhost:5500` atau `http://127.0.0.1:5500`)? Daftarkan alamat itu di **Google Cloud Console → APIs & Services → Credentials → OAuth Client ID**, dan tambahkan juga di `CORS_ORIGIN`. `localhost` dan `127.0.0.1` dianggap berbeda.
+- Hanya email berdomain `@student.unsil.ac.id` atau `@unsil.ac.id` yang diterima. Akun Google baru selalu menjadi **mahasiswa**.
+- Jika aplikasi OAuth masih berstatus *Testing*, tambahkan email penguji di **OAuth consent screen → Test users**.
+
+| Pesan error | Penyebab & solusi |
+| --- | --- |
+| `Error 400: origin_mismatch` | Alamat frontend belum didaftarkan di Authorized JavaScript origins |
+| `Error 403: access_denied` | Email belum ada di Test users |
+| `localhost refused to connect` | Server frontend belum dijalankan di port tersebut |
+| Request ke API diblokir (CORS) | Alamat frontend belum ada di `CORS_ORIGIN`; restart backend setelah mengubah `.env` |
+
+---
+
 ## Mode Debug
 
 | Cara | Keterangan |
@@ -127,12 +204,12 @@ Dari console browser tersedia `ccDiagnose()` dan `ccDebug.report()`.
 
 ## Akun Demo
 
-Login memakai validasi domain kampus dan kata sandi minimal 8 karakter. Pilih peran lewat chip di atas form.
+Login memakai akun yang tersimpan di database (hasil `npm run db:reset`) atau tombol **Masuk dengan Google**, dengan validasi domain kampus dan kata sandi minimal 8 karakter. Pilih peran lewat chip di atas form.
 
-| Peran | Email contoh | Tujuan |
-| --- | --- | --- |
-| Mahasiswa | `217006120@student.unsil.ac.id` | Portal mahasiswa (pemilik tiket seed) |
-| Admin Sarpras | `hendrawan@unsil.ac.id` | Dashboard admin Sarpras |
+| Peran | Email | Kata sandi | Tujuan |
+| --- | --- | --- | --- |
+| Mahasiswa | `217006120@student.unsil.ac.id` | `CampusCare#2026` | Portal mahasiswa (pemilik tiket seed) |
+| Admin Sarpras | `hendrawan@unsil.ac.id` | `CampusCare#2026` | Dashboard admin Sarpras |
 
 Aturan validasi:
 
@@ -175,7 +252,8 @@ Router menolak akses langsung ke portal tanpa sesi sesuai peran: membuka `#stude
 
 - Ringkasan pengaduan milik sendiri berdasarkan NIM (`owner`).
 - Pengaduan baru langsung masuk daftar dengan ID berurutan (`#CC-2026-0916`, dst.).
-- Detail progres tiket: gauge persentase, 4 tahapan interaktif, status, tim, prioritas, dan deskripsi.
+- Pengaduan baru mendukung **1–3 foto bukti** (JPEG/PNG/WebP, maks 3 MB/foto) dengan pratinjau, hapus sebelum kirim, dan kompresi otomatis di browser untuk foto besar. Foto diunggah setelah tiket dibuat, jadi kegagalan unggah tidak menghilangkan tiket.
+- Detail progres tiket: gauge persentase, 4 tahapan interaktif, status, tim, prioritas, deskripsi, dan galeri foto dengan lightbox (tutup lewat `Esc` atau klik latar).
 - Pencarian & filter status; mode pilih untuk menghapus satu atau beberapa riwayat.
 
 ### Dashboard admin
@@ -185,12 +263,12 @@ Router menolak akses langsung ke portal tanpa sesi sesuai peran: membuka `#stude
 - **Beban kerja tim** — jumlah personil bertugas, tiket aktif, tiket selesai, dan kapasitas per tim.
 - **Audit log** — entri terbaru dari riwayat status seluruh tiket.
 - **Antrean disposisi** — pencarian, filter urgent/normal, jumlah tiket tampil, umur antrean, dan indikator batas aman.
-- **Siklus tiket** — disposisi ke tim/teknisi tertentu, PIC + teknisi pendukung, prioritas, SLA otomatis, instruksi terarah, catatan operasional, serta transisi `review → progress → waiting/done → reopen`.
+- **Siklus tiket** — disposisi ke tim/teknisi tertentu, PIC + teknisi pendukung, prioritas, SLA otomatis, instruksi terarah, catatan operasional, foto bukti dari mahasiswa, serta transisi `review → progress → waiting/done → reopen`.
 - **Roster & reassignment** — detail tiket menampilkan PIC dan pendukung aktif; admin dapat mengganti PIC, menambah/melepas pendukung, dan mengirim instruksi ke teknisi tertentu. Riwayat penugasan disimpan terstruktur (`active`, `replaced`, `removed`, `done`).
 - **Manajemen teknisi** — 4 tim, 15 personil awal, tabel personil dengan pencarian/filter tim & status, jumlah tiket aktif/selesai, keahlian, detail keahlian/kontak/tiket, serta toggle status bertugas/standby yang dijaga selama teknisi masih memegang tiket aktif.
 - **CRUD teknisi** — admin dapat menambah personil baru, mengedit nama/tim/peran/telepon/keahlian/status, serta menghapus atau mengarsipkan teknisi. Teknisi yang sudah memiliki riwayat tiket diarsipkan agar histori tetap utuh, dan dapat dipulihkan lewat filter status "Diarsipkan". Koordinator otomatis diganti bila pindah tim, turun peran, atau dihapus, sehingga setiap tim tetap memiliki satu koordinator.
 - **Beban kerja personil** — analitik per teknisi (PIC + pendukung) dan pemilihan PIC otomatis berdasarkan beban tiket paling ringan saat disposisi.
-- **Inventaris** - 7 aset seed, kondisi berbobot, pencarian, filter kondisi, filter status (Aktif/Diarsipkan/Semua), tambah & edit aset, detail riwayat perawatan, tiket terkait, aksi "Tandai Selesai Servis", arsip (soft delete), pemulihan aset, dan hapus permanen ter-guard untuk aset terarsip tanpa riwayat servis/tiket aktif.
+- **Inventaris** - data aset tersimpan di PostgreSQL lewat API `/api/assets` (khusus admin), kondisi berbobot, pencarian, filter kondisi, filter status (Aktif/Diarsipkan/Semua), tambah & edit aset dengan kode otomatis, detail riwayat perawatan, tiket terkait, aksi "Tandai Selesai Servis", arsip (soft delete), pemulihan aset, dan hapus permanen ter-guard untuk aset terarsip tanpa riwayat servis/tiket terkait.
 - **Laporan & SLA** — rata-rata penyelesaian, persentase SLA dihitung dari tiket selesai tepat waktu, tiket selesai, backlog, tren 6 bulan, dan capaian per kategori.
 - **Rekapitulasi Kerusakan** — ringkasan tiket aktif, prioritas tinggi aktif, dan aset yang perlu perhatian; rekap per kategori; serta daftar tiket kerusakan dengan status SLA. Setiap baris terhubung ke detail tiket atau detail aset.
 - **Ekspor CSV per tab** — satu tombol ekspor di tiap tab: Dashboard (rekap tiket), Disposisi (antrean), Teknisi (data personil), Inventaris (aset), Laporan SLA (ringkasan + tren + kategori + rincian status SLA), dan Rekapitulasi Kerusakan (ringkasan + aset terdampak + tiket). Semua ekspor mengikuti filter/pencarian aktif, memakai `Blob` + `URL.createObjectURL`, dan kompatibel dibuka di Excel tanpa dependency tambahan. Tiap file diawali blok identitas (jenis laporan, waktu ekspor, filter, pencarian, jumlah baris) sehingga isinya mudah dibedakan.
@@ -213,7 +291,10 @@ Router menolak akses langsung ke portal tanpa sesi sesuai peran: membuka `#stude
 - **Audit tampilan otomatis**: setiap perpindahan view diaudit; bila panel aktif tidak terlihat, peringatan tampil dan dicatat di mode debug.
 - Semua interaksi memakai **event delegation** (`data-action`, `data-student-tab`, `data-admin-tab`, `data-student-filter`, `data-admin-filter`, `data-dispatch-filter`, `data-inventory-filter`).
 - Partial boleh memuat partial lain (mis. modal di dalam `views/student.html`); pemuat partial menyelesaikannya secara rekursif.
-- Data disimpan **di memori** (`state`) sehingga perubahan hilang saat halaman dimuat ulang; ini cukup untuk demo tanpa backend.
+- **Tiket, status, dan disposisi tersimpan di PostgreSQL** lewat REST API (`js/core/api.js`, `js/features/tickets-api.js`). Disposisi admin (tim, PIC, teknisi pendukung, prioritas, instruksi) dikirim lewat `PATCH /api/tickets/:id/status` sehingga tetap ada setelah halaman di-refresh.
+- **Foto pengaduan** disimpan di disk (`UPLOAD_DIR`, nama UUID) + metadata `ticket_photos` di PostgreSQL. Frontend dev di `:8000` menggabungkan URL relatif `/uploads/...` dengan origin API lewat helper di `js/features/photo-gallery.js`; di produksi Nginx meneruskan `/uploads/*` ke backend. Saat deploy Docker, folder ini adalah named volume `campuscare_uploads` yang harus ikut di-backup (`deploy/scripts/backup-uploads.sh`).
+- **Aset/inventaris tersimpan di PostgreSQL** dan disinkronkan lewat endpoint khusus admin `/api/assets` (`js/features/assets-api.js`). Data hanya dimuat setelah admin login; mahasiswa tidak memiliki akses. Data teknisi masih berasal dari seed di frontend (`js/data/technicians.js`).
+- Seed tiket berjumlah 10 (`backend/db/seed.sql`). Perubahan seed harus diterapkan ulang dengan `npm run db:reset`.
 - Semua ID elemen unik dan setiap referensi `byId(...)` di modul JS sudah diverifikasi ada di partial terkait.
 
 ### Menyesuaikan Tailwind

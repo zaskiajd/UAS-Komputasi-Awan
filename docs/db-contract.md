@@ -5,8 +5,7 @@ membuat Express/API. Sumber kebenaran skema ada di
 [`backend/db/schema.sql`](../backend/db/schema.sql), seed di
 [`backend/db/seed.sql`](../backend/db/seed.sql).
 
-Ruang lingkup dokumen ini **hanya database**. Tidak ada endpoint Express/API
-yang dibuat di sini; contoh query disediakan agar backend tinggal memakai.
+Ruang lingkup dokumen ini berfokus pada struktur dan kontrak database PostgreSQL, yang terhubung langsung dengan backend Express/API di folder `backend/`. Contoh query dan spesifikasi skema disediakan sebagai acuan implementasi.
 
 ---
 
@@ -39,6 +38,15 @@ psql -h <host> -U <user> -d campuscare -f db/campuscare_full.sql
 
 Ulangi perintah yang sama untuk membuktikan file idempotent.
 
+Database yang **sudah berisi data** tidak perlu di-reset. Jalankan migrasi baru
+saja (aman diulang):
+
+```bash
+psql -h <host> -U <user> -d campuscare -f db/migrations/003_ticket_photos.sql
+```
+
+Di server Docker, gunakan `deploy/scripts/migrate.sh backend/db/migrations/003_ticket_photos.sql`.
+
 ### Akun demo
 
 | Role | Email | NIM | Password |
@@ -52,14 +60,24 @@ Ulangi perintah yang sama untuk membuktikan file idempotent.
 
 ### Environment
 
+`backend/.env.example` adalah template. Salin menjadi `.env` lalu sesuaikan:
+
 ```env
 DATABASE_URL=postgres://user:pass@localhost:5432/campuscare
 DB_SSL=false
-JWT_SECRET=ganti_ini
+JWT_SECRET=ganti-dengan-secret-acak-minimal-32-karakter
+PORT=3000
+CORS_ORIGIN=http://localhost:8000
+NODE_ENV=development
+UPLOAD_DIR=uploads
 ```
 
 - `DB_SSL=true` → `pg.Pool` memakai SSL.
-- `.env` **tidak boleh di-commit**. `.gitignore` sudah mengabaikannya.
+- `JWT_SECRET` wajib diganti dengan nilai acak; server production menolak
+  secret lemah.
+- `CORS_ORIGIN` boleh berisi beberapa URL dipisahkan koma.
+- `.env` **tidak boleh di-commit**. `.gitignore` mengabaikan `.env`/`.env.*`
+  tetapi tetap mengizinkan `.env.example`.
 - `backend/src/config/db.js` mengekspor `pool`, `query(text, params)`, dan
   `withTransaction(callback)`.
 
@@ -78,9 +96,11 @@ memakai `timestamptz`.
 | `nim` | text | nullable, unique | NIM mahasiswa; `NULL` untuk admin/tendik. |
 | `name` | text | not null | Nama lengkap. |
 | `email` | text | not null, unique | Wajib lowercase (`email = lower(email)`). |
-| `password_hash` | text | not null | Hash bcrypt. |
+| `password_hash` | text | nullable | Hash bcrypt (`NULL` untuk akun pihak ketiga seperti Google OAuth). |
 | `role` | text | not null, default `student` | `student` / `admin`. |
 | `faculty` | text | nullable | Fakultas/jurusan atau unit kerja. |
+| `google_id` | text | nullable, unique | Subject ID unik dari Google OAuth (Google Identity Services). |
+| `auth_provider` | text | not null, default `local` | `local` / `google`. Akun `local` wajib punya `password_hash`. |
 | `created_at` | timestamptz | not null, default `now()` | |
 
 ### 2.2 `teams`
@@ -120,8 +140,9 @@ memakai `timestamptz`.
 | `default_team_id` | text | nullable, FK `teams.id` | Tim default untuk disposisi. |
 | `created_at` | timestamptz | not null, default `now()` | |
 
-Kategori dapat di-CRUD admin. `code` tidak dibatasi CHECK agar admin bisa
-menambah kategori baru; cukup unique.
+Kategori hanya **data referensi** pada revisi ini. CRUD kategori sengaja
+dilewati kelompok; `code` tidak dibatasi CHECK agar data referensi tetap
+fleksibel, cukup unique.
 
 ### 2.5 `locations`
 
@@ -149,9 +170,18 @@ Constraint:
 | `category_id` | integer | not null, FK `categories.id` | `ON DELETE RESTRICT`. |
 | `condition` | text | not null, default `good` | `good` / `service` / `disrupted` / `broken`. |
 | `team_id` | text | nullable, FK `teams.id` | `ON DELETE SET NULL`. |
-| `last_service_at` | timestamptz | nullable | |
-| `note` | text | nullable | |
+| `last_service_at` | timestamptz | nullable | Waktu servis terakhir. |
+| `note` | text | nullable | Catatan kondisi; frontend menyimpan `"Tidak ada catatan."` bila kosong. |
+| `archived` | boolean | not null, default `false` | `true` = diarsipkan, tidak tampil di daftar aktif; riwayat tetap utuh. |
+| `archived_at` | timestamptz | nullable | Waktu arsip. Wajib terisi saat `archived = true`, wajib `NULL` saat `false`. |
 | `created_at` | timestamptz | not null, default `now()` | |
+
+Constraint:
+- `chk_assets_archived_at`:
+  `(archived AND archived_at IS NOT NULL) OR (NOT archived AND archived_at IS NULL)`.
+- Index `idx_assets_archived` pada `assets(archived)` untuk filter daftar
+  aktif/arsip.
+- `assets.id` **tidak** memakai default/sequence; ID dibuat backend (lihat §6.4).
 
 ### 2.7 `asset_history`
 
@@ -177,13 +207,13 @@ Constraint:
 | `category_id` | integer | not null, FK `categories.id` | `ON DELETE RESTRICT`. |
 | `location_id` | integer | nullable, FK `locations.id` | `ON DELETE SET NULL`. |
 | `location_detail` | text | nullable | Ruang yang diketik mahasiswa. |
-| `asset_id` | text | nullable, FK `assets.id` | `ON DELETE SET NULL`. |
+| `asset_id` | text | nullable, FK `assets.id` | `ON DELETE RESTRICT`; tiket yang masih menunjuk aset menahan hapus permanen aset. |
 | `status` | text | not null, default `review` | `review` / `progress` / `waiting` / `done` / `rejected`. |
 | `priority` | text | not null, default `Sedang` | `Tinggi` / `Sedang` / `Rendah`. |
 | `urgent` | boolean | not null, default `false` | |
 | `progress` | integer | not null, default `0` | `0..100`. |
 | `team_id` | text | nullable, FK `teams.id` | `ON DELETE SET NULL`. |
-| `photo_url` | text | nullable | Untuk fitur upload foto nanti. |
+| `photo_url` | text | nullable | URL foto utama; disinkronkan backend dari baris `ticket_photos` pertama (atau `NULL` bila tidak ada foto). |
 | `sla_due_at` | timestamptz | nullable | Diisi trigger bila `NULL`. |
 | `created_at` | timestamptz | not null, default `now()` | |
 | `updated_at` | timestamptz | not null, default `now()` | Diisi trigger saat `UPDATE`. |
@@ -234,6 +264,22 @@ Index unik parsial:
 | `read_at` | timestamptz | nullable | Ekstensi untuk `readAt` instruksi frontend. |
 | `created_at` | timestamptz | not null, default `now()` | |
 
+### 2.12 `ticket_photos`
+
+| Kolom | Tipe | Null / default | Keterangan |
+| --- | --- | --- | --- |
+| `id` | bigserial | PK | |
+| `ticket_id` | integer | not null, FK `tickets.id` | `ON DELETE CASCADE`; foto ikut terhapus saat tiket dibatalkan. |
+| `file_name` | text | not null, unique | Nama UUID + ekstensi di `UPLOAD_DIR`, mis. `6f1c...jpg`. URL publik: `/uploads/<file_name>`. |
+| `original_name` | text | nullable | Nama berkas asli yang sudah disanitasi; hanya metadata. |
+| `mime_type` | text | not null | `image/jpeg`, `image/png`, atau `image/webp` (hasil deteksi magic bytes). |
+| `size_bytes` | bigint | not null | Ukuran berkas, maksimal 3 MB. |
+| `created_at` | timestamptz | not null, default `now()` | Urutan tampil foto (`created_at ASC, id ASC`). |
+
+Index: `idx_ticket_photos_ticket (ticket_id, created_at)`. Batas **3 foto per
+tiket** dan sinkronisasi `tickets.photo_url` ditegakkan backend, bukan CHECK DB.
+Migrasi: `backend/db/migrations/003_ticket_photos.sql`.
+
 ---
 
 ## 3. Nilai CHECK
@@ -243,6 +289,7 @@ Index unik parsial:
 | `users.role` | `student`, `admin` |
 | `technicians.role` | `Koordinator`, `Teknisi` |
 | `assets.condition` | `good`, `service`, `disrupted`, `broken` |
+| `assets.archived` + `assets.archived_at` | `chk_assets_archived_at`: keduanya terisi atau keduanya kosong |
 | `tickets.status` | `review`, `progress`, `waiting`, `done`, `rejected` |
 | `tickets.priority` | `Tinggi`, `Sedang`, `Rendah` |
 | `tickets.progress` | integer `0..100` |
@@ -290,9 +337,24 @@ Index unik parsial:
    yang mengandung huruf besar.
 10. **Progress**
     Nilai di luar 0–100 ditolak.
-11. **Kategori/lokasi CRUD**
-    Kategori dan lokasi bebas di-CRUD selama belum direferensikan. Jika sudah
-    dipakai, `DELETE` akan gagal; ubah label/nama atau buat baris baru.
+11. **Kategori/lokasi adalah data referensi**
+    CRUD kategori dan lokasi sengaja dilewati pada revisi ini. Tabel
+    `categories` dan `locations` tetap ada sebagai referensi aset/tiket.
+    `DELETE` tetap ditolak FK `RESTRICT` bila baris masih dipakai.
+12. **Arsip aset**
+    `archived` dan `archived_at` harus konsisten (`chk_assets_archived_at`).
+    Aset terarsip tidak ditampilkan di daftar aktif, tetapi baris dan
+    `asset_history`-nya tetap ada. Pulihkan dengan `archived = false` dan
+    `archived_at = NULL`.
+13. **Aset yang punya tiket tidak boleh dihapus**
+    FK `tickets.asset_id` memakai `ON DELETE RESTRICT`. Hapus permanen hanya
+    boleh untuk aset `archived = true`, `last_service_at IS NULL`, dan tanpa
+    baris `tickets` yang menunjuk `asset_id` tersebut. `asset_history` memakai
+    `ON DELETE CASCADE`, jadi riwayat aset ikut terhapus saat aset benar-benar
+    dihapus.
+14. **ID aset tidak dibuat database**
+    `assets.id` berupa TEXT tanpa default. Backend wajib membuat ID mengikuti
+    pola frontend (lihat §6.4.1).
 
 ---
 
@@ -326,7 +388,8 @@ Index unik parsial:
 | `updatedAt` | `tickets.updated_at` |
 | `completedAt` | `tickets.completed_at` |
 | `slaDueAt` | `tickets.sla_due_at` |
-| `photoUrl` | `tickets.photo_url` |
+| `photoUrl` | URL foto pertama dari `ticket_photos`; `tickets.photo_url` menyimpan nilai yang sama |
+| `photos[]` | baris `ticket_photos` (`id`, `url`, `mimeType`, `sizeBytes`, `createdAt`) |
 | `deletedByStudentAt` | `tickets.deleted_by_student_at` |
 
 ### 5.2 `assignments[]`
@@ -397,6 +460,8 @@ Index unik parsial:
 | `teamId` | `assets.team_id` |
 | `lastServiceAt` | `assets.last_service_at` |
 | `note` | `assets.note` |
+| `archived` | `assets.archived` |
+| `archivedAt` | `assets.archived_at` |
 | `history[]` | `asset_history` |
 
 ### 5.8 Auth / registrasi
@@ -525,14 +590,147 @@ Keputusan:
    Keduanya sengaja dipisah: notes untuk diskusi operasional, history untuk
    audit status.
 10. **Foto**
-    `photo_url` sudah disiapkan, tetapi fitur upload belum diimplementasikan di
-    frontend. Backend tinggal mengisi URL object storage.
+    Foto pengaduan disimpan sebagai baris `ticket_photos` + berkas di
+    `UPLOAD_DIR` (maks 3 foto/tiket, 3 MB/foto). `tickets.photo_url`
+    disinkronkan backend dengan URL foto pertama. Frontend mengunggah foto
+    setelah tiket dibuat lewat `POST /api/tickets/:id/photos`.
 11. **Soft delete**
     Frontend menghapus dari array in-memory. DB memakai
     `deleted_by_student_at`; tiket tetap terlihat admin.
 12. **Aset dan tiket**
     `tickets.asset_id` nullable. Seed hanya menautkan tiket ke aset jika
     kecocokannya jelas (AC, proyektor, Wi-Fi, lift, pintu toilet, lampu GOR).
+
+### 6.4 Alur CRUD inventaris aset (admin)
+
+Ruang lingkup revisi ini awalnya hanya database + dokumentasi. Endpoint aset
+sekarang sudah tersedia di backend (`/api/assets`, khusus admin) dan memakai
+kontrak pada bagian ini. CRUD kategori dan lokasi juga sengaja dilewati;
+`categories`/`locations` hanya data referensi.
+
+#### 6.4.1 Pembuatan ID aset
+
+Database tidak membuat ID otomatis. Backend harus meniru `nextAssetId` di
+`js/data/assets.js`:
+
+- Format: `AST-<PREFIX>-<nomor 4 digit>`.
+- Nomor = nomor tertinggi yang sudah ada untuk prefix itu + 1, diisi nol di
+  depan (`lpad(..., 4, '0')`).
+- Prefix per `categories.code`:
+
+| `categories.code` | Prefix |
+| --- | --- |
+| `ac` | `AC` |
+| `projector` | `PRJ` |
+| `network` | `WIFI` |
+| `sanitation` | `SAN` |
+| `furniture` | `MJR` |
+| `lift` | `LFT` |
+| `electrical` | `LMP` |
+
+Contoh query yang sudah diuji (setelah seed, `$1 = 'ac'` menghasilkan
+`AST-AC-0313`):
+
+```sql
+WITH target AS (
+  SELECT
+    c.id AS category_id,
+    CASE c.code
+      WHEN 'ac'         THEN 'AC'
+      WHEN 'projector'  THEN 'PRJ'
+      WHEN 'network'    THEN 'WIFI'
+      WHEN 'sanitation' THEN 'SAN'
+      WHEN 'furniture'  THEN 'MJR'
+      WHEN 'lift'       THEN 'LFT'
+      WHEN 'electrical' THEN 'LMP'
+    END AS prefix
+  FROM categories c
+  WHERE c.code = $1
+)
+SELECT 'AST-' || t.prefix || '-' ||
+       lpad((
+         COALESCE(MAX(
+           substring(a.id FROM '^AST-' || t.prefix || '-([0-9]+)$')::int
+         ), 0) + 1
+       )::text, 4, '0') AS next_asset_id
+FROM target t
+LEFT JOIN assets a ON a.category_id = t.category_id
+GROUP BY t.prefix;
+```
+
+Agar dua admin yang menambah aset bersamaan tidak mendapat ID kembar, jalankan
+pencarian nomor dan `INSERT` dalam **satu transaksi** dengan advisory lock per
+kategori:
+
+```sql
+BEGIN;
+SELECT pg_advisory_xact_lock(hashtext('assets:' || $1)); -- $1 = categories.code
+-- SELECT next_asset_id ... lalu INSERT INTO assets ...
+COMMIT;
+```
+
+#### 6.4.2 Lokasi dari form aset (find-or-create)
+
+Form aset menyimpan lokasi sebagai teks bebas (contoh `"Gedung F • Lt. 2"`) dan
+zona sebagai teks bebas (contoh `"FT"`), sedangkan `assets.location_id` wajib
+NOT NULL. Aturan:
+
+1. Pisahkan teks lokasi pada tanda `•`: bagian pertama menjadi `building`,
+   bagian kedua menjadi `room`. `room = NULL` bila tidak ada tanda `•` atau
+   bagian ruang kosong.
+2. `zone` diisi dari field zona form.
+3. Cari baris `locations` dengan `building` + `room`; buat bila belum ada.
+4. Unique index `uq_locations_building_room_norm` memakai ekspresi
+   `(building, COALESCE(room, ''))`, jadi `ON CONFLICT` **wajib** memakai
+   ekspresi yang sama (bukan `ON CONFLICT (building, room)`).
+
+Contoh query yang sudah diuji (input `$1 = 'FT'`,
+`$2 = 'Gedung F • Lt. 2'`; dijalankan dua kali tetap menghasilkan baris yang
+sama):
+
+```sql
+INSERT INTO locations (zone, building, room)
+VALUES (
+  $1,
+  btrim(split_part($2, '•', 1)),
+  NULLIF(btrim(split_part($2, '•', 2)), '')
+)
+ON CONFLICT (building, (COALESCE(room, ''))) DO UPDATE
+  SET zone = locations.zone
+RETURNING id, zone, building, room;
+```
+
+#### 6.4.3 Aturan hapus aset permanen
+
+Hapus permanen hanya boleh bila **semua** syarat berikut terpenuhi:
+
+- `assets.archived = true`;
+- `assets.last_service_at IS NULL`;
+- tidak ada baris `tickets` dengan `asset_id` = ID aset tersebut.
+
+Database tetap menolak `DELETE` bila masih ada tiket lewat FK RESTRICT
+(`tickets_asset_id_fkey`, kode error `23503`). `asset_history` ikut terhapus
+lewat `ON DELETE CASCADE`.
+
+Catatan penting: `relatedTickets` di frontend mencocokkan tiket lewat
+**kategori** (`report.cat === asset.cat`, status bukan `done`), bukan lewat
+`tickets.asset_id`. Backend wajib memakai `tickets.asset_id` sebagai sumber
+kebenaran saat memeriksa relasi tiket–aset.
+
+#### 6.4.4 Aturan tambahan dari frontend inventaris
+
+- **Tandai selesai servis** mengubah `condition` menjadi `good`, mengisi
+  `last_service_at = now()`, dan mengganti `note` (frontend memakai
+  `"Servis selesai dan aset dinyatakan kembali dalam kondisi baik."`). Catat
+  juga `asset_history` berlabel `"Servis selesai"`.
+- **Edit** dan **servis** hanya boleh pada aset aktif (`archived = false`).
+- **Arsip** hanya untuk aset aktif; **pulihkan** hanya untuk aset terarsip.
+- **Note kosong** disimpan frontend sebagai `"Tidak ada catatan."`; backend
+  sebaiknya melakukan normalisasi yang sama.
+- Penolakan hapus oleh FK RESTRICT (kode PostgreSQL `23503`) harus
+  diterjemahkan backend menjadi pesan yang jelas, misalnya
+  `"Aset masih memiliki tiket terkait dan tidak dapat dihapus permanen."`,
+  bukan pesan generik.
 
 ---
 
@@ -666,54 +864,26 @@ WHERE id = ANY($1::int[])
 RETURNING id, ticket_code;
 ```
 
-### 7.7 CRUD kategori
+### 7.7 Referensi kategori
+
+CRUD kategori tidak diimplementasikan pada revisi ini. Backend hanya membaca
+data referensi:
 
 ```sql
--- List
 SELECT id, code, label, icon, default_team_id
 FROM categories
 ORDER BY label;
-
--- Create
-INSERT INTO categories (code, label, icon, default_team_id)
-VALUES ($1, $2, $3, $4)
-RETURNING *;
-
--- Update
-UPDATE categories
-SET label = $2, icon = $3, default_team_id = $4
-WHERE code = $1
-RETURNING *;
-
--- Delete (gagal jika masih dipakai aset/tiket)
-DELETE FROM categories
-WHERE code = $1
-RETURNING *;
 ```
 
-### 7.8 CRUD lokasi
+### 7.8 Referensi lokasi + find-or-create
+
+CRUD lokasi tidak diimplementasikan. Lokasi baru hanya dibuat otomatis dari form
+aset memakai query find-or-create di §6.4.2. Untuk membaca daftar:
 
 ```sql
--- List
 SELECT id, zone, building, room
 FROM locations
 ORDER BY zone, building, room NULLS FIRST;
-
--- Create
-INSERT INTO locations (zone, building, room)
-VALUES ($1, $2, $3)
-RETURNING *;
-
--- Update
-UPDATE locations
-SET zone = $2, building = $3, room = $4
-WHERE id = $1
-RETURNING *;
-
--- Delete (gagal jika masih dipakai aset/tiket)
-DELETE FROM locations
-WHERE id = $1
-RETURNING *;
 ```
 
 ### 7.9 Daftar teknisi dengan beban kerja
@@ -757,6 +927,184 @@ ORDER BY
 LIMIT 1;
 ```
 
+### 7.11 Daftar aset aktif
+
+```sql
+SELECT
+  a.id,
+  a.name,
+  c.code  AS category_code,
+  c.label AS category_label,
+  l.zone,
+  concat_ws(' • ', l.building, l.room) AS location,
+  a.condition,
+  a.team_id,
+  a.last_service_at,
+  a.note,
+  a.archived,
+  a.archived_at,
+  a.created_at
+FROM assets a
+JOIN categories c ON c.id = a.category_id
+JOIN locations  l ON l.id = a.location_id
+WHERE a.archived = false
+ORDER BY a.id;
+```
+
+### 7.12 Daftar aset diarsipkan
+
+```sql
+SELECT
+  a.id,
+  a.name,
+  c.code  AS category_code,
+  l.zone,
+  concat_ws(' • ', l.building, l.room) AS location,
+  a.condition,
+  a.archived,
+  a.archived_at
+FROM assets a
+JOIN categories c ON c.id = a.category_id
+JOIN locations  l ON l.id = a.location_id
+WHERE a.archived = true
+ORDER BY a.archived_at DESC, a.id;
+```
+
+### 7.13 Tambah aset + catat `asset_history`
+
+`$3` adalah `locations.id` hasil find-or-create (§6.4.2); `$4` adalah
+`categories.id` dari kode kategori. ID `$1` berasal dari query §6.4.1.
+
+```sql
+WITH created AS (
+  INSERT INTO assets (
+    id, name, location_id, category_id, condition, team_id, note, archived
+  )
+  VALUES (
+    $1, $2, $3, $4, $5, $6,
+    COALESCE(NULLIF($7, ''), 'Tidak ada catatan.'),
+    false
+  )
+  RETURNING id
+), logged AS (
+  INSERT INTO asset_history (asset_id, label, actor, note)
+  SELECT id, 'Aset terdaftar', $8,
+         'Aset baru ditambahkan ke inventaris Sarpras.'
+  FROM created
+)
+SELECT * FROM created;
+```
+
+### 7.14 Edit aset + catat riwayat
+
+Hanya aset aktif yang boleh diedit (`archived = false`).
+
+```sql
+WITH updated AS (
+  UPDATE assets
+  SET name        = $2,
+      location_id = $3,
+      category_id = $4,
+      condition   = $5,
+      team_id     = $6,
+      note        = COALESCE(NULLIF($7, ''), 'Tidak ada catatan.')
+  WHERE id = $1
+    AND archived = false
+  RETURNING id
+), logged AS (
+  INSERT INTO asset_history (asset_id, label, actor, note)
+  SELECT id, 'Data aset diperbarui', $8, $9
+  FROM updated
+)
+SELECT * FROM updated;
+```
+
+### 7.15 Arsipkan aset
+
+Hanya aset aktif; `archived_at` wajib diisi bersamaan dengan `archived = true`.
+
+```sql
+WITH updated AS (
+  UPDATE assets
+  SET archived = true,
+      archived_at = now()
+  WHERE id = $1
+    AND archived = false
+  RETURNING id
+), logged AS (
+  INSERT INTO asset_history (asset_id, label, actor, note)
+  SELECT id, 'Aset diarsipkan', $2,
+         'Aset dikeluarkan dari daftar aktif tanpa menghapus riwayat.'
+  FROM updated
+)
+SELECT * FROM updated;
+```
+
+### 7.16 Pulihkan aset
+
+Hanya aset terarsip; `archived_at` wajib dikosongkan bersamaan dengan
+`archived = false`.
+
+```sql
+WITH updated AS (
+  UPDATE assets
+  SET archived = false,
+      archived_at = NULL
+  WHERE id = $1
+    AND archived = true
+  RETURNING id
+), logged AS (
+  INSERT INTO asset_history (asset_id, label, actor, note)
+  SELECT id, 'Aset dipulihkan', $2,
+         'Aset dikembalikan ke daftar inventaris aktif.'
+  FROM updated
+)
+SELECT * FROM updated;
+```
+
+### 7.17 Tandai selesai servis
+
+Hanya aset aktif. Mengubah `condition`, `last_service_at`, `note`, dan mencatat
+riwayat.
+
+```sql
+WITH updated AS (
+  UPDATE assets
+  SET condition       = 'good',
+      last_service_at = now(),
+      note            = 'Servis selesai dan aset dinyatakan kembali dalam kondisi baik.'
+  WHERE id = $1
+    AND archived = false
+  RETURNING id
+), logged AS (
+  INSERT INTO asset_history (asset_id, label, actor, note)
+  SELECT id, 'Servis selesai', $2,
+         'Kondisi aset divalidasi dan dikembalikan ke status baik.'
+  FROM updated
+)
+SELECT * FROM updated;
+```
+
+### 7.18 Hapus permanen aset
+
+Syarat lengkap ada di §6.4.3. Query ini sudah memeriksa semua syarat; FK
+`RESTRICT` tetap menjadi pengaman terakhir bila ada tiket yang lolos.
+
+```sql
+DELETE FROM assets a
+WHERE a.id = $1
+  AND a.archived = true
+  AND a.last_service_at IS NULL
+  AND NOT EXISTS (
+    SELECT 1 FROM tickets t WHERE t.asset_id = a.id
+  )
+RETURNING a.id;
+```
+
+Jika `DELETE` mengenai aset yang masih punya tiket (mis. backend melewati
+pemeriksaan), PostgreSQL mengembalikan error `23503` pada constraint
+`tickets_asset_id_fkey`.
+
 ---
 
 ## 8. Seed dan hasil verifikasi
@@ -776,6 +1124,7 @@ LIMIT 1;
 | `ticket_assignments` | 11 | turunan `assignments`/`assignee` (2 + 2 + 7) |
 | `ticket_history` | 30 | history tiket seed (3 tiket default × 1 + 9 tiket × 3) |
 | `ticket_comments` | 5 | `notes` + `instructions` seed (2 + 2 + 1) |
+| `ticket_photos` | 0 | dibuat saat mahasiswa mengunggah foto (bukan seed) |
 
 ### 8.2 Data yang tidak terbawa / berubah bentuk
 
@@ -827,6 +1176,39 @@ Diuji pada PostgreSQL 16.9:
    `password_hash = crypt('CampusCare#2026', password_hash)` → `true` untuk
    kedua akun.
 
+### 8.4 Bukti revisi arsip aset
+
+Diuji ulang pada PostgreSQL 18.6 (target tetap 14+):
+
+1. `campuscare_full.sql` hasil regenerasi diimpor **dua kali** ke database
+   kosong `campuscare_verify` dengan `psql -v ON_ERROR_STOP=1`; keduanya
+   selesai tanpa error. Jumlah baris tetap: 4 tim, 15 teknisi, 7 kategori,
+   21 lokasi, 7 aset (`asset_history` 11), 12 tiket, dan 2 pengguna. Kedua view
+   (`v_ticket_summary`, `v_technician_workload`) tetap berjalan.
+2. Database `campuscare_legacy` dibuat dari `campuscare_full.sql` **versi
+   sebelum revisi**, lalu `migrations/001_asset_archive.sql` dijalankan **dua
+   kali**. Keduanya selesai tanpa error dan jumlah baris seluruh tabel tidak
+   berubah.
+3. Constraint diuji:
+   - `UPDATE assets SET archived = true` tanpa `archived_at` → ditolak
+     `chk_assets_archived_at`.
+   - `UPDATE assets SET archived = true, archived_at = now()` → berhasil.
+   - `UPDATE assets SET archived = false, archived_at = now()` → ditolak
+     `chk_assets_archived_at`.
+   - `DELETE FROM assets` untuk `AST-AC-0312` (punya tiket) → ditolak
+     `tickets_asset_id_fkey` dengan `ON DELETE RESTRICT` (SQLSTATE `23503`).
+   - `DELETE FROM assets` untuk `AST-MJR-0210` (tanpa tiket) → `DELETE 1`, dan
+     `asset_history` aset tersebut ikut terhapus (`CASCADE`).
+4. Query pembuatan ID §6.4.1 dengan kategori `ac` mengembalikan
+   `AST-AC-0313` setelah seed.
+5. Query find-or-create §6.4.2 dijalankan dua kali dengan input `FT` dan
+   `Gedung F • Lt. 2`: menghasilkan `locations.id` yang sama dan hanya satu
+   baris. Input tanpa `•` juga hanya membuat satu baris dengan `room = NULL`.
+6. Contoh query §7.13–§7.18 (tambah, edit, servis, arsip, pulihkan, hapus
+   permanen + riwayat) dijalankan dan berhasil sesuai aturan.
+7. `npm test` di `backend/` terhadap database `campuscare_test` hasil impor
+   revisi: **42 tes lulus, 0 gagal**.
+
 ---
 
 ## 9. Asumsi
@@ -840,18 +1222,28 @@ Diuji pada PostgreSQL 16.9:
    `#CC-2026-0916` setelah seed `#CC-2026-0915`.
 5. Soft delete hanya untuk mahasiswa. Admin tidak memfilter
    `deleted_by_student_at`.
-6. Kategori/lokasi tidak memakai soft delete. Jika sudah dipakai, admin harus
-   mengubah data atau membuat baris baru; `DELETE` akan ditolak FK.
+6. CRUD kategori/lokasi sengaja dilewati. Tabel `categories` dan `locations`
+   hanya data referensi; `DELETE` tetap ditolak FK bila baris masih dipakai.
+   Lokasi baru dibuat otomatis lewat find-or-create saat menambah aset.
 7. Teknisi yang sudah punya riwayat harus diarsipkan (`archived = true`), bukan
    dihapus.
 8. `tickets.asset_id` opsional dan hanya diisi saat hubungan tiket–aset jelas.
+   FK-nya `ON DELETE RESTRICT`: aset yang punya tiket tidak boleh dihapus
+   permanen, cukup diarsipkan.
 9. `ticket_comments.read_at` adalah ekstensi kecil di luar daftar kolom wajib,
    untuk memetakan `readAt` frontend.
-10. `tickets.photo_url` hanya disiapkan; upload file/object storage bukan
-    bagian dari tugas database ini.
+10. `tickets.photo_url` adalah cache URL foto utama. Sumber kebenaran daftar
+    foto ada di `ticket_photos`; berkas fisik berada di `UPLOAD_DIR` dan tidak
+    disimpan di database.
 11. `rejected` tersedia di CHECK tetapi belum dipakai UI.
 12. Password demo `CampusCare#2026` **wajib diganti** sebelum rilis.
-13. Tidak ada endpoint Express/API di folder `backend/`; backend anggota lain
-    tinggal memakai `pool`/`query` dari `src/config/db.js`.
+13. Endpoint aset sekarang tersedia di backend (`/api/assets`, khusus admin).
+    Perubahan skema ini menyiapkan kontraknya tanpa migrasi baru.
 14. `db/reset.sh` bersifat destruktif (drop schema `public`) dan hanya untuk
     database development/demo.
+15. Aset diarsipkan, bukan dihapus. Hapus permanen hanya untuk aset terarsip
+    tanpa riwayat servis (`last_service_at IS NULL`) dan tanpa tiket terkait.
+16. ID aset dibuat backend (bukan database) dan find-or-create lokasi dilakukan
+    backend memakai ekspresi unik `(building, COALESCE(room, ''))`.
+17. `.env.example` hanya berisi nilai contoh; tidak ada secret asli di file yang
+    di-commit.

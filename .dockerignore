@@ -1,0 +1,42 @@
+# =============================================================================
+# .dockerignore (root) — dipakai saat build image "web" (Nginx + frontend),
+# karena image itu dibangun dengan konteks root repo (context: .).
+# Yang dibutuhkan image web hanya: index.html, css/, js/, views/, assets/,
+# dan deploy/nginx/. Sisanya dikecualikan agar build cepat dan tidak ada
+# rahasia yang ikut terkirim ke Docker.
+# (Image "api" memakai backend/.dockerignore sendiri.)
+# =============================================================================
+
+# Git dan konfigurasi editor
+.git
+.gitignore
+.gitattributes
+.vscode
+.idea
+
+# Dependensi Node (frontend tidak butuh node_modules saat berjalan)
+node_modules
+**/node_modules
+
+# Rahasia / environment
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Backend punya image sendiri; dokumentasi dan backup tidak perlu
+backend
+docs
+backups
+uploads
+*.md
+**/*.log
+
+# Berkas deploy selain konfigurasi nginx
+docker-compose.yml
+deploy/scripts
+
+# Alat build CSS (css/tailwind.css sudah ter-build dan ikut di repo)
+package.json
+package-lock.json
+tailwind.config.js

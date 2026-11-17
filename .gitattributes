@@ -1,0 +1,6 @@
+*.sh text eol=lf
+# Berkas yang dibaca di server Linux/container: paksa akhir baris LF.
+Dockerfile text eol=lf
+*.conf text eol=lf
+docker-compose.yml text eol=lf
+.env*.example text eol=lf

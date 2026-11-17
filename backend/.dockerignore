@@ -1,0 +1,19 @@
+# Berkas yang TIDAK ikut dikirim ke Docker saat build image backend.
+# node_modules dipasang ulang di dalam image dengan "npm ci".
+node_modules
+npm-debug.log*
+*.log
+
+# Rahasia: .env tidak boleh masuk image. Nilai env diberikan lewat docker-compose.
+.env
+.env.*
+
+# Tidak dibutuhkan saat aplikasi berjalan.
+tests
+db
+*.md
+Dockerfile
+.dockerignore
+
+# Foto pengaduan runtime; volume Docker mengisinya saat container berjalan.
+uploads

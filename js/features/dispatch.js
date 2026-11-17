@@ -15,6 +15,8 @@ import { closeModal, openModal } from "../ui/modal.js";
 import { showToast } from "../ui/toast.js";
 import { renderReports } from "./reports.js";
 import { renderTechnicians } from "./technicians.js";
+import { updateStatusRequest } from "./tickets-api.js";
+import { photoThumbnailMarkup } from "./photo-gallery.js";
 
 const ADMIN_NAME = "Ir. Hendrawan";
 
@@ -165,11 +167,27 @@ export function refreshDispatchTechnicians(teamId, preferredTechId) {
   fillAssigneeOptions(teamId, preferredTechId);
 }
 
+/** Galeri foto bukti tiket yang dipilih pada modal disposisi cepat. */
+export function renderDispatchPhotos(report) {
+  const container = byId("dispatch-photo-gallery");
+  if (!container) return;
+
+  if (!report) {
+    container.innerHTML = "";
+    return;
+  }
+
+  const gallery = photoThumbnailMarkup(report.photos, report.id);
+  container.innerHTML =
+    gallery || `<p class="text-[11px] text-gray-500">Tidak ada foto bukti</p>`;
+}
+
 export function openDispatch(ticketId) {
   fillDispatchOptions(ticketId);
   fillTeamOptions();
 
-  const report = state.reports.find((item) => item.id === ticketId);
+  const selectedId = byId("ticket-select")?.value || ticketId;
+  const report = state.reports.find((item) => item.id === selectedId);
   const teamSelect = byId("dispatch-team");
   const suggestedTeam = report ? TEAM_FOR_CATEGORY[report.cat] : null;
   if (teamSelect && suggestedTeam && TEAM_BY_ID[suggestedTeam]) {
@@ -183,6 +201,7 @@ export function openDispatch(ticketId) {
   if (note) note.value = "";
 
   fillAssigneeOptions(teamSelect?.value || TEAMS[0].id, report?.assignee);
+  renderDispatchPhotos(report);
   openModal(byId("modal-dispatch"));
 }
 
@@ -272,6 +291,7 @@ export function handleDispatchSubmit(event) {
   const supportLabel = supporters.length
     ? ` Pendukung: ${supporters.map((technician) => technician.title).join(", ")}.`
     : "";
+  const defaultNote = `Prioritas ${priority}, target SLA ${SLA_HOURS[priority]} jam. PIC ${assignee.title}.${supportLabel}`;
 
   report.history = report.history || [];
   report.history.push({
@@ -279,9 +299,7 @@ export function handleDispatchSubmit(event) {
     label: `Disposisi ke ${team.name} — ${assignee.title}`,
     actor: ADMIN_NAME,
     status: "progress",
-    note:
-      note ||
-      `Prioritas ${priority}, target SLA ${SLA_HOURS[priority]} jam. PIC ${assignee.title}.${supportLabel}`,
+    note: note || defaultNote,
   });
 
   if (note) {
@@ -302,6 +320,21 @@ export function handleDispatchSubmit(event) {
       note,
     });
   }
+
+  // Simpan status, tim, PIC, pendukung, prioritas, dan instruksi disposisi ke backend.
+  updateStatusRequest(report, "progress", {
+    progress: report.progress,
+    teamId: team.id,
+    assignee: assignee.id,
+    supporters: supporters.map((technician) => technician.id),
+    priority,
+    note: note || defaultNote,
+    ...(note ? { instruction: note } : {}),
+  }).catch((error) => {
+    if (error.status !== 409) {
+      showToast("Status Belum Tersimpan", error.message || "Disposisi hanya tersimpan sementara.", "error");
+    }
+  });
 
   closeModal(byId("modal-dispatch"));
   event.target.reset();

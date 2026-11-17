@@ -28,19 +28,26 @@ CREATE TABLE IF NOT EXISTS users (
   nim           TEXT UNIQUE,
   name          TEXT NOT NULL,
   email         TEXT NOT NULL UNIQUE,
-  password_hash TEXT NOT NULL,
+  password_hash TEXT,
   role          TEXT NOT NULL DEFAULT 'student'
                   CHECK (role IN ('student', 'admin')),
   faculty       TEXT,
+  google_id     TEXT UNIQUE,
+  auth_provider TEXT NOT NULL DEFAULT 'local'
+                  CHECK (auth_provider IN ('local', 'google')),
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
 
   CONSTRAINT users_email_lowercase_chk CHECK (email = lower(email)),
   CONSTRAINT users_nim_format_chk
-    CHECK (nim IS NULL OR nim ~ '^[0-9]{6,20}$')
+    CHECK (nim IS NULL OR nim ~ '^[0-9]{6,20}$'),
+  CONSTRAINT users_auth_local_password_chk
+    CHECK (auth_provider <> 'local' OR password_hash IS NOT NULL)
 );
 
 COMMENT ON COLUMN users.nim IS 'NIM mahasiswa; NULL untuk admin/tendik.';
-COMMENT ON COLUMN users.password_hash IS 'Hash bcrypt (pgcrypto crypt/bf atau bcrypt Node).';
+COMMENT ON COLUMN users.password_hash IS 'Hash bcrypt (pgcrypto crypt/bf atau bcrypt Node); NULL untuk akun Google OAuth.';
+COMMENT ON COLUMN users.google_id IS 'Subject ID unik Google OAuth (Google Identity Services).';
+COMMENT ON COLUMN users.auth_provider IS 'Penyedia autentikasi: local (email + sandi) atau google (Google OAuth).';
 
 -- ----------------------------------------------------------------------------
 -- 2. teams
@@ -139,8 +146,39 @@ CREATE TABLE IF NOT EXISTS assets (
   team_id         TEXT REFERENCES teams(id) ON DELETE SET NULL,
   last_service_at TIMESTAMPTZ,
   note            TEXT,
-  created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+  archived        BOOLEAN NOT NULL DEFAULT false,
+  archived_at     TIMESTAMPTZ,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+  -- Arsip dan waktu arsip harus konsisten: keduanya terisi atau keduanya kosong.
+  CONSTRAINT chk_assets_archived_at CHECK (
+    (archived AND archived_at IS NOT NULL) OR
+    (NOT archived AND archived_at IS NULL)
+  )
 );
+
+-- Untuk database lama yang tabel assets-nya sudah dibuat sebelum revisi ini.
+ALTER TABLE assets ADD COLUMN IF NOT EXISTS archived BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE assets ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'chk_assets_archived_at'
+  ) THEN
+    ALTER TABLE assets
+      ADD CONSTRAINT chk_assets_archived_at CHECK (
+        (archived AND archived_at IS NOT NULL) OR
+        (NOT archived AND archived_at IS NULL)
+      );
+  END IF;
+END
+$$;
+
+COMMENT ON COLUMN assets.archived IS
+  'true = diarsipkan; tidak tampil di daftar aktif, riwayat tetap utuh.';
+COMMENT ON COLUMN assets.archived_at IS
+  'Waktu aset diarsipkan; NULL bila archived = false, wajib terisi bila archived = true.';
 
 -- ----------------------------------------------------------------------------
 -- 7. asset_history
@@ -178,7 +216,7 @@ CREATE TABLE IF NOT EXISTS tickets (
   category_id            INTEGER NOT NULL REFERENCES categories(id) ON DELETE RESTRICT,
   location_id            INTEGER REFERENCES locations(id) ON DELETE SET NULL,
   location_detail        TEXT,
-  asset_id               TEXT REFERENCES assets(id) ON DELETE SET NULL,
+  asset_id               TEXT REFERENCES assets(id) ON DELETE RESTRICT,
   status                 TEXT NOT NULL DEFAULT 'review'
                            CHECK (status IN ('review', 'progress', 'waiting', 'done', 'rejected')),
   priority               TEXT NOT NULL DEFAULT 'Sedang'
@@ -198,10 +236,17 @@ CREATE TABLE IF NOT EXISTS tickets (
     CHECK (ticket_code ~ '^#CC-[0-9]{4}-[0-9]{4,}$')
 );
 
+-- Aset yang masih dirujuk tiket tidak boleh dihapus permanen. RESTRICT menjaga
+-- integritas relasi; aset cukup diarsipkan (archived = true).
+ALTER TABLE tickets DROP CONSTRAINT IF EXISTS tickets_asset_id_fkey;
+ALTER TABLE tickets
+  ADD CONSTRAINT tickets_asset_id_fkey
+  FOREIGN KEY (asset_id) REFERENCES assets(id) ON DELETE RESTRICT;
+
 COMMENT ON COLUMN tickets.deleted_by_student_at IS
   'Soft delete dari fitur "hapus riwayat" mahasiswa. NULL = masih tampil bagi mahasiswa.';
 COMMENT ON COLUMN tickets.photo_url IS
-  'URL object storage untuk fitur unggah foto (belum diimplementasikan di frontend).';
+  'URL foto utama (foto pertama). Disinkronkan dari ticket_photos; NULL bila belum ada foto.';
 
 -- Trigger:
 --   1) updated_at selalu diisi now() saat UPDATE.
@@ -298,6 +343,27 @@ CREATE TABLE IF NOT EXISTS ticket_comments (
 );
 
 -- ----------------------------------------------------------------------------
+-- 12. ticket_photos
+--     Metadata foto pengaduan; berkas fisik disimpan di UPLOAD_DIR.
+--     Maksimal 3 foto per tiket ditegakkan di lapisan aplikasi (row lock).
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS ticket_photos (
+  id            BIGSERIAL PRIMARY KEY,
+  ticket_id     INTEGER NOT NULL REFERENCES tickets(id) ON DELETE CASCADE,
+  file_name     TEXT NOT NULL UNIQUE,
+  original_name TEXT,
+  mime_type     TEXT NOT NULL
+                  CHECK (mime_type IN ('image/jpeg', 'image/png', 'image/webp')),
+  size_bytes    BIGINT NOT NULL CHECK (size_bytes > 0),
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+COMMENT ON COLUMN ticket_photos.file_name IS
+  'Nama berkas UUID + ekstensi di UPLOAD_DIR; dipakai untuk URL /uploads/<file_name>.';
+COMMENT ON COLUMN ticket_photos.original_name IS
+  'Nama asli dari klien setelah sanitasi (hanya untuk informasi).';
+
+-- ----------------------------------------------------------------------------
 -- Indexes
 -- ----------------------------------------------------------------------------
 CREATE INDEX IF NOT EXISTS idx_tickets_owner_id        ON tickets (owner_id);
@@ -314,9 +380,11 @@ CREATE INDEX IF NOT EXISTS idx_ticket_assignments_ticket     ON ticket_assignmen
 CREATE INDEX IF NOT EXISTS idx_ticket_assignments_technician ON ticket_assignments (technician_id);
 CREATE INDEX IF NOT EXISTS idx_ticket_history_ticket         ON ticket_history (ticket_id, at DESC);
 CREATE INDEX IF NOT EXISTS idx_ticket_comments_ticket        ON ticket_comments (ticket_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ticket_photos_ticket          ON ticket_photos (ticket_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_technicians_team_id           ON technicians (team_id);
 CREATE INDEX IF NOT EXISTS idx_assets_category_id            ON assets (category_id);
 CREATE INDEX IF NOT EXISTS idx_assets_location_id            ON assets (location_id);
+CREATE INDEX IF NOT EXISTS idx_assets_archived               ON assets (archived);
 CREATE INDEX IF NOT EXISTS idx_asset_history_asset           ON asset_history (asset_id, at DESC);
 
 -- ----------------------------------------------------------------------------

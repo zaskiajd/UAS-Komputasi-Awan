@@ -15,19 +15,28 @@ import {
   evaluatePassword,
   setAuthRole,
   setAuthTab,
+  setButtonLoading,
+  setOnAuthSuccess,
   showFieldError,
+  showLoginError,
   togglePasswordVisibility,
+  triggerGoogleLogin,
 } from "./views/auth.js";
 import { setStudentTab } from "./views/student.js";
 import { setAdminTab } from "./views/admin.js";
 import { setPublicTab } from "./views/public.js";
-import { loginAs, logout, openPortal } from "./features/session.js";
+import { handleAuthSuccess, logout } from "./features/session.js";
+import { ApiError, loginRequest, registerRequest } from "./core/api.js";
+import { loadTicketsSafely } from "./features/tickets-api.js";
+import { loadAssetsSafely } from "./features/assets-api.js";
 import {
   handleDispatchSubmit,
   openDispatch,
   refreshDispatchTechnicians,
+  renderDispatchPhotos,
 } from "./features/dispatch.js";
-import { handleComplaintSubmit } from "./features/complaint.js";
+import { handleComplaintSubmit, bindComplaintPhotoEvents, resetComplaintPhotos, retryTicketPhotos } from "./features/complaint.js";
+import { openPhotoLightbox } from "./features/photo-gallery.js";
 import { trackReport } from "./features/timeline.js";
 import {
   cancelHistoryDelete,
@@ -35,6 +44,7 @@ import {
   openHistoryDeleteConfirm,
   renderAdminTickets,
   renderDispatchList,
+  renderReports,
   renderStudentReports,
   toggleHistoryDeleteMode,
   toggleHistorySelection,
@@ -107,6 +117,10 @@ function handleAction(actionElement) {
       setAuthRole(actionElement.dataset.role);
       break;
 
+    case "google-login":
+      triggerGoogleLogin();
+      break;
+
     case "toggle-password":
       togglePasswordVisibility(actionElement);
       break;
@@ -140,8 +154,27 @@ function handleAction(actionElement) {
 
     case "open-complaint":
       closeMenus();
+      resetComplaintPhotos();
       openModal(byId("modal-complaint"));
       break;
+
+    case "open-photo":
+      closeMenus();
+      openPhotoLightbox(actionElement);
+      break;
+
+    case "retry-photos": {
+      const ticketId = actionElement.dataset.ticket;
+      actionElement.disabled = true;
+      retryTicketPhotos(ticketId).then((ok) => {
+        if (ok && state.selectedTicket === ticketId) {
+          trackReport(ticketId);
+        } else if (document.contains(actionElement)) {
+          actionElement.disabled = false;
+        }
+      });
+      break;
+    }
 
     case "open-dispatch":
     case "open-dispatch-modal":
@@ -276,17 +309,6 @@ function handleAction(actionElement) {
 
     case "asset-confirm":
       confirmAssetAction();
-      break;
-
-    case "google-login":
-      showToast("Google Workspace SSO", "Menghubungkan ke layanan OAuth2 UNSIL...", "info");
-      setTimeout(() => {
-        if (state.view === "auth") {
-          openPortal("student", {
-            message: "Berhasil masuk melalui Google Workspace SSO UNSIL.",
-          });
-        }
-      }, 1100);
       break;
 
     case "export":
@@ -478,6 +500,15 @@ export function bindEvents() {
     });
   }
 
+  /* Galeri foto mengikuti tiket yang dipilih di dropdown. */
+  const dispatchTicketSelect = byId("ticket-select");
+  if (dispatchTicketSelect) {
+    dispatchTicketSelect.addEventListener("change", (event) => {
+      const report = state.reports.find((item) => item.id === event.target.value);
+      renderDispatchPhotos(report);
+    });
+  }
+
   const dispatchAssignee = byId("dispatch-assignee");
   if (dispatchAssignee) {
     dispatchAssignee.addEventListener("change", () => {
@@ -548,15 +579,55 @@ export function bindEvents() {
     regConfirm.addEventListener("input", clearFieldError);
   }
 
-  /* Login */
+  /* Callback sukses autentikasi (Google OAuth / integrasi lainnya) */
+  setOnAuthSuccess(async (user) => {
+    await loadTicketsSafely();
+    renderReports();
+    if (user.role === "admin") {
+      await loadAssetsSafely();
+      renderInventory();
+    }
+    handleAuthSuccess(user);
+  });
+
+  /* Login — diverifikasi ke backend (POST /auth/login) */
   const loginForm = byId("login-form");
   if (loginForm) {
-    loginForm.addEventListener("submit", (event) => {
+    loginForm.addEventListener("submit", async (event) => {
       event.preventDefault();
-      loginAs(state.authRole, {
-        email: byId("login-email").value,
-        password: byId("login-password").value,
-      });
+      clearLoginError();
+
+      const submit = loginForm.querySelector('[type="submit"]');
+      const email = byId("login-email")?.value.trim() || "";
+      const password = byId("login-password")?.value || "";
+      const role = state.role === "admin" ? "admin" : "student";
+
+      if (!email || !password) {
+        showLoginError("Email dan kata sandi wajib diisi.");
+        showToast("Data Belum Lengkap", "Email dan kata sandi wajib diisi.", "error");
+        return;
+      }
+
+      setButtonLoading(submit, true, "Memverifikasi...");
+      try {
+        const user = await loginRequest({ email, password, role });
+        const passEl = byId("login-password");
+        if (passEl) passEl.value = "";
+        await loadTicketsSafely();
+        renderReports();
+        if (user.role === "admin") {
+          await loadAssetsSafely();
+          renderInventory();
+        }
+        handleAuthSuccess(user);
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : "Terjadi kesalahan saat masuk. Coba lagi.";
+        showLoginError(message);
+        showToast("Gagal Masuk", message, "error");
+      } finally {
+        setButtonLoading(submit, false, "Masuk ke Portal CampusCare");
+      }
     });
   }
 
@@ -566,45 +637,19 @@ export function bindEvents() {
     if (input) input.addEventListener("input", clearLoginError);
   });
 
-  /* Registrasi */
+  /* Registrasi Mahasiswa Baru (POST /auth/register) */
   const registerForm = byId("register-form");
   if (registerForm) {
-    registerForm.addEventListener("submit", (event) => {
+    registerForm.addEventListener("submit", async (event) => {
       event.preventDefault();
       clearFieldError();
 
-      const name = byId("reg-name").value.trim();
-      const nim = byId("reg-nim").value.trim();
-      const faculty = byId("reg-fakultas").value;
-      const email = byId("reg-email").value.trim().toLowerCase();
-      const password = byId("reg-password").value;
-      const confirm = byId("reg-confirm").value;
-      const agreement = registerForm.querySelector('input[type="checkbox"]');
-
-      if (!name) {
-        showFieldError(byId("reg-name"), "Nama lengkap mahasiswa wajib diisi.");
-        return;
-      }
-
-      if (!/^\d{6,12}$/.test(nim)) {
-        showFieldError(byId("reg-nim"), "NIM terdiri dari 6 sampai 12 digit angka.");
-        return;
-      }
-
-      if (!faculty) {
-        showFieldError(byId("reg-fakultas"), "Pilih fakultas Anda terlebih dahulu.");
-        return;
-      }
-
-      if (!email.endsWith("@student.unsil.ac.id")) {
-        showFieldError(byId("reg-email"), "Gunakan email kampus NIM@student.unsil.ac.id.");
-        return;
-      }
-
-      if (email.split("@")[0] !== nim) {
-        showFieldError(byId("reg-email"), "NIM pada email harus sama dengan NIM di atas.");
-        return;
-      }
+      const password = byId("reg-password")?.value || "";
+      const confirm = byId("reg-confirm")?.value || "";
+      const email = byId("reg-email")?.value.trim() || "";
+      const name = byId("reg-name")?.value.trim() || "";
+      const nim = byId("reg-nim")?.value.trim() || "";
+      const faculty = byId("reg-fakultas")?.value || "";
 
       if (password.length < 8) {
         showFieldError(byId("reg-password"), "Kata sandi minimal 8 karakter.");
@@ -616,22 +661,52 @@ export function bindEvents() {
         return;
       }
 
-      if (agreement && !agreement.checked) {
-        showFieldError(agreement, "Persetujuan ketentuan layanan wajib dicentang.");
+      const submit = registerForm.querySelector('[type="submit"]');
+      setButtonLoading(submit, true, "Mendaftarkan...");
+
+      try {
+        await registerRequest({ name, nim, faculty, email, password, confirmPassword: confirm });
+      } catch (error) {
+        if (error instanceof ApiError && error.errors) {
+          const fieldIds = {
+            name: "reg-name",
+            nim: "reg-nim",
+            faculty: "reg-fakultas",
+            email: "reg-email",
+            password: "reg-password",
+            confirmPassword: "reg-confirm",
+          };
+          Object.entries(error.errors).forEach(([field, msg]) => {
+            const input = byId(fieldIds[field]);
+            if (input) input.classList.add("input-invalid");
+          });
+          const [field, message] = Object.entries(error.errors)[0] || [];
+          showFieldError(byId(fieldIds[field]), message || error.message);
+        } else {
+          showToast(
+            "Pendaftaran Gagal",
+            error instanceof ApiError ? error.message : "Terjadi kesalahan. Coba lagi.",
+            "error"
+          );
+        }
+        setButtonLoading(submit, false, "Daftarkan Akun Mahasiswa");
         return;
       }
 
-      /* Akun disimpan pada sesi berjalan, lalu mahasiswa langsung masuk. */
-      state.accounts[email] = { name, nim, faculty, email };
-      state.student = { name, nim, faculty, email };
+      setButtonLoading(submit, false, "Daftarkan Akun Mahasiswa");
+
+      const loginEmail = byId("login-email");
+      if (loginEmail) loginEmail.value = email;
 
       registerForm.reset();
       evaluatePassword("");
       clearFieldError();
 
-      openPortal("student", {
-        message: `Pendaftaran berhasil. Selamat datang, ${name}.`,
-      });
+      showToast(
+        "Pendaftaran Berhasil!",
+        `Akun ${name || "mahasiswa"} siap digunakan. Silakan masuk dengan email dan kata sandi Anda.`,
+        "success"
+      );
     });
   }
 
@@ -640,6 +715,7 @@ export function bindEvents() {
   if (complaintForm) {
     complaintForm.addEventListener("submit", handleComplaintSubmit);
   }
+  bindComplaintPhotoEvents();
 
   /* Disposisi */
   const dispatchForm = byId("dispatch-form");

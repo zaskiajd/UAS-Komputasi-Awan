@@ -1,0 +1,106 @@
+/* ==========================================================================
+   features/tickets-api.js — Sinkronisasi tiket antara frontend dan backend
+   --------------------------------------------------------------------------
+   Backend (/api/tickets) adalah sumber data. state.reports hanya salinan di
+   memori yang diisi dari API setelah login.
+   ========================================================================== */
+
+import { apiRequest } from "../core/api.js";
+import { todayLabel } from "../core/dom.js";
+import { state } from "../core/state.js";
+import { showToast } from "../ui/toast.js";
+
+const refOf = (report) =>
+  report.ticketId !== undefined && report.ticketId !== null
+    ? String(report.ticketId)
+    : encodeURIComponent(report.id);
+
+/** Menyamakan objek tiket dari API dengan bentuk yang dipakai renderer frontend. */
+export function normalizeTicket(ticket) {
+  const activePic = Array.isArray(ticket.assignments)
+    ? ticket.assignments.find(
+        (entry) => entry.role === "PIC" && (entry.status === "active" || entry.status === "done")
+      )
+    : null;
+  const photos = Array.isArray(ticket.photos) ? ticket.photos : [];
+  return {
+    assignedAt: activePic?.assignedAt || null,
+    assignments: [],
+    instructions: [],
+    notes: [],
+    history: [],
+    ...ticket,
+    photos,
+    photoUrl: ticket.photoUrl || photos[0]?.url || null,
+    date: todayLabel(ticket.createdAt),
+  };
+}
+
+/** Ambil semua tiket (+ detail: riwayat, catatan, penugasan) ke state.reports. Pemanggil yang merender ulang. */
+export async function loadTickets() {
+  const items = await apiRequest("/tickets?limit=100");
+  const detailed = await Promise.all(
+    items.map(async (item) => {
+      try {
+        return await apiRequest(`/tickets/${refOf(item)}`);
+      } catch (error) {
+        return item; // detail gagal dimuat: pakai data ringkas
+      }
+    })
+  );
+  state.reports = detailed.map(normalizeTicket);
+}
+
+/** Muat tiket; kegagalan ditampilkan sebagai toast dan tidak menghentikan login. */
+export async function loadTicketsSafely() {
+  try {
+    await loadTickets();
+  } catch (error) {
+    showToast("Gagal Memuat Pengaduan", error.message || "Data pengaduan tidak dapat dimuat.", "error");
+  }
+}
+
+export async function createTicketRequest(payload) {
+  const ticket = await apiRequest("/tickets", { method: "POST", body: payload });
+  return normalizeTicket(ticket);
+}
+
+export function updateStatusRequest(
+  report,
+  status,
+  { progress, note, teamId, assignee, supporters, priority, instruction, instructionTo } = {}
+) {
+  return apiRequest(`/tickets/${refOf(report)}/status`, {
+    method: "PATCH",
+    body: {
+      status,
+      ...(progress !== undefined ? { progress } : {}),
+      ...(note ? { note } : {}),
+      ...(teamId !== undefined ? { teamId } : {}),
+      ...(assignee !== undefined ? { assignee } : {}),
+      ...(supporters !== undefined ? { supporters } : {}),
+      ...(priority !== undefined ? { priority } : {}),
+      ...(instruction ? { instruction } : {}),
+      ...(instructionTo ? { instructionTo } : {}),
+    },
+  });
+}
+
+export function deleteTicketRequest(report) {
+  return apiRequest(`/tickets/${refOf(report)}`, { method: "DELETE" });
+}
+
+/** Unggah 1–3 foto setelah tiket berhasil dibuat. */
+export function uploadTicketPhotos(report, files) {
+  const form = new FormData();
+  for (const file of files) form.append("photos", file, file.name);
+  return apiRequest(`/tickets/${refOf(report)}/photos`, {
+    method: "POST",
+    body: form,
+  });
+}
+
+/** Hapus satu foto milik tiket (mis. dari UI detail mahasiswa). */
+export function deleteTicketPhoto(report, photoId) {
+  return apiRequest(`/tickets/${refOf(report)}/photos/${photoId}`, { method: "DELETE" });
+}

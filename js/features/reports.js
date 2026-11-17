@@ -15,6 +15,8 @@ import { CATEGORY_META, PRIORITY_META, STATUS_META } from "../data/reports.js";
 import { closeModal, openModal } from "../ui/modal.js";
 import { showToast } from "../ui/toast.js";
 import { renderAnalytics } from "./analytics.js";
+import { deleteTicketRequest } from "./tickets-api.js";
+import { photoThumbnailMarkup } from "./photo-gallery.js";
 
 export function statusCounts(reports = state.reports) {
   return {
@@ -166,7 +168,7 @@ function reportActions(report, mode) {
   }
 
   return `
-      <button type="button" class="h-11 px-5 rounded-full ${isOverdue(report) ? "bg-error text-white" : "bg-inverse-surface text-white"} text-xs font-bold hover:brightness-110 transition-all flex items-center gap-1.5 shadow-sm" data-action="open-detail" data-ticket="${escapeHtml(report.id)}">
+      <button type="button" class="h-11 px-5 rounded-full bg-inverse-surface text-white text-xs font-bold hover:brightness-110 transition-all flex items-center gap-1.5 shadow-sm" data-action="open-detail" data-ticket="${escapeHtml(report.id)}">
         <span>${report.status === "waiting" ? "Detail Tiket" : "Kelola Tiket"}</span>
         <span class="material-symbols-outlined text-base font-bold">arrow_forward</span>
       </button>`;
@@ -256,6 +258,7 @@ function reportCard(report, mode) {
               </span>
               ${teamLine}
             </div>
+            ${photoThumbnailMarkup(report.photos, report.id)}
           </div>
         </div>
         ${
@@ -407,20 +410,30 @@ export function openHistoryDeleteConfirm() {
   openModal(modal);
 }
 
-export function executeHistoryDelete() {
+export async function executeHistoryDelete() {
   if (!state.historySelection.size) return;
 
-  const selectedIds = new Set(state.historySelection);
-  const count = selectedIds.size;
+  const selected = state.reports.filter((report) => state.historySelection.has(report.id));
+  const removed = new Set();
+  const failures = [];
 
-  state.reports = state.reports.filter((report) => !selectedIds.has(report.id));
+  for (const report of selected) {
+    try {
+      await deleteTicketRequest(report);
+      removed.add(report.id);
+    } catch (error) {
+      failures.push(`${report.id}: ${error.message}`);
+    }
+  }
+
+  state.reports = state.reports.filter((report) => !removed.has(report.id));
   state.historySelection.clear();
   state.historyDeleteMode = false;
 
   closeModal(byId("modal-delete-history"));
 
   const detail = byId("student-detail-card");
-  if (detail && selectedIds.has(detail.dataset.ticket)) {
+  if (detail && removed.has(detail.dataset.ticket)) {
     detail.hidden = true;
     detail.innerHTML = "";
     delete detail.dataset.ticket;
@@ -428,11 +441,16 @@ export function executeHistoryDelete() {
   }
 
   renderReports();
-  showToast(
-    "Riwayat dihapus",
-    `${count} pengaduan berhasil dihapus dari riwayat Anda.`,
-    "success"
-  );
+  if (removed.size) {
+    showToast(
+      "Riwayat dihapus",
+      `${removed.size} pengaduan berhasil dihapus dari riwayat Anda.`,
+      "success"
+    );
+  }
+  if (failures.length) {
+    showToast("Sebagian Tidak Dapat Dihapus", failures[0], "error");
+  }
 }
 
 /** Kartu ringkas pada panel Ringkasan (maksimal 3 tiket terbaru milik mahasiswa). */

@@ -160,7 +160,7 @@ ON CONFLICT DO NOTHING;
 -- ----------------------------------------------------------------------------
 -- Aset (7) + riwayat
 -- ----------------------------------------------------------------------------
-INSERT INTO assets (id, name, location_id, category_id, condition, team_id, last_service_at, note)
+INSERT INTO assets (id, name, location_id, category_id, condition, team_id, last_service_at, note, archived, archived_at)
 VALUES
   (
     'AST-AC-0312',
@@ -168,7 +168,8 @@ VALUES
     (SELECT id FROM locations WHERE building = 'Gedung F (Fakultas Teknik)' AND room = 'Lt. 2'),
     (SELECT id FROM categories WHERE code = 'ac'),
     'service', 'electrical', now() - INTERVAL '26 days',
-    'Drainase kondensat tersumbat dan unit mengeluarkan tetesan air.'
+    'Drainase kondensat tersumbat dan unit mengeluarkan tetesan air.',
+    false, NULL
   ),
   (
     'AST-PRJ-0087',
@@ -176,7 +177,8 @@ VALUES
     (SELECT id FROM locations WHERE building = 'GKB (Gedung Kuliah Bersama)' AND room = 'R.204'),
     (SELECT id FROM categories WHERE code = 'projector'),
     'broken', 'av', now() - INTERVAL '66 days',
-    'Lampu indikator mati total, ballast terindikasi lemah.'
+    'Lampu indikator mati total, ballast terindikasi lemah.',
+    false, NULL
   ),
   (
     'AST-WIFI-0145',
@@ -184,7 +186,8 @@ VALUES
     (SELECT id FROM locations WHERE building = 'Gedung D (Perpustakaan Pusat)' AND room = 'Lt. 2'),
     (SELECT id FROM categories WHERE code = 'network'),
     'disrupted', 'network', now() - INTERVAL '20 days',
-    'Koneksi terputus berkala, perlu audit jalur uplink.'
+    'Koneksi terputus berkala, perlu audit jalur uplink.',
+    false, NULL
   ),
   (
     'AST-LFT-0004',
@@ -192,7 +195,8 @@ VALUES
     (SELECT id FROM locations WHERE building = 'Gedung A (Rektorat)' AND room IS NULL),
     (SELECT id FROM categories WHERE code = 'lift'),
     'good', 'civil', now() - INTERVAL '10 days',
-    'Inspeksi bulanan selesai, seluruh sensor berfungsi normal.'
+    'Inspeksi bulanan selesai, seluruh sensor berfungsi normal.',
+    false, NULL
   ),
   (
     'AST-MJR-0210',
@@ -200,7 +204,8 @@ VALUES
     (SELECT id FROM locations WHERE building = 'Gedung F (Fakultas Teknik)' AND room = 'R.301'),
     (SELECT id FROM categories WHERE code = 'furniture'),
     'good', 'civil', now() - INTERVAL '33 days',
-    'Kondisi stabil, tidak ada keluhan aktif.'
+    'Kondisi stabil, tidak ada keluhan aktif.',
+    false, NULL
   ),
   (
     'AST-SAN-0063',
@@ -208,7 +213,8 @@ VALUES
     (SELECT id FROM locations WHERE building = 'Gedung A (Rektorat)' AND room = 'Lt. 1'),
     (SELECT id FROM categories WHERE code = 'sanitation'),
     'service', 'civil', now() - INTERVAL '47 days',
-    'Engsel pengganti masih dalam pengiriman vendor.'
+    'Engsel pengganti masih dalam pengiriman vendor.',
+    false, NULL
   ),
   (
     'AST-LMP-0455',
@@ -216,7 +222,8 @@ VALUES
     (SELECT id FROM locations WHERE building = 'Gelanggang Olahraga' AND room IS NULL),
     (SELECT id FROM categories WHERE code = 'electrical'),
     'good', 'electrical', now() - INTERVAL '3 days',
-    'Penggantian lampu selesai dan lolos uji nyala.'
+    'Penggantian lampu selesai dan lolos uji nyala.',
+    false, NULL
   )
 ON CONFLICT (id) DO UPDATE SET
   name            = EXCLUDED.name,
@@ -225,7 +232,9 @@ ON CONFLICT (id) DO UPDATE SET
   condition       = EXCLUDED.condition,
   team_id         = EXCLUDED.team_id,
   last_service_at = EXCLUDED.last_service_at,
-  note            = EXCLUDED.note;
+  note            = EXCLUDED.note,
+  archived        = EXCLUDED.archived,
+  archived_at     = EXCLUDED.archived_at;
 
 WITH seed_asset_history (asset_id, days_ago, label, actor, note) AS (
   VALUES
@@ -290,24 +299,6 @@ WITH seed_tickets (
       'ac', 'FT', 'Gedung F (Fakultas Teknik)', 'Lab Komputer 3 (Lt. 2)', 'Lab Komp 3 (Lt. 2)', 'AST-AC-0312',
       'review', 'Tinggi', true, 0, NULL,
       now() - INTERVAL '18 minutes', now() - INTERVAL '18 minutes', NULL
-    ),
-    (
-      '#CC-2026-0908',
-      'Proyektor Mati Total Ruang Kuliah R.204 GKB',
-      'Proyektor tidak menyala saat mata kuliah pagi. Kabel dan sumber listrik sudah dicek, tetapi lampu indikator tetap mati.',
-      'Ahmad Rizki (Mhs • 217006120)', '217006120',
-      'projector', 'GKB', 'GKB (Gedung Kuliah Bersama)', 'R.204', 'R.204 Lt. 2', 'AST-PRJ-0087',
-      'progress', 'Sedang', false, 65, 'av',
-      now() - INTERVAL '155 minutes', now() - INTERVAL '40 minutes', NULL
-    ),
-    (
-      '#CC-2026-0899',
-      'Kerusakan Pintu Geser & Saklar Toilet Pria Lt.1 Rektorat',
-      'Pintu geser tidak bisa menutup rapat dan saklar lampu toilet kadang tidak merespons. Perbaikan menunggu suku cadang engsel.',
-      'Siti Rahma (Tendik BAKPK)', NULL,
-      'sanitation', 'Rektorat', 'Gedung A (Rektorat)', 'Lt. 1', 'Lt. 1', 'AST-SAN-0063',
-      'waiting', 'Sedang', false, 45, 'civil',
-      now() - INTERVAL '1680 minutes', now() - INTERVAL '120 minutes', NULL
     ),
     (
       '#CC-2026-0885',
@@ -420,10 +411,6 @@ ON CONFLICT (ticket_code) DO NOTHING;
 -- ----------------------------------------------------------------------------
 WITH seed_assignments (ticket_code, technician_id, role, status, assigned_minutes_ago) AS (
   VALUES
-    ('#CC-2026-0908', 'fajar',  'PIC',       'active', 140),
-    ('#CC-2026-0908', 'yudi',   'Pendukung', 'active', 120),
-    ('#CC-2026-0899', 'dadi',   'PIC',       'active', 1600),
-    ('#CC-2026-0899', 'nanang', 'Pendukung', 'active', 1580),
     ('#CC-2026-0885', 'agus',   'PIC',       'done',   2880),
     ('#CC-2026-0864', 'iwan',   'PIC',       'done',   5760),
     ('#CC-2026-0845', 'nanang', 'PIC',       'done',   43110),
@@ -463,20 +450,6 @@ WITH seed_history (ticket_code, minutes_ago, label, actor, status, note) AS (
     -- #CC-2026-0912
     ('#CC-2026-0912', 18, 'Pengaduan diterima', 'Ahmad Rizki (Mhs • 217006120)', 'review',
      'Laporan masuk ke antrean verifikasi Biro Sarpras.'),
-    -- #CC-2026-0908
-    ('#CC-2026-0908', 155, 'Pengaduan diterima', 'Ahmad Rizki', 'review',
-     'Laporan masuk ke antrean verifikasi.'),
-    ('#CC-2026-0908', 140, 'Disposisi ke Tim Multimedia & AV', 'Ir. Hendrawan', 'progress',
-     'Prioritas sedang, target SLA 6 jam.'),
-    ('#CC-2026-0908', 40, 'Teknisi mulai menangani', 'Fajar', 'progress',
-     'Pemeriksaan unit dan jalur daya selesai.'),
-    -- #CC-2026-0899
-    ('#CC-2026-0899', 1680, 'Pengaduan diterima', 'Siti Rahma', 'review',
-     'Laporan masuk ke antrean verifikasi.'),
-    ('#CC-2026-0899', 1600, 'Disposisi ke Tim Sanitasi & Sipil', 'Ir. Hendrawan', 'progress',
-     'Pemeriksaan awal oleh tim sipil.'),
-    ('#CC-2026-0899', 120, 'Menunggu suku cadang', 'Dadi', 'waiting',
-     'Perbaikan tertunda sampai engsel pengganti tiba.'),
     -- #CC-2026-0885
     ('#CC-2026-0885', 4320, 'Pengaduan diterima', 'BEM Mahasiswa', 'review',
      'Laporan masuk ke antrean verifikasi.'),
@@ -559,30 +532,6 @@ WITH seed_comments (
   target_technician_id, body, is_public, minutes_ago
 ) AS (
   VALUES
-    (
-      '#CC-2026-0908', 'instruction', 'hendrawan@unsil.ac.id', 'Ir. Hendrawan',
-      'fajar',
-      'Gunakan unit proyektor cadangan dari gudang AV dan uji HDMI sebelum kelas berikutnya.',
-      false, 42
-    ),
-    (
-      '#CC-2026-0908', 'note', NULL, 'Fajar',
-      NULL,
-      'Unit proyektor sudah dibuka. Ballast lampu terindikasi lemah, sedang disiapkan unit pengganti.',
-      false, 38
-    ),
-    (
-      '#CC-2026-0899', 'instruction', 'hendrawan@unsil.ac.id', 'Ir. Hendrawan',
-      'dadi',
-      'Koordinasikan dengan vendor engsel; bila tiba, pasang bersama Nanang dan uji buka-tutup 20 kali.',
-      false, 125
-    ),
-    (
-      '#CC-2026-0899', 'note', NULL, 'Dadi',
-      NULL,
-      'Engsel pintu tipe geser sudah dipesan ke vendor. Estimasi tiba 2 hari kerja.',
-      false, 120
-    ),
     (
       '#CC-2026-0885', 'note', NULL, 'Agus',
       NULL,

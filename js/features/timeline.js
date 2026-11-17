@@ -7,6 +7,8 @@ import { byId, escapeHtml } from "../core/dom.js";
 import { activeStudent, state } from "../core/state.js";
 import { STATUS_META } from "../data/reports.js";
 import { setStudentTab } from "../views/student.js";
+import { photoGalleryMarkup } from "./photo-gallery.js";
+import { photoRetryMarkup } from "./complaint.js";
 
 const STAGE_ICONS = ["inbox", "fact_check", "engineering", "task_alt"];
 
@@ -130,6 +132,10 @@ export function trackReport(ticketId) {
       </div>
 
       <p class="text-sm text-on-surface leading-relaxed mt-4">${escapeHtml(report.description)}</p>
+
+      ${photoGalleryMarkup(report.photos, { ticketId: report.id, label: "Foto bukti pengaduan" })}
+
+      ${photoRetryMarkup(report)}
 
       <div class="mt-5 overflow-hidden rounded-2xl border border-[#e2e8f0] bg-gradient-to-br from-white via-white to-[#fff4ee]">
         <div class="flex flex-col lg:flex-row">
