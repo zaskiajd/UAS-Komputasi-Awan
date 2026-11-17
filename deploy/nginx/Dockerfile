@@ -25,6 +25,7 @@ COPY deploy/nginx/security-headers.conf /etc/nginx/snippets/security-headers.con
 # File statis frontend. Yang TIDAK disalin: backend/, docs/, node_modules/,
 # .git/, .env* (lihat juga .dockerignore di root repo).
 COPY index.html /usr/share/nginx/html/index.html
+COPY UNSIL.png /usr/share/nginx/html/UNSIL.png
 COPY css/    /usr/share/nginx/html/css/
 COPY js/     /usr/share/nginx/html/js/
 COPY views/  /usr/share/nginx/html/views/
