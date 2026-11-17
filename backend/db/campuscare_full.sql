@@ -256,7 +256,7 @@ ALTER TABLE tickets
 COMMENT ON COLUMN tickets.deleted_by_student_at IS
   'Soft delete dari fitur "hapus riwayat" mahasiswa. NULL = masih tampil bagi mahasiswa.';
 COMMENT ON COLUMN tickets.photo_url IS
-  'URL object storage untuk fitur unggah foto (belum diimplementasikan di frontend).';
+  'URL foto utama (foto pertama). Disinkronkan dari ticket_photos; NULL bila belum ada foto.';
 
 -- Trigger:
 --   1) updated_at selalu diisi now() saat UPDATE.
@@ -353,6 +353,27 @@ CREATE TABLE IF NOT EXISTS ticket_comments (
 );
 
 -- ----------------------------------------------------------------------------
+-- 12. ticket_photos
+--     Metadata foto pengaduan; berkas fisik disimpan di UPLOAD_DIR.
+--     Maksimal 3 foto per tiket ditegakkan di lapisan aplikasi (row lock).
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS ticket_photos (
+  id            BIGSERIAL PRIMARY KEY,
+  ticket_id     INTEGER NOT NULL REFERENCES tickets(id) ON DELETE CASCADE,
+  file_name     TEXT NOT NULL UNIQUE,
+  original_name TEXT,
+  mime_type     TEXT NOT NULL
+                  CHECK (mime_type IN ('image/jpeg', 'image/png', 'image/webp')),
+  size_bytes    BIGINT NOT NULL CHECK (size_bytes > 0),
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+COMMENT ON COLUMN ticket_photos.file_name IS
+  'Nama berkas UUID + ekstensi di UPLOAD_DIR; dipakai untuk URL /uploads/<file_name>.';
+COMMENT ON COLUMN ticket_photos.original_name IS
+  'Nama asli dari klien setelah sanitasi (hanya untuk informasi).';
+
+-- ----------------------------------------------------------------------------
 -- Indexes
 -- ----------------------------------------------------------------------------
 CREATE INDEX IF NOT EXISTS idx_tickets_owner_id        ON tickets (owner_id);
@@ -369,6 +390,7 @@ CREATE INDEX IF NOT EXISTS idx_ticket_assignments_ticket     ON ticket_assignmen
 CREATE INDEX IF NOT EXISTS idx_ticket_assignments_technician ON ticket_assignments (technician_id);
 CREATE INDEX IF NOT EXISTS idx_ticket_history_ticket         ON ticket_history (ticket_id, at DESC);
 CREATE INDEX IF NOT EXISTS idx_ticket_comments_ticket        ON ticket_comments (ticket_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ticket_photos_ticket          ON ticket_photos (ticket_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_technicians_team_id           ON technicians (team_id);
 CREATE INDEX IF NOT EXISTS idx_assets_category_id            ON assets (category_id);
 CREATE INDEX IF NOT EXISTS idx_assets_location_id            ON assets (location_id);

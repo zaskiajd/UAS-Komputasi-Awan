@@ -869,3 +869,268 @@ test.describe('Pengaduan — status oleh admin & aturan status', () => {
     assert.equal(dispatch.body.data.instructions[0].text, 'Segera cek kompresor AC Lab AI.');
   });
 });
+
+test.describe('Pengaduan — tim penanganan & instruksi terarah', () => {
+  /** Disposisi awal (perilaku lama) agar tiket punya PIC + pendukung. */
+  async function assign(ticket, supporters = ['rian', 'agus']) {
+    const res = await api('PATCH', `/tickets/${ticket.ticketId}/status`, {
+      token: adminToken,
+      body: {
+        status: 'progress',
+        teamId: 'electrical',
+        assignee: 'hendra',
+        supporters,
+      },
+    });
+    assert.equal(res.status, 200, JSON.stringify(res.body));
+    return res.body.data;
+  }
+
+  /** Ubah hanya daftar pendukung (tanpa `assignee`). */
+  function updateSupporters(ticket, supporters, extra = {}) {
+    return api('PATCH', `/tickets/${ticket.ticketId}/status`, {
+      token: adminToken,
+      body: { status: 'progress', supporters, ...extra },
+    });
+  }
+
+  async function assignmentRows(ticketId) {
+    const { rows } = await query(
+      `SELECT technician_id, role, status
+         FROM ticket_assignments
+        WHERE ticket_id = $1
+        ORDER BY id`,
+      [ticketId]
+    );
+    return rows;
+  }
+
+  test('lepas pendukung tanpa assignee: baris removed, PIC tetap aktif, riwayat tercatat', async () => {
+    const { token } = await registerStudent();
+    const t = await newTicket(token);
+    await assign(t);
+
+    const res = await updateSupporters(t, ['rian']);
+    assert.equal(res.status, 200, JSON.stringify(res.body));
+    assert.equal(res.body.data.assignee, 'hendra');
+
+    const rows = await assignmentRows(t.ticketId);
+    assert.equal(rows.filter((r) => r.role === 'PIC').length, 1);
+    assert.equal(rows.find((r) => r.role === 'PIC').status, 'active');
+    assert.equal(
+      rows.find((r) => r.technician_id === 'agus' && r.role === 'Pendukung').status,
+      'removed'
+    );
+    assert.equal(
+      rows.find((r) => r.technician_id === 'rian' && r.role === 'Pendukung').status,
+      'active'
+    );
+
+    const history = res.body.data.history.at(-1);
+    assert.equal(history.label, 'Tim penanganan diperbarui');
+    assert.match(history.note, /dilepas: Agus/);
+  });
+
+  test('tambah pendukung tanpa assignee: baris baru active, PIC tidak bertambah', async () => {
+    const { token } = await registerStudent();
+    const t = await newTicket(token);
+    await assign(t, ['rian']);
+
+    const res = await updateSupporters(t, ['rian', 'agus']);
+    assert.equal(res.status, 200, JSON.stringify(res.body));
+
+    const rows = await assignmentRows(t.ticketId);
+    assert.equal(rows.filter((r) => r.role === 'PIC').length, 1);
+    assert.equal(
+      rows.find((r) => r.technician_id === 'agus' && r.role === 'Pendukung').status,
+      'active'
+    );
+    assert.equal(rows.filter((r) => r.role === 'Pendukung' && r.status === 'active').length, 2);
+
+    const history = res.body.data.history.at(-1);
+    assert.equal(history.label, 'Tim penanganan diperbarui');
+    assert.match(history.note, /Pendukung ditambahkan: Agus/);
+  });
+
+  test('daftar pendukung kosong melepas semua pendukung', async () => {
+    const { token } = await registerStudent();
+    const t = await newTicket(token);
+    await assign(t, ['rian', 'agus']);
+
+    const res = await updateSupporters(t, []);
+    assert.equal(res.status, 200, JSON.stringify(res.body));
+
+    const rows = await assignmentRows(t.ticketId);
+    const supporters = rows.filter((r) => r.role === 'Pendukung');
+    assert.equal(supporters.length, 2);
+    assert.ok(supporters.every((r) => r.status === 'removed'));
+    assert.equal(rows.find((r) => r.role === 'PIC').status, 'active');
+
+    const history = res.body.data.history.at(-1);
+    assert.equal(history.label, 'Tim penanganan diperbarui');
+    assert.match(history.note, /dilepas: Rian, Agus|dilepas: Agus, Rian/);
+  });
+
+  test('supporters tanpa PIC aktif → 409 "Tetapkan PIC lebih dulu lewat disposisi"', async () => {
+    const { token } = await registerStudent();
+    const t = await newTicket(token);
+
+    const res = await updateSupporters(t, ['rian']);
+    assert.equal(res.status, 409, JSON.stringify(res.body));
+    assert.match(res.body.message, /Tetapkan PIC lebih dulu lewat disposisi/);
+
+    const rows = await assignmentRows(t.ticketId);
+    assert.equal(rows.length, 0);
+  });
+
+  test('ID teknisi pendukung tidak ada / terarsip → 422', async () => {
+    const { token } = await registerStudent();
+    const t = await newTicket(token);
+    await assign(t, ['rian']);
+
+    const missing = await updateSupporters(t, ['rian', 'tidak-ada']);
+    assert.equal(missing.status, 422, JSON.stringify(missing.body));
+    assert.ok(missing.body.errors.supporters);
+
+    const rows = await assignmentRows(t.ticketId);
+    assert.equal(rows.find((r) => r.technician_id === 'rian').status, 'active');
+  });
+
+  test('PIC yang dikirim sebagai pendukung diabaikan', async () => {
+    const { token } = await registerStudent();
+    const t = await newTicket(token);
+    await assign(t, ['rian']);
+
+    const res = await updateSupporters(t, ['hendra', 'agus']);
+    assert.equal(res.status, 200, JSON.stringify(res.body));
+
+    const rows = await assignmentRows(t.ticketId);
+    assert.equal(rows.filter((r) => r.role === 'PIC').length, 1);
+    assert.equal(rows.find((r) => r.role === 'PIC').technician_id, 'hendra');
+    assert.equal(
+      rows.filter((r) => r.role === 'Pendukung' && r.technician_id === 'hendra').length,
+      0
+    );
+    assert.equal(
+      rows.find((r) => r.technician_id === 'agus' && r.role === 'Pendukung').status,
+      'active'
+    );
+  });
+
+  test('instruksi ke pendukung: target benar, PIC tidak berubah', async () => {
+    const { token } = await registerStudent();
+    const t = await newTicket(token);
+    await assign(t, ['rian']);
+
+    const res = await api('PATCH', `/tickets/${t.ticketId}/status`, {
+      token: adminToken,
+      body: { status: 'progress', instruction: 'Cek tekanan freon.', instructionTo: 'rian' },
+    });
+    assert.equal(res.status, 200, JSON.stringify(res.body));
+    assert.equal(res.body.data.assignee, 'hendra');
+
+    const instruction = res.body.data.instructions.at(-1);
+    assert.equal(instruction.toTechId, 'rian');
+    assert.equal(instruction.text, 'Cek tekanan freon.');
+
+    const history = res.body.data.history.at(-1);
+    assert.equal(history.label, 'Instruksi terarah ke Rian');
+    assert.equal(history.note, 'Cek tekanan freon.');
+
+    const rows = await assignmentRows(t.ticketId);
+    assert.equal(rows.filter((r) => r.role === 'PIC' && r.status === 'active').length, 1);
+    assert.equal(rows.find((r) => r.role === 'PIC' && r.status === 'active').technician_id, 'hendra');
+
+    const comment = await query(
+      `SELECT target_technician_id FROM ticket_comments
+        WHERE ticket_id = $1 AND kind = 'instruction'`,
+      [t.ticketId]
+    );
+    assert.equal(comment.rows.at(-1).target_technician_id, 'rian');
+  });
+
+  test('instruksi ke teknisi di luar roster → 422 dan tidak tersimpan', async () => {
+    const { token } = await registerStudent();
+    const t = await newTicket(token);
+    await assign(t, ['rian']);
+
+    const res = await api('PATCH', `/tickets/${t.ticketId}/status`, {
+      token: adminToken,
+      body: { status: 'progress', instruction: 'Cek jaringan.', instructionTo: 'bayu' },
+    });
+    assert.equal(res.status, 422, JSON.stringify(res.body));
+    assert.ok(res.body.errors.instructionTo);
+
+    const comments = await query(
+      `SELECT COUNT(*)::int AS n FROM ticket_comments
+        WHERE ticket_id = $1 AND kind = 'instruction'`,
+      [t.ticketId]
+    );
+    assert.equal(comments.rows[0].n, 0);
+  });
+
+  test('disposisi lama (dengan assignee) tetap berperilaku sama', async () => {
+    const { token } = await registerStudent();
+    const t = await newTicket(token);
+    const url = `/tickets/${t.ticketId}/status`;
+
+    const dispatched = await api('PATCH', url, {
+      token: adminToken,
+      body: {
+        status: 'progress',
+        teamId: 'electrical',
+        assignee: 'hendra',
+        supporters: ['agus'],
+      },
+    });
+    assert.equal(dispatched.status, 200, JSON.stringify(dispatched.body));
+    assert.equal(
+      dispatched.body.data.history.at(-1).label,
+      'Disposisi ke Tim Kelistrikan & Tata Udara — Pak Hendra'
+    );
+
+    const changed = await api('PATCH', url, {
+      token: adminToken,
+      body: { status: 'progress', assignee: 'rian' },
+    });
+    assert.equal(changed.status, 200, JSON.stringify(changed.body));
+    assert.equal(changed.body.data.assignee, 'rian');
+    assert.equal(
+      changed.body.data.history.at(-1).label,
+      'Disposisi ke Tim Kelistrikan & Tata Udara — Rian'
+    );
+
+    const rows = await assignmentRows(t.ticketId);
+    assert.equal(rows.find((r) => r.role === 'PIC' && r.status === 'active').technician_id, 'rian');
+    assert.equal(
+      rows.find((r) => r.technician_id === 'agus' && r.role === 'Pendukung').status,
+      'active'
+    );
+  });
+
+  test('dua pembaruan pendukung paralel tidak melanggar indeks unik penugasan aktif', async () => {
+    const { token } = await registerStudent();
+    const t = await newTicket(token);
+    await assign(t, []);
+
+    const [a, b] = await Promise.all([updateSupporters(t, ['rian']), updateSupporters(t, ['agus'])]);
+    assert.notEqual(a.status, 500);
+    assert.notEqual(b.status, 500);
+    assert.equal(a.status, 200, JSON.stringify(a.body));
+    assert.equal(b.status, 200, JSON.stringify(b.body));
+
+    const rows = await assignmentRows(t.ticketId);
+    const activeSupporters = rows.filter((r) => r.role === 'Pendukung' && r.status === 'active');
+    assert.ok(activeSupporters.length <= 1);
+
+    const duplicates = await query(
+      `SELECT technician_id, COUNT(*)::int AS n
+         FROM ticket_assignments
+        WHERE ticket_id = $1 AND status = 'active'
+        GROUP BY technician_id
+       HAVING COUNT(*) > 1`,
+      [t.ticketId]
+    );
+    assert.equal(duplicates.rows.length, 0);
+  });
+});

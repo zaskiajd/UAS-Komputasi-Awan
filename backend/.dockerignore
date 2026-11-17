@@ -14,3 +14,6 @@ db
 *.md
 Dockerfile
 .dockerignore
+
+# Foto pengaduan runtime; volume Docker mengisinya saat container berjalan.
+uploads

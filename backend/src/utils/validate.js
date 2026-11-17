@@ -217,6 +217,17 @@ function validateStatusUpdate(body = {}) {
     } else if (instruction) value.instruction = instruction;
   }
 
+  if (
+    body.instructionTo !== undefined &&
+    body.instructionTo !== null &&
+    body.instructionTo !== ''
+  ) {
+    const instructionTo = str(body.instructionTo);
+    if (!instructionTo || !/^[a-z0-9_-]{1,40}$/.test(instructionTo)) {
+      errors.instructionTo = 'ID teknisi penerima instruksi tidak valid.';
+    } else value.instructionTo = instructionTo;
+  }
+
   return { value, errors };
 }
 

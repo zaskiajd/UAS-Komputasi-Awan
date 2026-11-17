@@ -28,6 +28,7 @@ node_modules
 backend
 docs
 backups
+uploads
 *.md
 **/*.log
 

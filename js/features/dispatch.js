@@ -16,6 +16,7 @@ import { showToast } from "../ui/toast.js";
 import { renderReports } from "./reports.js";
 import { renderTechnicians } from "./technicians.js";
 import { updateStatusRequest } from "./tickets-api.js";
+import { photoThumbnailMarkup } from "./photo-gallery.js";
 
 const ADMIN_NAME = "Ir. Hendrawan";
 
@@ -166,11 +167,27 @@ export function refreshDispatchTechnicians(teamId, preferredTechId) {
   fillAssigneeOptions(teamId, preferredTechId);
 }
 
+/** Galeri foto bukti tiket yang dipilih pada modal disposisi cepat. */
+export function renderDispatchPhotos(report) {
+  const container = byId("dispatch-photo-gallery");
+  if (!container) return;
+
+  if (!report) {
+    container.innerHTML = "";
+    return;
+  }
+
+  const gallery = photoThumbnailMarkup(report.photos, report.id);
+  container.innerHTML =
+    gallery || `<p class="text-[11px] text-gray-500">Tidak ada foto bukti</p>`;
+}
+
 export function openDispatch(ticketId) {
   fillDispatchOptions(ticketId);
   fillTeamOptions();
 
-  const report = state.reports.find((item) => item.id === ticketId);
+  const selectedId = byId("ticket-select")?.value || ticketId;
+  const report = state.reports.find((item) => item.id === selectedId);
   const teamSelect = byId("dispatch-team");
   const suggestedTeam = report ? TEAM_FOR_CATEGORY[report.cat] : null;
   if (teamSelect && suggestedTeam && TEAM_BY_ID[suggestedTeam]) {
@@ -184,6 +201,7 @@ export function openDispatch(ticketId) {
   if (note) note.value = "";
 
   fillAssigneeOptions(teamSelect?.value || TEAMS[0].id, report?.assignee);
+  renderDispatchPhotos(report);
   openModal(byId("modal-dispatch"));
 }
 

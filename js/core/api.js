@@ -62,11 +62,13 @@ export function setUnauthorizedHandler(handler) {
  * Melempar ApiError terstruktur bila status non-2xx atau success=false.
  *
  * @param {string} path contoh "/auth/login"
- * @param {{method?: string, body?: object, auth?: boolean}} [options]
+ * @param {{method?: string, body?: object|FormData, auth?: boolean}} [options]
  */
 export async function request(path, { method = "GET", body, auth = true } = {}) {
+  const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
   const headers = { Accept: "application/json" };
-  if (body !== undefined) headers["Content-Type"] = "application/json";
+  // Jangan paksa Content-Type JSON untuk FormData: browser menambahkan boundary.
+  if (body !== undefined && !isFormData) headers["Content-Type"] = "application/json";
 
   const token = getToken();
   if (auth && token) headers.Authorization = `Bearer ${token}`;
@@ -76,7 +78,12 @@ export async function request(path, { method = "GET", body, auth = true } = {}) 
     response = await fetch(`${API_BASE}${path}`, {
       method,
       headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body:
+        body === undefined
+          ? undefined
+          : isFormData
+            ? body
+            : JSON.stringify(body),
     });
   } catch (error) {
     throw new ApiError(0, "Tidak dapat terhubung ke server backend. Pastikan server aktif.");

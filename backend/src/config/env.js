@@ -41,6 +41,13 @@ const ALLOWED_EMAIL_DOMAINS = (
   .map((domain) => domain.trim().toLowerCase())
   .filter(Boolean);
 
+/** Folder penyimpanan foto pengaduan. Relatif dihitung dari root backend. */
+const BACKEND_ROOT = path.resolve(__dirname, '../..');
+const UPLOAD_DIR = path.resolve(
+  BACKEND_ROOT,
+  process.env.UPLOAD_DIR || 'uploads'
+);
+
 module.exports = {
   NODE_ENV,
   isProduction,
@@ -50,4 +57,5 @@ module.exports = {
   CORS_ORIGINS,
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
   ALLOWED_EMAIL_DOMAINS,
+  UPLOAD_DIR,
 };

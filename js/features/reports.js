@@ -16,6 +16,7 @@ import { closeModal, openModal } from "../ui/modal.js";
 import { showToast } from "../ui/toast.js";
 import { renderAnalytics } from "./analytics.js";
 import { deleteTicketRequest } from "./tickets-api.js";
+import { photoThumbnailMarkup } from "./photo-gallery.js";
 
 export function statusCounts(reports = state.reports) {
   return {
@@ -257,6 +258,7 @@ function reportCard(report, mode) {
               </span>
               ${teamLine}
             </div>
+            ${photoThumbnailMarkup(report.photos, report.id)}
           </div>
         </div>
         ${

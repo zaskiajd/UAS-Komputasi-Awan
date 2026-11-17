@@ -12,15 +12,38 @@
    ========================================================================== */
 
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const controller = require('../controllers/ticket.controller');
 const { authenticate, requireRole } = require('../middleware/auth');
+const { uploadPhotos } = require('../middleware/upload');
 
 const router = express.Router();
+
+// Batasi unggahan foto per IP (anti penyalahgunaan disk/bandwidth).
+const uploadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: Number(process.env.UPLOAD_RATE_LIMIT || 30),
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Terlalu banyak unggahan foto. Coba lagi dalam beberapa menit.',
+  },
+});
 
 router.use(authenticate);
 
 router.get('/', controller.list);
 router.post('/', requireRole('student'), controller.create);
+
+router.post(
+  '/:id/photos',
+  requireRole('student'),
+  uploadLimiter,
+  uploadPhotos,
+  controller.addPhotos
+);
+router.delete('/:id/photos/:photoId', requireRole('student'), controller.removePhoto);
 
 router.patch('/:id/status', requireRole('admin'), controller.updateStatus);
 

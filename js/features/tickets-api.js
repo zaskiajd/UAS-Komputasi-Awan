@@ -22,6 +22,7 @@ export function normalizeTicket(ticket) {
         (entry) => entry.role === "PIC" && (entry.status === "active" || entry.status === "done")
       )
     : null;
+  const photos = Array.isArray(ticket.photos) ? ticket.photos : [];
   return {
     assignedAt: activePic?.assignedAt || null,
     assignments: [],
@@ -29,6 +30,8 @@ export function normalizeTicket(ticket) {
     notes: [],
     history: [],
     ...ticket,
+    photos,
+    photoUrl: ticket.photoUrl || photos[0]?.url || null,
     date: todayLabel(ticket.createdAt),
   };
 }
@@ -65,7 +68,7 @@ export async function createTicketRequest(payload) {
 export function updateStatusRequest(
   report,
   status,
-  { progress, note, teamId, assignee, supporters, priority, instruction } = {}
+  { progress, note, teamId, assignee, supporters, priority, instruction, instructionTo } = {}
 ) {
   return apiRequest(`/tickets/${refOf(report)}/status`, {
     method: "PATCH",
@@ -78,10 +81,26 @@ export function updateStatusRequest(
       ...(supporters !== undefined ? { supporters } : {}),
       ...(priority !== undefined ? { priority } : {}),
       ...(instruction ? { instruction } : {}),
+      ...(instructionTo ? { instructionTo } : {}),
     },
   });
 }
 
 export function deleteTicketRequest(report) {
   return apiRequest(`/tickets/${refOf(report)}`, { method: "DELETE" });
+}
+
+/** Unggah 1–3 foto setelah tiket berhasil dibuat. */
+export function uploadTicketPhotos(report, files) {
+  const form = new FormData();
+  for (const file of files) form.append("photos", file, file.name);
+  return apiRequest(`/tickets/${refOf(report)}/photos`, {
+    method: "POST",
+    body: form,
+  });
+}
+
+/** Hapus satu foto milik tiket (mis. dari UI detail mahasiswa). */
+export function deleteTicketPhoto(report, photoId) {
+  return apiRequest(`/tickets/${refOf(report)}/photos/${photoId}`, { method: "DELETE" });
 }

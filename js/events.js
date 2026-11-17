@@ -32,8 +32,10 @@ import {
   handleDispatchSubmit,
   openDispatch,
   refreshDispatchTechnicians,
+  renderDispatchPhotos,
 } from "./features/dispatch.js";
-import { handleComplaintSubmit } from "./features/complaint.js";
+import { handleComplaintSubmit, bindComplaintPhotoEvents, resetComplaintPhotos, retryTicketPhotos } from "./features/complaint.js";
+import { openPhotoLightbox } from "./features/photo-gallery.js";
 import { trackReport } from "./features/timeline.js";
 import {
   cancelHistoryDelete,
@@ -144,8 +146,27 @@ function handleAction(actionElement) {
 
     case "open-complaint":
       closeMenus();
+      resetComplaintPhotos();
       openModal(byId("modal-complaint"));
       break;
+
+    case "open-photo":
+      closeMenus();
+      openPhotoLightbox(actionElement);
+      break;
+
+    case "retry-photos": {
+      const ticketId = actionElement.dataset.ticket;
+      actionElement.disabled = true;
+      retryTicketPhotos(ticketId).then((ok) => {
+        if (ok && state.selectedTicket === ticketId) {
+          trackReport(ticketId);
+        } else if (document.contains(actionElement)) {
+          actionElement.disabled = false;
+        }
+      });
+      break;
+    }
 
     case "open-dispatch":
     case "open-dispatch-modal":
@@ -464,6 +485,15 @@ export function bindEvents() {
     });
   }
 
+  /* Galeri foto mengikuti tiket yang dipilih di dropdown. */
+  const dispatchTicketSelect = byId("ticket-select");
+  if (dispatchTicketSelect) {
+    dispatchTicketSelect.addEventListener("change", (event) => {
+      const report = state.reports.find((item) => item.id === event.target.value);
+      renderDispatchPhotos(report);
+    });
+  }
+
   const dispatchAssignee = byId("dispatch-assignee");
   if (dispatchAssignee) {
     dispatchAssignee.addEventListener("change", () => {
@@ -665,6 +695,7 @@ export function bindEvents() {
   if (complaintForm) {
     complaintForm.addEventListener("submit", handleComplaintSubmit);
   }
+  bindComplaintPhotoEvents();
 
   /* Disposisi */
   const dispatchForm = byId("dispatch-form");

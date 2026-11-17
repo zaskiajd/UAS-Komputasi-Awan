@@ -20,9 +20,10 @@ Base URL lokal: `http://localhost:3000/api`
 | 401 | Token tidak ada, salah, atau kedaluwarsa; atau email/sandi salah |
 | 403 | Role tidak diizinkan |
 | 404 | Data tidak ada **atau bukan milik Anda** (sengaja disamakan agar ID tidak bisa ditebak) |
-| 409 | Konflik: duplikat, atau aksi tidak boleh pada status tiket saat ini |
+| 409 | Konflik: duplikat, batas 3 foto, atau aksi tidak boleh pada status tiket saat ini |
+| 413 | Berkas foto melebihi batas 3 MB per berkas |
 | 422 | Validasi input gagal (lihat `errors`) |
-| 429 | Terlalu banyak percobaan login/registrasi |
+| 429 | Terlalu banyak percobaan login/registrasi atau unggahan foto |
 
 ---
 
@@ -79,6 +80,8 @@ Profil pengguna dari token → `{ data: { id, nim, name, email, role, faculty } 
 | `POST /tickets` | student | Buat pengaduan. |
 | `PATCH /tickets/:id` | student (pemilik) | Ubah pengaduan — **hanya saat status `review`**. |
 | `DELETE /tickets/:id` | student (pemilik) | Hapus — lihat aturan di bawah. |
+| `POST /tickets/:id/photos` | student (pemilik) | Unggah 1–3 foto (multipart, field `photos`). |
+| `DELETE /tickets/:id/photos/:photoId` | student (pemilik) | Hapus satu foto beserta berkas fisiknya. |
 | `PATCH /tickets/:id/status` | admin | Ubah status + catat riwayat. |
 
 ### Query `GET /tickets`
@@ -95,8 +98,9 @@ Nama field sengaja mengikuti form pengaduan di frontend:
   "building": "Gedung F (Fakultas Teknik)",      // atau "locationId": 9
   "room": "Lab AI - Lt. 3",
   "priority": "Sedang",                          // Tinggi | Sedang | Rendah (default Sedang)
-  "description": "AC berbunyi bising dan tidak dingin.",
-  "photoUrl": "https://..."                      // opsional
+  "description": "AC berbunyi bising dan tidak dingin."
+  // "photoUrl": "https://..." — opsional/legacy. Frontend baru mengunggah
+  // foto lewat POST /tickets/:id/photos setelah tiket dibuat.
 }
 ```
 Pemetaan label form → kode kategori (`Kelistrikan & AC`→`ac`, `Proyektor & Audio`→`projector`,
@@ -117,14 +121,24 @@ tetap diterima (disimpan sebagai teks lokasi).
   "supporters": ["dimas"],
   "priority": "Tinggi",
   "note": "Teknisi menuju lokasi.",
-  "instruction": "Segera cek kompresor AC."
+  "instruction": "Segera cek kompresor AC.",
+  "instructionTo": "dimas"
 }
 ```
-`progress`, `teamId`, `assignee`, `supporters`, `priority`, `note`, dan `instruction` opsional.
+`progress`, `teamId`, `assignee`, `supporters`, `priority`, `note`, `instruction`, dan `instructionTo` opsional.
 Saat disposisi dikirim bersama `teamId`/`assignee`/`supporters`/`priority`, server otomatis menyimpan tim penanganan, PIC + teknisi pendukung ke `ticket_assignments`, prioritas + SLA baru, dan instruksi ke `ticket_comments`.
 `done` → progress 100, `completed_at` terisi, penugasan aktif ditutup.
 `rejected` → penugasan aktif dilepas. Dari `done` ke status lain = **buka kembali** (penugasan terakhir diaktifkan lagi).
 Status yang sama tanpa perubahan lain → `409`.
+
+**`supporters` tanpa `assignee`** — perbarui hanya daftar pendukung pada tiket yang sudah punya PIC:
+- Pendukung aktif yang tidak ada di daftar baru diubah menjadi `status = 'removed'`; ID baru di-insert sebagai `Pendukung` (`active`, atau `done` bila tiket `done`).
+- ID yang sudah aktif dibiarkan dan ID yang sama dengan PIC aktif diabaikan. Semua ID harus teknisi tidak terarsip (`422`).
+- Tiket tanpa PIC aktif dan daftar tidak kosong → `409` `"Tetapkan PIC lebih dulu lewat disposisi"`.
+- Riwayat ditulis sebagai `Tim penanganan diperbarui` dengan catatan berisi teknisi yang ditambah/dilepas (mis. `Pendukung ditambahkan: Rian; dilepas: Agus.`). Tidak ada baris PIC baru.
+- Bila `assignee` ikut dikirim, perilaku disposisi lama (PIC + pendukung diganti sekaligus) tetap berlaku.
+
+**`instructionTo`** — ID teknisi penerima instruksi. Bila dikirim bersama `instruction`, penerima harus PIC atau pendukung aktif tiket tersebut (jika tidak, `422`); PIC tidak berubah dan riwayat mencatat `Instruksi terarah ke <nama teknisi>`. Tanpa `instructionTo`, penerima mengikuti `assignee` (perilaku lama), atau `null` bila tidak ada.
 
 ### Aturan status untuk mahasiswa
 
@@ -133,6 +147,43 @@ Status yang sama tanpa perubahan lain → `409`.
 | `review` | ✅ | ✅ dibatalkan — baris dihapus permanen |
 | `progress`, `waiting` | ❌ 409 | ❌ 409 (sedang ditangani) |
 | `done`, `rejected` | ❌ 409 | ✅ soft delete — hilang dari daftar mahasiswa, tetap terlihat admin |
+
+### Foto pengaduan (`/tickets/:id/photos`)
+
+Foto diunggah **terpisah setelah tiket dibuat**. `POST /tickets` tetap menerima JSON biasa; frontend membuat tiket lebih dulu, lalu mengirim foto. Bila unggahan gagal, tiket tetap ada dan mahasiswa dapat mencoba lagi atau melanjutkan tanpa foto.
+
+**`POST /tickets/:id/photos`** — student pemilik tiket
+
+- Body `multipart/form-data` dengan field `photos`. Kirim 1–3 berkas memakai nama field yang sama (`photos`); field lain ditolak `422`.
+- Maksimal **3 foto per tiket**, maksimal **3 MB per berkas**, hanya **JPEG, PNG, atau WebP**. Jenis berkas dideteksi dari *magic bytes*; `Content-Type` dan ekstensi dari klien tidak dipercaya.
+- Foto disimpan dengan nama UUID di `UPLOAD_DIR`; nama asli hanya disimpan sebagai metadata yang sudah disanitasi.
+- Upload ditolak `409` bila status tiket sudah `done` atau bila total foto akan melebihi 3. Berkas kosong/tidak ada → `422`; berkas > 3 MB → `413`; terlalu banyak permintaan → `429`.
+- Respons `201`:
+
+```jsonc
+{
+  "success": true,
+  "data": {
+    "photos": [
+      {
+        "id": 12,
+        "url": "/uploads/6f1c2d3a-....jpg",
+        "mimeType": "image/jpeg",
+        "sizeBytes": 842311,
+        "createdAt": "2026-11-16T04:10:00.000Z"
+      }
+    ],
+    "photoUrl": "/uploads/6f1c2d3a-....jpg"
+  },
+  "message": "Foto pengaduan berhasil diunggah."
+}
+```
+
+**`DELETE /tickets/:id/photos/:photoId`** — student pemilik tiket
+
+Menghapus baris `ticket_photos` dan berkas fisiknya. Respons `200` memakai bentuk `data` yang sama (`photos` terbaru + `photoUrl`). Foto milik tiket lain atau `photoId` tidak valid dijawab `404`.
+
+`url` bersifat **relatif terhadap origin API**, bukan frontend. Di dev, frontend `:8000` harus menggabungkannya dengan `http://localhost:3000`; di produksi Nginx meneruskan `/uploads/*` ke backend sehingga URL relatif bekerja apa adanya. Berkas disajikan publik dengan `X-Content-Type-Options: nosniff` dan `Cache-Control: public, max-age=86400, immutable`.
 
 ### Bentuk objek tiket
 Mengikuti objek `report` di frontend (`docs/db-contract.md` §5.1). `id` berisi **kode tiket**; id numerik ada di `ticketId`.
@@ -144,7 +195,10 @@ Mengikuti objek `report` di frontend (`docs/db-contract.md` §5.1). `id` berisi 
   "cat": "ac", "category": { "code": "ac", "label": "Kelistrikan & AC", "icon": "mode_fan" },
   "status": "review", "priority": "Tinggi", "urgent": true, "progress": 0,
   "teamId": null, "team": null, "assignee": null, "assigneeName": null,
-  "photoUrl": null, "slaDueAt": "...", "isOverdue": false,
+  "photos": [{ "id": 12, "url": "/uploads/....jpg", "mimeType": "image/jpeg",
+               "sizeBytes": 842311, "createdAt": "..." }],
+  "photoUrl": "/uploads/....jpg",   // URL foto pertama; null bila tidak ada foto
+  "slaDueAt": "...", "isOverdue": false,
   "createdAt": "...", "updatedAt": "...", "completedAt": null,
   // hanya di detail:
   "history": [{ "id": 31, "at": "...", "label": "...", "actor": "...", "status": "review", "note": "..." }],
@@ -278,6 +332,15 @@ curl -s localhost:3000/api/tickets -H "Authorization: Bearer $TOKEN"
 # buat pengaduan
 curl -s -X POST localhost:3000/api/tickets -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
   -d '{"title":"Proyektor mati","category":"projector","building":"Gedung C (Fakultas Ilmu Komputer)","room":"R.201","priority":"Tinggi","description":"Proyektor tidak menyala sama sekali."}'
+
+# unggah 1–3 foto ke tiket tersebut (ganti TICKET_ID dengan ticketId dari respons di atas)
+curl -s -X POST "localhost:3000/api/tickets/TICKET_ID/photos" \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "photos=@bukti-1.jpg" -F "photos=@bukti-2.png"
+
+# hapus satu foto (photoId dari respons unggahan)
+curl -s -X DELETE "localhost:3000/api/tickets/TICKET_ID/photos/12" \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 ### Contoh aset (admin)
@@ -305,6 +368,36 @@ curl -s -X POST localhost:3000/api/assets/AST-AC-0313/restore -H "Authorization:
 curl -s -X DELETE localhost:3000/api/assets/AST-AC-0313 -H "Authorization: Bearer $ADMIN_TOKEN"
 ```
 
+### Contoh tim penanganan & instruksi (admin)
+
+```bash
+# tiket sudah punya PIC (mis. hendra) + pendukung rian & agus.
+# Lepas pendukung agus, sisakan rian — PIC tidak berubah:
+curl -s -X PATCH localhost:3000/api/tickets/TICKET_ID/status \
+  -H "Authorization: Bearer $ADMIN_TOKEN" -H 'Content-Type: application/json' \
+  -d '{"status":"progress","supporters":["rian"]}'
+
+# Tambah pendukung agus kembali:
+curl -s -X PATCH localhost:3000/api/tickets/TICKET_ID/status \
+  -H "Authorization: Bearer $ADMIN_TOKEN" -H 'Content-Type: application/json' \
+  -d '{"status":"progress","supporters":["rian","agus"]}'
+
+# Kosongkan seluruh pendukung (PIC tetap):
+curl -s -X PATCH localhost:3000/api/tickets/TICKET_ID/status \
+  -H "Authorization: Bearer $ADMIN_TOKEN" -H 'Content-Type: application/json' \
+  -d '{"status":"progress","supporters":[]}'
+
+# Kirim instruksi khusus ke pendukung (bukan PIC):
+curl -s -X PATCH localhost:3000/api/tickets/TICKET_ID/status \
+  -H "Authorization: Bearer $ADMIN_TOKEN" -H 'Content-Type: application/json' \
+  -d '{"status":"progress","instruction":"Cek tekanan freon unit luar.","instructionTo":"rian"}'
+
+# Ganti PIC (perilaku disposisi lama):
+curl -s -X PATCH localhost:3000/api/tickets/TICKET_ID/status \
+  -H "Authorization: Bearer $ADMIN_TOKEN" -H 'Content-Type: application/json' \
+  -d '{"status":"progress","teamId":"electrical","assignee":"rian"}'
+```
+
 ## Memanggil dari frontend
 
 ```js
@@ -328,6 +421,8 @@ const { success, data, message, errors } = await res.json();
 | `PORT` | `3000` | Port server Express |
 | `CORS_ORIGIN` | - | Domain frontend yang diizinkan (pisahkan koma) |
 | `AUTH_RATE_LIMIT` | `50` | Batas percobaan auth per IP per 15 menit |
+| `UPLOAD_DIR` | `backend/uploads` | Folder foto pengaduan. Di Docker: `/app/uploads` (named volume) |
+| `UPLOAD_RATE_LIMIT` | `30` | Batas permintaan unggah/hapus foto per IP per 15 menit |
 | `GOOGLE_CLIENT_ID` | - | Client ID OAuth 2.0 dari Google Cloud Console |
 | `ALLOWED_EMAIL_DOMAINS` | `student.unsil.ac.id,unsil.ac.id` | Domain email resmi yang diizinkan login Google |
 

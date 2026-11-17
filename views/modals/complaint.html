@@ -61,11 +61,21 @@
             <label class="block text-xs font-bold text-gray-700 mb-1" for="complaint-desc">Deskripsi Kerusakan</label>
             <textarea class="w-full text-xs font-medium rounded-xl border-gray-200 focus:border-brand-orange focus:ring-brand-orange bg-gray-50 p-2.5" id="complaint-desc" placeholder="Jelaskan detail kendala (Cth: AC berbunyi bising dan tidak dingin saat perkuliahan jam 08.00)..." required rows="3"></textarea>
           </div>
-          <button type="button" class="w-full border-2 border-dashed border-gray-200 rounded-2xl p-3 text-center hover:border-brand-orange transition cursor-pointer bg-gray-50/50" data-action="demo" data-note="Unggah foto: fitur unggah akan terhubung ke object storage.">
-            <span class="material-symbols-outlined text-2xl text-gray-400">add_photo_alternate</span>
-            <span class="block text-[11px] font-semibold text-gray-600 mt-1">Klik untuk lampirkan foto fasilitas rusak</span>
-            <span class="block text-[9px] text-gray-400">Format PNG, JPG maks 5MB</span>
-          </button>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-xs font-bold text-gray-700" for="complaint-photos">Foto Bukti <span class="font-medium text-gray-400">(opsional)</span></label>
+              <span id="complaint-photo-count" class="text-[10px] font-bold text-gray-500">0/3</span>
+            </div>
+            <input class="hidden" id="complaint-photos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+            <button type="button" class="w-full border-2 border-dashed border-gray-200 rounded-2xl p-3 text-center hover:border-brand-orange transition cursor-pointer bg-gray-50/50" id="complaint-photo-picker" aria-describedby="complaint-photo-help">
+              <span class="material-symbols-outlined text-2xl text-gray-400">add_photo_alternate</span>
+              <span class="block text-[11px] font-semibold text-gray-600 mt-1" id="complaint-photo-picker-label">Klik untuk lampirkan foto fasilitas rusak</span>
+              <span class="block text-[9px] text-gray-400" id="complaint-photo-help">JPEG, PNG, WebP • maks. 3 foto • 3 MB/foto</span>
+            </button>
+            <div class="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2" id="complaint-photo-preview" hidden></div>
+            <p class="mt-1.5 text-[10px] font-semibold text-red-600" id="complaint-photo-error" hidden></p>
+            <p class="mt-1 text-[9px] text-gray-400">Foto lebih dari 1 MB otomatis dikompres sebelum diunggah.</p>
+          </div>
           <div class="flex items-center justify-end gap-2 pt-2">
             <button type="button" class="px-4 py-2 rounded-full text-xs font-semibold text-gray-600 hover:bg-gray-100 transition" data-action="close-modal">Batal</button>
             <button type="submit" class="px-5 py-2 rounded-full text-xs font-bold bg-brand-orange hover:bg-orange-600 text-white shadow-lg shadow-orange-500/25 transition">Kirim Pengaduan</button>

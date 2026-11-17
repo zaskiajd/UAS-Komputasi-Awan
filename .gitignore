@@ -6,8 +6,12 @@ node_modules/
 !.env.example
 !.env.*.example
 
-# Backup database dari deploy/scripts/backup-db.sh (berisi data, jangan di-commit)
+# Backup database/uploads dari deploy/scripts/backup-*.sh (berisi data, jangan di-commit)
 backups/
+
+# Foto pengaduan hasil unggahan runtime (jangan di-commit)
+backend/uploads/
+uploads/
 
 # Logs
 *.log

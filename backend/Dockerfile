@@ -26,6 +26,13 @@ RUN npm ci --omit=dev && npm cache clean --force
 COPY server.js ./
 COPY src ./src
 
+# Folder foto pengaduan. docker-compose.yml memasang named volume "uploads"
+# di path ini, sehingga foto tetap ada saat container dibuat ulang.
+# Folder dibuat lebih dulu dan dimiliki user "node" agar API (bukan root)
+# dapat menulis ke volume baru.
+ENV UPLOAD_DIR=/app/uploads
+RUN mkdir -p /app/uploads && chown -R node:node /app/uploads
+
 # Jalankan sebagai user biasa "node" (bawaan image), bukan root.
 USER node
 

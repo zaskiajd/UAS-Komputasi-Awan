@@ -3,6 +3,7 @@
    ========================================================================== */
 
 const ticketService = require('../services/ticket.service');
+const photoService = require('../services/photo.service');
 const { ok, created } = require('../utils/response');
 const { asyncHandler, notFound } = require('../utils/errors');
 const {
@@ -93,4 +94,23 @@ const remove = asyncHandler(async (req, res) => {
   return ok(res, result, message);
 });
 
-module.exports = { list, detail, create, update, updateStatus, remove };
+const addPhotos = asyncHandler(async (req, res) => {
+  const result = await photoService.addPhotos(refFrom(req), req.user, req.files || []);
+  return created(res, result, 'Foto pengaduan berhasil diunggah.');
+});
+
+const removePhoto = asyncHandler(async (req, res) => {
+  const result = await photoService.deletePhoto(refFrom(req), req.user, req.params.photoId);
+  return ok(res, result, 'Foto pengaduan berhasil dihapus.');
+});
+
+module.exports = {
+  list,
+  detail,
+  create,
+  update,
+  updateStatus,
+  remove,
+  addPhotos,
+  removePhoto,
+};

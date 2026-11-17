@@ -6,7 +6,6 @@ import { byId, escapeHtml, formatDateTime, relativeTime } from "../core/dom.js";
 import { state } from "../core/state.js";
 import {
   assignmentRoster,
-  nextInstructionId,
   primaryAssignee,
 } from "../data/assignments.js";
 import { CATEGORY_META, PRIORITY_META, STATUS_META } from "../data/reports.js";
@@ -15,9 +14,49 @@ import { openModal } from "../ui/modal.js";
 import { showToast } from "../ui/toast.js";
 import { renderReports } from "./reports.js";
 import { renderTechnicians } from "./technicians.js";
-import { updateStatusRequest } from "./tickets-api.js";
+import { normalizeTicket, updateStatusRequest } from "./tickets-api.js";
+import { photoGalleryMarkup } from "./photo-gallery.js";
 
 const ADMIN_NAME = "Ir. Hendrawan";
+const API_STATUSES = new Set(["review", "progress", "waiting", "done", "rejected"]);
+const busyTickets = new Set();
+
+/** Status yang dikirim ke API (mis. `reopen` dari UI dipetakan ke `progress`). */
+function apiStatusOf(status) {
+  return API_STATUSES.has(status) ? status : "progress";
+}
+
+/** Nonaktifkan tombol aksi tim penanganan selama request berjalan. */
+function setAssignmentBusy(report, busy) {
+  const body = byId("ticket-detail-body");
+  if (!body || body.dataset.ticket !== report.id) return;
+  body
+    .querySelectorAll(
+      '[data-action="save-pic"], [data-action="add-support"], [data-action="remove-support"], #ticket-instruction-form button[type="submit"]'
+    )
+    .forEach((button) => {
+      button.disabled = busy;
+    });
+}
+
+/** Ganti objek tiket di state.reports dengan hasil terbaru dari server. */
+function syncReportFromServer(report, ticket) {
+  const normalized = normalizeTicket(ticket);
+  const index = state.reports.findIndex((item) => item.id === report.id);
+  if (index >= 0) {
+    state.reports[index] = normalized;
+    return state.reports[index];
+  }
+  return normalized;
+}
+
+/** ID pendukung yang saat ini tercatat (status `done` ikut saat tiket selesai). */
+function currentSupporterIds(report) {
+  const statuses = report.status === "done" ? ["active", "done"] : ["active"];
+  return (report.assignments || [])
+    .filter((entry) => entry.role !== "PIC" && statuses.includes(entry.status))
+    .map((entry) => entry.techId);
+}
 
 const isOverdue = (report) =>
   Boolean(
@@ -285,6 +324,8 @@ function ticketDetailMarkup(report) {
       <p class="text-xs text-on-surface leading-relaxed mt-1">${escapeHtml(report.description)}</p>
     </div>
 
+    ${photoGalleryMarkup(report.photos, { ticketId: report.id })}
+
     ${rosterSection(report)}
     ${instructionSection(report)}
 
@@ -367,7 +408,7 @@ function afterAssignmentChange(report, toastTitle, toastText) {
   showToast(toastTitle, toastText, "success");
 }
 
-export function changeTicketPic(ticketId, techId) {
+export async function changeTicketPic(ticketId, techId) {
   const report = state.reports.find((item) => item.id === ticketId);
   const selectedId = techId || byId("ticket-pic-select")?.value || "";
   const technician = state.technicians.find((item) => item.id === selectedId);
@@ -389,75 +430,59 @@ export function changeTicketPic(ticketId, techId) {
     showToast("PIC Tidak Berubah", `${technician.title} sudah menjadi PIC tiket ini.`, "info");
     return;
   }
+  if (busyTickets.has(report.id)) return;
 
-  const now = new Date().toISOString();
-  report.assignments = Array.isArray(report.assignments) ? report.assignments : [];
-
-  let hadPic = false;
-  report.assignments.forEach((entry) => {
-    if (
-      entry.role === "PIC" &&
-      entry.status !== "replaced" &&
-      entry.status !== "removed"
-    ) {
-      entry.status = "replaced";
-      hadPic = true;
-    }
-    if (
-      entry.techId === technician.id &&
-      entry.status === "active" &&
-      entry.role !== "PIC"
-    ) {
-      entry.status = "removed";
-    }
-  });
-
-  if (!hadPic && report.assignee) {
-    report.assignments.push({
-      techId: report.assignee,
-      role: "PIC",
-      assignedAt: report.assignedAt || report.updatedAt || now,
-      assignedBy: ADMIN_NAME,
-      status: "replaced",
+  // Server dulu; state & tampilan hanya berubah bila request berhasil.
+  busyTickets.add(report.id);
+  setAssignmentBusy(report, true);
+  try {
+    const updated = await updateStatusRequest(report, apiStatusOf(report.status), {
+      teamId: technician.teamId,
+      assignee: technician.id,
+      note: `Penanggung jawab utama tiket kini ${technician.title}.`,
     });
+    const next = syncReportFromServer(report, updated);
+    afterAssignmentChange(
+      next,
+      "PIC Diperbarui",
+      `${technician.title} sekarang menjadi PIC tiket ${next.id}.`
+    );
+  } catch (error) {
+    showToast(
+      "PIC Gagal Diperbarui",
+      error.message || "Perubahan PIC tidak tersimpan di server.",
+      "error"
+    );
+  } finally {
+    busyTickets.delete(report.id);
+    setAssignmentBusy(report, false);
   }
-
-  report.assignments.push({
-    techId: technician.id,
-    role: "PIC",
-    assignedAt: now,
-    assignedBy: ADMIN_NAME,
-    status: report.status === "done" ? "done" : "active",
-  });
-
-  report.assignee = technician.id;
-  report.assignedAt = now;
-  report.teamId = technician.teamId;
-  report.team = TEAM_BY_ID[technician.teamId]?.name || report.team;
-  report.updatedAt = now;
-  report.history = report.history || [];
-  report.history.push({
-    at: now,
-    label: `PIC diganti ke ${technician.title}`,
-    actor: ADMIN_NAME,
-    status: report.status,
-    note: `Penanggung jawab utama tiket kini ${technician.title}.`,
-  });
-
-  updateStatusRequest(report, report.status, {
-    teamId: technician.teamId,
-    assignee: technician.id,
-    note: `Penanggung jawab utama tiket kini ${technician.title}.`,
-  }).catch(() => {});
-
-  afterAssignmentChange(
-    report,
-    "PIC Diperbarui",
-    `${technician.title} sekarang menjadi PIC tiket ${report.id}.`
-  );
 }
 
-export function addTicketSupport(ticketId, techId) {
+/** Kirim daftar pendukung baru ke server lalu sinkronkan tiket dari respons. */
+async function saveSupporters(report, supporterIds, toastTitle, toastText) {
+  if (busyTickets.has(report.id)) return;
+  busyTickets.add(report.id);
+  setAssignmentBusy(report, true);
+  try {
+    const updated = await updateStatusRequest(report, apiStatusOf(report.status), {
+      supporters: supporterIds,
+    });
+    const next = syncReportFromServer(report, updated);
+    afterAssignmentChange(next, toastTitle, toastText);
+  } catch (error) {
+    showToast(
+      "Tim Penanganan Gagal Disimpan",
+      error.message || "Perubahan pendukung tidak tersimpan di server.",
+      "error"
+    );
+  } finally {
+    busyTickets.delete(report.id);
+    setAssignmentBusy(report, false);
+  }
+}
+
+export async function addTicketSupport(ticketId, techId) {
   const report = state.reports.find((item) => item.id === ticketId);
   const selectedId = techId || byId("ticket-support-select")?.value || "";
   const technician = state.technicians.find((item) => item.id === selectedId);
@@ -486,86 +511,40 @@ export function addTicketSupport(ticketId, techId) {
     return;
   }
 
-  const now = new Date().toISOString();
-  report.assignments = Array.isArray(report.assignments) ? report.assignments : [];
-
-  // Pastikan PIC lama tetap tercatat saat data masih memakai field `assignee`.
-  if (
-    report.assignee &&
-    !report.assignments.some(
-      (entry) =>
-        entry.techId === report.assignee &&
-        entry.role === "PIC" &&
-        entry.status !== "replaced" &&
-        entry.status !== "removed"
-    )
-  ) {
-    report.assignments.unshift({
-      techId: report.assignee,
-      role: "PIC",
-      assignedAt: report.assignedAt || report.updatedAt || now,
-      assignedBy: ADMIN_NAME,
-      status: report.status === "done" ? "done" : "active",
-    });
-  }
-
-  report.assignments.push({
-    techId: technician.id,
-    role: "Pendukung",
-    assignedAt: now,
-    assignedBy: ADMIN_NAME,
-    status: report.status === "done" ? "done" : "active",
-  });
-  report.updatedAt = now;
-  report.history = report.history || [];
-  report.history.push({
-    at: now,
-    label: `Pendukung ditambahkan: ${technician.title}`,
-    actor: ADMIN_NAME,
-    status: report.status,
-    note: "Teknisi pendukung membantu penanganan tiket ini.",
-  });
-
-  afterAssignmentChange(
+  const nextSupporters = [...currentSupporterIds(report), technician.id];
+  await saveSupporters(
     report,
+    nextSupporters,
     "Pendukung Ditambahkan",
     `${technician.title} bergabung menangani tiket ${report.id}.`
   );
 }
 
-export function removeTicketSupport(ticketId, techId) {
+export async function removeTicketSupport(ticketId, techId) {
   const report = state.reports.find((item) => item.id === ticketId);
   if (!report) return;
 
   const technician = technicianById(techId, state.technicians);
+  const statuses = report.status === "done" ? ["active", "done"] : ["active"];
   const entry = (report.assignments || []).find(
-    (item) => item.techId === techId && item.role !== "PIC" && item.status === "active"
+    (item) =>
+      item.techId === techId && item.role !== "PIC" && statuses.includes(item.status)
   );
   if (!entry || !technician) {
     showToast("Pendukung Tidak Ditemukan", "Teknisi ini bukan pendukung aktif tiket.", "error");
     return;
   }
 
-  const now = new Date().toISOString();
-  entry.status = "removed";
-  report.updatedAt = now;
-  report.history = report.history || [];
-  report.history.push({
-    at: now,
-    label: `Pendukung dilepas: ${technician.title}`,
-    actor: ADMIN_NAME,
-    status: report.status,
-    note: "Teknisi pendukung dikeluarkan dari roster tiket ini.",
-  });
-
-  afterAssignmentChange(
+  const nextSupporters = currentSupporterIds(report).filter((id) => id !== techId);
+  await saveSupporters(
     report,
+    nextSupporters,
     "Pendukung Dilepas",
     `${technician.title} tidak lagi menjadi pendukung tiket ${report.id}.`
   );
 }
 
-export function handleInstructionSubmit(event) {
+export async function handleInstructionSubmit(event) {
   event.preventDefault();
 
   const form = event.target;
@@ -597,36 +576,36 @@ export function handleInstructionSubmit(event) {
     showToast("Instruksi Kosong", "Tulis instruksi terlebih dahulu.", "error");
     return;
   }
+  if (busyTickets.has(report.id)) return;
 
-  const now = new Date().toISOString();
-  report.instructions = report.instructions || [];
-  report.instructions.push({
-    id: nextInstructionId(),
-    at: now,
-    from: ADMIN_NAME,
-    toTechId: target.id,
-    text,
-    readAt: null,
-  });
-  report.updatedAt = now;
-  report.history = report.history || [];
-  report.history.push({
-    at: now,
-    label: `Instruksi terarah ke ${target.title}`,
-    actor: ADMIN_NAME,
-    status: report.status,
-    note: text,
-  });
+  const submit = form.querySelector('button[type="submit"]');
+  busyTickets.add(report.id);
+  if (submit) submit.disabled = true;
 
-  if (textarea) textarea.value = "";
-  refreshTicketDetail(report);
-  renderReports();
-
-  showToast(
-    "Instruksi Terkirim",
-    `Pesan untuk ${target.title} tersimpan pada tiket ${report.id}.`,
-    "success"
-  );
+  try {
+    const updated = await updateStatusRequest(report, apiStatusOf(report.status), {
+      instruction: text,
+      instructionTo: target.id,
+    });
+    const next = syncReportFromServer(report, updated);
+    if (textarea) textarea.value = "";
+    refreshTicketDetail(next);
+    renderReports();
+    showToast(
+      "Instruksi Terkirim",
+      `Pesan untuk ${target.title} tersimpan pada tiket ${next.id}.`,
+      "success"
+    );
+  } catch (error) {
+    showToast(
+      "Instruksi Gagal Dikirim",
+      error.message || "Instruksi tidak tersimpan di server.",
+      "error"
+    );
+  } finally {
+    busyTickets.delete(report.id);
+    if (submit) submit.disabled = false;
+  }
 }
 
 export async function updateTicketStatus(ticketId, nextStatus) {
@@ -634,7 +613,7 @@ export async function updateTicketStatus(ticketId, nextStatus) {
   if (!report) return;
 
   // Simpan ke backend dulu; tampilan hanya berubah bila server menerima.
-  const apiStatus = nextStatus === "waiting" ? "waiting" : nextStatus === "done" ? "done" : "progress";
+  const apiStatus = apiStatusOf(nextStatus);
   const apiProgress =
     apiStatus === "done"
       ? 100

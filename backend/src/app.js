@@ -7,12 +7,15 @@ const cors = require('cors');
 const helmet = require('helmet');
 
 require('./config/db'); // memastikan .env termuat & DATABASE_URL tervalidasi
-const { CORS_ORIGINS, isProduction, NODE_ENV } = require('./config/env');
+const { CORS_ORIGINS, isProduction, NODE_ENV, UPLOAD_DIR } = require('./config/env');
+const { ensureUploadDir } = require('./utils/uploads');
 const routes = require('./routes');
 const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
 
 function createApp() {
   const app = express();
+
+  ensureUploadDir();
 
   // Di balik reverse proxy PaaS (Render/Railway/dll) IP klien ada di X-Forwarded-For.
   app.set('trust proxy', 1);
@@ -33,6 +36,23 @@ function createApp() {
       methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization'],
       maxAge: 600,
+    })
+  );
+
+  // Foto pengaduan disajikan publik (nama UUID tidak dapat ditebak).
+  // CORP cross-origin agar frontend dev di :8000 dapat memuat gambar dari :3000.
+  app.use(
+    '/uploads',
+    express.static(UPLOAD_DIR, {
+      dotfiles: 'deny',
+      index: false,
+      redirect: false,
+      fallthrough: true,
+      setHeaders(res) {
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('Cache-Control', 'public, max-age=86400, immutable');
+        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+      },
     })
   );
 

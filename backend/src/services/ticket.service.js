@@ -16,6 +16,7 @@
 
 const { query, withTransaction } = require('../config/db');
 const { ApiError, notFound, conflict } = require('../utils/errors');
+const { mapPhoto, removeUploadFiles } = require('../utils/uploads');
 
 const SLA_HOURS = { Tinggi: 2, Sedang: 6, Rendah: 24 };
 
@@ -64,6 +65,7 @@ function mapTicket(row, { admin = false } = {}) {
     assignee: row.pic_technician_id,
     assigneeName: row.pic_name,
     photoUrl: row.photo_url,
+    photos: [],
     slaDueAt: row.sla_due_at,
     isOverdue: row.is_overdue,
     createdAt: row.created_at,
@@ -180,8 +182,32 @@ async function listTickets(user, filters = {}) {
     params
   );
 
+  const items = rows.map((row) => mapTicket(row, { admin }));
+
+  // Lampirkan semua foto dengan satu query terkelompok (hindari N+1).
+  if (items.length > 0) {
+    const ids = rows.map((row) => row.id);
+    const photos = await query(
+      `SELECT id, ticket_id, file_name, mime_type, size_bytes, created_at
+         FROM ticket_photos
+        WHERE ticket_id = ANY($1::int[])
+        ORDER BY created_at ASC, id ASC`,
+      [ids]
+    );
+    const grouped = new Map(ids.map((id) => [id, []]));
+    for (const photo of photos.rows) {
+      const list = grouped.get(photo.ticket_id);
+      if (list) list.push(mapPhoto(photo));
+    }
+    for (let i = 0; i < items.length; i += 1) {
+      const list = grouped.get(rows[i].id) || [];
+      items[i].photos = list;
+      if (list.length > 0) items[i].photoUrl = list[0].url;
+    }
+  }
+
   return {
-    items: rows.map((row) => mapTicket(row, { admin })),
+    items,
     total: rows.length ? Number(rows[0].total_count) : 0,
   };
 }
@@ -196,6 +222,16 @@ async function getTicketDetail(ref, user, client = { query }) {
 
   const row = rows[0];
   const ticket = mapTicket(row, { admin });
+
+  const photos = await client.query(
+    `SELECT id, file_name, mime_type, size_bytes, created_at
+       FROM ticket_photos
+      WHERE ticket_id = $1
+      ORDER BY created_at ASC, id ASC`,
+    [row.id]
+  );
+  ticket.photos = photos.rows.map(mapPhoto);
+  if (ticket.photos.length > 0) ticket.photoUrl = ticket.photos[0].url;
 
   const history = await client.query(
     `SELECT id, at, label, actor, status, note
@@ -387,6 +423,7 @@ async function updateTicketStatus(ref, user, input) {
       input.teamId !== undefined ||
       input.assignee !== undefined ||
       input.supporters !== undefined ||
+      input.instructionTo !== undefined ||
       input.priority !== undefined ||
       input.instruction !== undefined;
 
@@ -560,6 +597,83 @@ async function updateTicketStatus(ref, user, input) {
       );
     }
 
+    // Supporters tanpa `assignee`: hanya daftar pendukung yang diperbarui,
+    // PIC aktif tidak disentuh dan tidak ada baris PIC baru.
+    let supportNote = null;
+    if (supporterIds !== null && !assigneeTech) {
+      const { rows: picRows } = await client.query(
+        `SELECT technician_id
+           FROM ticket_assignments
+          WHERE ticket_id = $1 AND role = 'PIC' AND status IN ('active', 'done')
+          ORDER BY CASE status WHEN 'active' THEN 0 ELSE 1 END, assigned_at DESC, id DESC
+          LIMIT 1`,
+        [current.id]
+      );
+      const activePic = picRows[0] || null;
+      const desired = supporterIds.filter(
+        (id) => !activePic || id !== activePic.technician_id
+      );
+
+      if (!activePic && desired.length > 0) {
+        throw conflict('Tetapkan PIC lebih dulu lewat disposisi');
+      }
+
+      const { rows: existingRows } = await client.query(
+        `SELECT technician_id
+           FROM ticket_assignments
+          WHERE ticket_id = $1 AND role = 'Pendukung' AND status IN ('active', 'done')`,
+        [current.id]
+      );
+      const existing = new Set(existingRows.map((row) => row.technician_id));
+      const wanted = new Set(desired);
+      const removedIds = [...existing].filter((id) => !wanted.has(id));
+      const addedIds = desired.filter((id) => !existing.has(id));
+
+      if (removedIds.length > 0) {
+        await client.query(
+          `UPDATE ticket_assignments
+              SET status = 'removed'
+            WHERE ticket_id = $1 AND role = 'Pendukung'
+              AND status IN ('active', 'done')
+              AND technician_id = ANY($2::text[])`,
+          [current.id, removedIds]
+        );
+      }
+
+      if (addedIds.length > 0) {
+        const assignmentStatus = next === 'done' ? 'done' : 'active';
+        for (const supId of addedIds) {
+          await client.query(
+            `INSERT INTO ticket_assignments (ticket_id, technician_id, role, status, assigned_by)
+             VALUES ($1, $2, 'Pendukung', $3, $4)`,
+            [current.id, supId, assignmentStatus, user.id]
+          );
+        }
+      }
+
+      const changedIds = [...addedIds, ...removedIds];
+      const titleById = new Map();
+      if (changedIds.length > 0) {
+        const { rows: techRows } = await client.query(
+          'SELECT id, name, title FROM technicians WHERE id = ANY($1::text[])',
+          [changedIds]
+        );
+        for (const tech of techRows) {
+          titleById.set(tech.id, tech.title || tech.name);
+        }
+      }
+      const parts = [];
+      if (addedIds.length > 0) {
+        parts.push(
+          `Pendukung ditambahkan: ${addedIds.map((id) => titleById.get(id) || id).join(', ')}`
+        );
+      }
+      if (removedIds.length > 0) {
+        parts.push(`dilepas: ${removedIds.map((id) => titleById.get(id) || id).join(', ')}`);
+      }
+      supportNote = parts.length ? `${parts.join('; ')}.` : 'Tidak ada perubahan pendukung.';
+    }
+
     const assigneeTitle = assigneeTech ? assigneeTech.title || assigneeTech.name : null;
     const historyLabel =
       assigneeTech && teamRow
@@ -568,24 +682,58 @@ async function updateTicketStatus(ref, user, input) {
           ? `PIC diganti ke ${assigneeTitle}`
           : reopened
             ? 'Tiket dibuka kembali'
-            : STATUS_LABEL[next];
+            : supporterIds !== null
+              ? 'Tim penanganan diperbarui'
+              : STATUS_LABEL[next];
 
     await addHistory(client, current.id, {
       label: historyLabel,
       actor: user.name,
       status: next,
-      note: input.note || `Status tiket diubah menjadi ${STATUS_SHORT[next]}.`,
+      note: input.note || supportNote || `Status tiket diubah menjadi ${STATUS_SHORT[next]}.`,
     });
+
+    // Penerima instruksi: `instructionTo` (PIC/pendukung aktif) bila dikirim,
+    // selain itu tetap mengikuti PIC pada payload disposisi lama.
+    let instructionTarget = assigneeTech;
+    if (input.instruction && input.instructionTo !== undefined) {
+      const { rows: targetRows } = await client.query(
+        `SELECT t.id, t.name, t.title
+           FROM ticket_assignments ta
+           JOIN technicians t ON t.id = ta.technician_id
+          WHERE ta.ticket_id = $1 AND ta.technician_id = $2
+            AND ta.status IN ('active', 'done')
+            AND t.archived = false
+          ORDER BY CASE ta.status WHEN 'active' THEN 0 ELSE 1 END
+          LIMIT 1`,
+        [current.id, input.instructionTo]
+      );
+      if (targetRows.length === 0) {
+        throw new ApiError(422, 'Data yang dikirim tidak valid.', {
+          instructionTo:
+            'Instruksi hanya dapat dikirim ke PIC atau pendukung aktif tiket ini.',
+        });
+      }
+      instructionTarget = targetRows[0];
+    }
 
     if (input.instruction) {
       await client.query(
         `INSERT INTO ticket_comments
            (ticket_id, kind, author_id, author_name, target_technician_id, body, is_public)
          VALUES ($1, 'instruction', $2, $3, $4, $5, false)`,
-        [current.id, user.id, user.name, assigneeTech ? assigneeTech.id : null, input.instruction]
+        [
+          current.id,
+          user.id,
+          user.name,
+          instructionTarget ? instructionTarget.id : null,
+          input.instruction,
+        ]
       );
       await addHistory(client, current.id, {
-        label: `Instruksi terarah ke ${assigneeTitle || 'Teknisi'}`,
+        label: `Instruksi terarah ke ${
+          instructionTarget ? instructionTarget.title || instructionTarget.name : 'Teknisi'
+        }`,
         actor: user.name,
         status: next,
         note: input.instruction,
@@ -605,7 +753,7 @@ async function updateTicketStatus(ref, user, input) {
  * @returns {{id:number, ticketCode:string, mode:'cancelled'|'archived'}}
  */
 async function deleteOwnTicket(ref, user) {
-  return withTransaction(async (client) => {
+  const { result, photoFiles } = await withTransaction(async (client) => {
     const { where, params } = accessFilter(ref, user);
     const { rows } = await client.query(
       `SELECT id, ticket_code, status FROM tickets WHERE ${where} FOR UPDATE`,
@@ -615,21 +763,36 @@ async function deleteOwnTicket(ref, user) {
     const ticket = rows[0];
 
     if (ticket.status === 'review') {
+      const photos = await client.query(
+        'SELECT file_name FROM ticket_photos WHERE ticket_id = $1',
+        [ticket.id]
+      );
       await client.query('DELETE FROM tickets WHERE id = $1', [ticket.id]);
-      return { id: ticket.id, ticketCode: ticket.ticket_code, mode: 'cancelled' };
+      return {
+        result: { id: ticket.id, ticketCode: ticket.ticket_code, mode: 'cancelled' },
+        photoFiles: photos.rows.map((p) => p.file_name),
+      };
     }
 
     if (ticket.status === 'done' || ticket.status === 'rejected') {
       await client.query('UPDATE tickets SET deleted_by_student_at = now() WHERE id = $1', [
         ticket.id,
       ]);
-      return { id: ticket.id, ticketCode: ticket.ticket_code, mode: 'archived' };
+      return {
+        result: { id: ticket.id, ticketCode: ticket.ticket_code, mode: 'archived' },
+        photoFiles: [],
+      };
     }
 
     throw conflict(
       'Pengaduan yang sedang ditangani tidak dapat dihapus. Tunggu hingga selesai atau ditolak.'
     );
   });
+
+  // Baris ticket_photos ikut terhapus lewat ON DELETE CASCADE; berkas fisik
+  // dibersihkan setelah transaksi sukses agar tidak ada unggahan yatim.
+  await removeUploadFiles(photoFiles);
+  return result;
 }
 
 module.exports = {
@@ -639,4 +802,5 @@ module.exports = {
   updateOwnTicket,
   updateTicketStatus,
   deleteOwnTicket,
+  accessFilter,
 };

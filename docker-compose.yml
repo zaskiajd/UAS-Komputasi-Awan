@@ -39,9 +39,16 @@ services:
     environment:
       # Dipaksa production walau .env lupa diisi, agar JWT_SECRET lemah ditolak.
       NODE_ENV: production
+      # Foto pengaduan disimpan di named volume, bukan di lapisan container.
+      UPLOAD_DIR: /app/uploads
     restart: unless-stopped
     expose:
       - "3000"
+    volumes:
+      # Named volume "campuscare_uploads" (lihat blok volumes di bawah).
+      # JANGAN hapus dengan "docker compose down -v" kecuali foto memang
+      # ingin dihapus; backup dulu dengan deploy/scripts/backup-uploads.sh.
+      - uploads:/app/uploads
     healthcheck:
       # $$ = tanda $ biasa (bukan variabel compose). /api/health ikut mengecek DB.
       test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:$${PORT:-3000}/api/health || exit 1"]
@@ -64,8 +71,8 @@ services:
     #   - "host.docker.internal:host-gateway"
 
   # ---------------------------------------------------------------------------
-  # web — Nginx: melayani file statis frontend dan meneruskan /api ke "api".
-  # Port host inilah yang ditunjuk Cloudflare Tunnel (http://localhost:WEB_PORT).
+  # web — Nginx: melayani file statis frontend, meneruskan /api dan /uploads
+  # ke "api". Port host inilah yang ditunjuk Cloudflare Tunnel.
   # ---------------------------------------------------------------------------
   web:
     build:
@@ -116,3 +123,9 @@ networks:
   campuscare:
     name: campuscare
     driver: bridge
+
+volumes:
+  # Nama tetap (tanpa awalan project) agar deploy/scripts/backup-uploads.sh
+  # dan prosedur restore di docs/DEPLOY.md selalu menunjuk volume yang sama.
+  uploads:
+    name: campuscare_uploads

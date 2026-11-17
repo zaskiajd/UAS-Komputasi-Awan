@@ -38,6 +38,15 @@ psql -h <host> -U <user> -d campuscare -f db/campuscare_full.sql
 
 Ulangi perintah yang sama untuk membuktikan file idempotent.
 
+Database yang **sudah berisi data** tidak perlu di-reset. Jalankan migrasi baru
+saja (aman diulang):
+
+```bash
+psql -h <host> -U <user> -d campuscare -f db/migrations/003_ticket_photos.sql
+```
+
+Di server Docker, gunakan `deploy/scripts/migrate.sh backend/db/migrations/003_ticket_photos.sql`.
+
 ### Akun demo
 
 | Role | Email | NIM | Password |
@@ -60,6 +69,7 @@ JWT_SECRET=ganti-dengan-secret-acak-minimal-32-karakter
 PORT=3000
 CORS_ORIGIN=http://localhost:8000
 NODE_ENV=development
+UPLOAD_DIR=uploads
 ```
 
 - `DB_SSL=true` → `pg.Pool` memakai SSL.
@@ -203,7 +213,7 @@ Constraint:
 | `urgent` | boolean | not null, default `false` | |
 | `progress` | integer | not null, default `0` | `0..100`. |
 | `team_id` | text | nullable, FK `teams.id` | `ON DELETE SET NULL`. |
-| `photo_url` | text | nullable | Untuk fitur upload foto nanti. |
+| `photo_url` | text | nullable | URL foto utama; disinkronkan backend dari baris `ticket_photos` pertama (atau `NULL` bila tidak ada foto). |
 | `sla_due_at` | timestamptz | nullable | Diisi trigger bila `NULL`. |
 | `created_at` | timestamptz | not null, default `now()` | |
 | `updated_at` | timestamptz | not null, default `now()` | Diisi trigger saat `UPDATE`. |
@@ -253,6 +263,22 @@ Index unik parsial:
 | `is_public` | boolean | not null, default `false` | `true` = boleh dilihat mahasiswa. |
 | `read_at` | timestamptz | nullable | Ekstensi untuk `readAt` instruksi frontend. |
 | `created_at` | timestamptz | not null, default `now()` | |
+
+### 2.12 `ticket_photos`
+
+| Kolom | Tipe | Null / default | Keterangan |
+| --- | --- | --- | --- |
+| `id` | bigserial | PK | |
+| `ticket_id` | integer | not null, FK `tickets.id` | `ON DELETE CASCADE`; foto ikut terhapus saat tiket dibatalkan. |
+| `file_name` | text | not null, unique | Nama UUID + ekstensi di `UPLOAD_DIR`, mis. `6f1c...jpg`. URL publik: `/uploads/<file_name>`. |
+| `original_name` | text | nullable | Nama berkas asli yang sudah disanitasi; hanya metadata. |
+| `mime_type` | text | not null | `image/jpeg`, `image/png`, atau `image/webp` (hasil deteksi magic bytes). |
+| `size_bytes` | bigint | not null | Ukuran berkas, maksimal 3 MB. |
+| `created_at` | timestamptz | not null, default `now()` | Urutan tampil foto (`created_at ASC, id ASC`). |
+
+Index: `idx_ticket_photos_ticket (ticket_id, created_at)`. Batas **3 foto per
+tiket** dan sinkronisasi `tickets.photo_url` ditegakkan backend, bukan CHECK DB.
+Migrasi: `backend/db/migrations/003_ticket_photos.sql`.
 
 ---
 
@@ -362,7 +388,8 @@ Index unik parsial:
 | `updatedAt` | `tickets.updated_at` |
 | `completedAt` | `tickets.completed_at` |
 | `slaDueAt` | `tickets.sla_due_at` |
-| `photoUrl` | `tickets.photo_url` |
+| `photoUrl` | URL foto pertama dari `ticket_photos`; `tickets.photo_url` menyimpan nilai yang sama |
+| `photos[]` | baris `ticket_photos` (`id`, `url`, `mimeType`, `sizeBytes`, `createdAt`) |
 | `deletedByStudentAt` | `tickets.deleted_by_student_at` |
 
 ### 5.2 `assignments[]`
@@ -563,8 +590,10 @@ Keputusan:
    Keduanya sengaja dipisah: notes untuk diskusi operasional, history untuk
    audit status.
 10. **Foto**
-    `photo_url` sudah disiapkan, tetapi fitur upload belum diimplementasikan di
-    frontend. Backend tinggal mengisi URL object storage.
+    Foto pengaduan disimpan sebagai baris `ticket_photos` + berkas di
+    `UPLOAD_DIR` (maks 3 foto/tiket, 3 MB/foto). `tickets.photo_url`
+    disinkronkan backend dengan URL foto pertama. Frontend mengunggah foto
+    setelah tiket dibuat lewat `POST /api/tickets/:id/photos`.
 11. **Soft delete**
     Frontend menghapus dari array in-memory. DB memakai
     `deleted_by_student_at`; tiket tetap terlihat admin.
@@ -1095,6 +1124,7 @@ pemeriksaan), PostgreSQL mengembalikan error `23503` pada constraint
 | `ticket_assignments` | 11 | turunan `assignments`/`assignee` (2 + 2 + 7) |
 | `ticket_history` | 30 | history tiket seed (3 tiket default × 1 + 9 tiket × 3) |
 | `ticket_comments` | 5 | `notes` + `instructions` seed (2 + 2 + 1) |
+| `ticket_photos` | 0 | dibuat saat mahasiswa mengunggah foto (bukan seed) |
 
 ### 8.2 Data yang tidak terbawa / berubah bentuk
 
@@ -1202,8 +1232,9 @@ Diuji ulang pada PostgreSQL 18.6 (target tetap 14+):
    permanen, cukup diarsipkan.
 9. `ticket_comments.read_at` adalah ekstensi kecil di luar daftar kolom wajib,
    untuk memetakan `readAt` frontend.
-10. `tickets.photo_url` hanya disiapkan; upload file/object storage bukan
-    bagian dari tugas database ini.
+10. `tickets.photo_url` adalah cache URL foto utama. Sumber kebenaran daftar
+    foto ada di `ticket_photos`; berkas fisik berada di `UPLOAD_DIR` dan tidak
+    disimpan di database.
 11. `rejected` tersedia di CHECK tetapi belum dipakai UI.
 12. Password demo `CampusCare#2026` **wajib diganti** sebelum rilis.
 13. Endpoint aset sekarang tersedia di backend (`/api/assets`, khusus admin).
