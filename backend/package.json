@@ -10,7 +10,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node --test tests/api.test.js tests/assets.test.js tests/photos.test.js",
+    "test": "node --test tests/api.test.js tests/assets.test.js tests/photos.test.js tests/technicians.test.js",
     "db:reset": "bash db/reset.sh"
   },
   "dependencies": {
@@ -23,6 +23,7 @@
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.5.0",
-    "pg": "^8.13.1"
+    "pg": "^8.13.1",
+    "ws": "^8.23.0"
   }
 }

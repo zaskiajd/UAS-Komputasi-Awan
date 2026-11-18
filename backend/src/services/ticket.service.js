@@ -17,6 +17,7 @@
 const { query, withTransaction } = require('../config/db');
 const { ApiError, notFound, conflict } = require('../utils/errors');
 const { mapPhoto, removeUploadFiles } = require('../utils/uploads');
+const { ticketEvent } = require('../realtime/bus');
 
 const SLA_HOURS = { Tinggi: 2, Sedang: 6, Rendah: 24 };
 
@@ -339,7 +340,10 @@ async function createTicket(user, input) {
     return rows[0].id;
   });
 
-  return getTicketDetail({ by: 'id', value: ticketId }, user);
+  const detail = await getTicketDetail({ by: 'id', value: ticketId }, user);
+  // Notifikasi real-time: tiket baru masuk (diterima admin online).
+  ticketEvent(ticketId, 'ticket.created', { actor: user.name });
+  return detail;
 }
 
 /* ------------------------------------------------------------------- UPDATE */
@@ -743,7 +747,10 @@ async function updateTicketStatus(ref, user, input) {
     return current.id;
   });
 
-  return getTicketDetail({ by: 'id', value: ticketId }, user);
+  const detail = await getTicketDetail({ by: 'id', value: ticketId }, user);
+  // Notifikasi real-time: status/progres berubah (diterima admin + pemilik tiket).
+  ticketEvent(ticketId, 'ticket.status', { actor: user.name });
+  return detail;
 }
 
 /* ------------------------------------------------------------------- DELETE */

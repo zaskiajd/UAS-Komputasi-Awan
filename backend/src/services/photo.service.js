@@ -13,6 +13,7 @@
 const { withTransaction } = require('../config/db');
 const { ApiError, notFound, conflict } = require('../utils/errors');
 const { accessFilter } = require('./ticket.service');
+const { ticketEvent } = require('../realtime/bus');
 const {
   MAX_PHOTOS,
   detectImageType,
@@ -104,10 +105,12 @@ async function addPhotos(ref, user, files) {
 
   const writtenFiles = [];
   let committed = false;
+  let ticketId = null; // dicatat untuk event real-time setelah commit
 
   try {
     const photos = await withTransaction(async (client) => {
       const ticket = await lockTicket(client, ref, user);
+      ticketId = ticket.id;
 
       if (ticket.status === 'done') {
         throw conflict(
@@ -144,6 +147,8 @@ async function addPhotos(ref, user, files) {
     });
 
     committed = true;
+    // Notifikasi real-time: foto baru pada tiket.
+    ticketEvent(ticketId, 'ticket.photo', { actor: user.name });
     return { photos, photoUrl: photos.length > 0 ? photos[0].url : null };
   } finally {
     // Transaksi gagal/rollback → jangan tinggalkan berkas yatim di disk.
