@@ -1,21 +1,32 @@
 /* ==========================================================================
    features/technicians.js — Manajemen teknisi lapangan
+   --------------------------------------------------------------------------
+   Semua perubahan data (tambah/edit/arsip/pulihkan/tugas/hapus) disinkronkan
+   ke backend lewat features/technicians-api.js; state.technicians hanyalah
+   salinan tampilan yang diperbarui dari respons server.
    ========================================================================== */
 
 import { byId, escapeHtml, formatDateTime } from "../core/dom.js";
 import { state } from "../core/state.js";
 import { assignmentRoster, ticketInvolves } from "../data/assignments.js";
-import {
-  nextTechnicianId,
-  TEAMS,
-  TEAM_BY_ID,
-} from "../data/technicians.js";
+import { TEAMS, TEAM_BY_ID } from "../data/technicians.js";
 import { closeModal, openModal } from "../ui/modal.js";
 import { showToast } from "../ui/toast.js";
 import { renderAnalytics, teamWorkload } from "./analytics.js";
 import { renderReports } from "./reports.js";
+import {
+  archiveTechnicianRequest,
+  createTechnicianRequest,
+  deleteTechnicianRequest,
+  restoreTechnicianRequest,
+  setDutyRequest,
+  updateTechnicianRequest,
+} from "./technicians-api.js";
 
 const ROLE_OPTIONS = ["Koordinator", "Teknisi"];
+
+/** Teknisi yang sedang menunggu respons server agar tombol tidak dobel-klik. */
+const busyTechnicians = new Set();
 
 const ACCENTS = {
   primary: { badge: "bg-primary-fixed text-primary", bar: "bg-primary-container" },
@@ -349,12 +360,13 @@ function technicianDetailMarkup(technician) {
       <div class="flex flex-wrap gap-2">
         ${
           archived
-            ? `<button type="button" class="h-10 px-4 rounded-full bg-emerald-100 text-emerald-800 hover:bg-emerald-200 text-xs font-bold transition" data-action="restore-tech" data-tech="${escapeHtml(technician.id)}">Pulihkan Teknisi</button>`
+            ? `<button type="button" class="h-10 px-4 rounded-full bg-emerald-100 text-emerald-800 hover:bg-emerald-200 text-xs font-bold transition" data-action="restore-tech" data-tech="${escapeHtml(technician.id)}">Pulihkan Teknisi</button>
+              <button type="button" class="h-10 px-4 rounded-full bg-red-100 text-red-700 hover:bg-red-200 text-xs font-bold transition" data-action="delete-tech" data-tech="${escapeHtml(technician.id)}">Hapus Permanen</button>`
             : `<button type="button" class="h-10 px-4 rounded-full text-xs font-bold ${technician.active ? "bg-amber-100 text-amber-800 hover:bg-amber-200" : "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"} transition" data-action="toggle-tech-duty" data-tech="${escapeHtml(technician.id)}">
                 ${technician.active ? "Set ke Standby" : "Aktifkan Bertugas"}
               </button>
               <button type="button" class="h-10 px-4 rounded-full bg-surface-container text-on-surface text-xs font-bold hover:bg-surface-container-high transition" data-action="edit-tech" data-tech="${escapeHtml(technician.id)}">Edit Data</button>
-              <button type="button" class="h-10 px-4 rounded-full bg-red-100 text-red-700 hover:bg-red-200 text-xs font-bold transition" data-action="remove-tech" data-tech="${escapeHtml(technician.id)}">Hapus</button>`
+              <button type="button" class="h-10 px-4 rounded-full bg-red-100 text-red-700 hover:bg-red-200 text-xs font-bold transition" data-action="remove-tech" data-tech="${escapeHtml(technician.id)}">Arsipkan</button>`
         }
       </div>
       <button type="button" class="h-10 px-4 rounded-full bg-surface-container text-on-surface text-xs font-bold hover:bg-surface-container-high transition" data-action="close-modal">Tutup</button>
@@ -372,9 +384,17 @@ export function openTechnicianDetail(technicianId) {
   openModal(modal);
 }
 
-export function toggleTechnicianDuty(technicianId) {
+/** Ganti objek teknisi di state dengan versi terbaru dari respons server. */
+function applyTechnician(updated) {
+  const index = state.technicians.findIndex((item) => item.id === updated.id);
+  if (index === -1) state.technicians.push(updated);
+  else state.technicians[index] = updated;
+  return updated;
+}
+
+export async function toggleTechnicianDuty(technicianId) {
   const technician = state.technicians.find((item) => item.id === technicianId);
-  if (!technician) return;
+  if (!technician || busyTechnicians.has(technicianId)) return;
 
   if (technician.archived) {
     showToast(
@@ -397,34 +417,32 @@ export function toggleTechnicianDuty(technicianId) {
     }
   }
 
-  technician.active = !technician.active;
-  renderTechnicians();
+  busyTechnicians.add(technicianId);
+  try {
+    const updated = await setDutyRequest(technician, !technician.active);
+    applyTechnician(updated);
+    renderTechnicians();
 
-  const body = byId("technician-detail-body");
-  if (body && body.dataset.tech === technician.id) {
-    body.innerHTML = technicianDetailMarkup(technician);
+    const body = byId("technician-detail-body");
+    if (body && body.dataset.tech === technician.id) {
+      body.innerHTML = technicianDetailMarkup(updated);
+    }
+
+    showToast(
+      updated.active ? "Teknisi Diaktifkan" : "Teknisi Standby",
+      `${updated.title} sekarang ${updated.active ? "bertugas" : "standby"}.`,
+      "success"
+    );
+  } catch (error) {
+    showToast("Gagal Mengubah Tugas", error.message || "Coba lagi beberapa saat.", "error");
+  } finally {
+    busyTechnicians.delete(technicianId);
   }
-
-  showToast(
-    technician.active ? "Teknisi Diaktifkan" : "Teknisi Standby",
-    `${technician.title} sekarang ${technician.active ? "bertugas" : "standby"}.`,
-    "success"
-  );
 }
 
 function refreshTechnicianViews() {
   renderTechnicians();
   renderReports();
-}
-
-/** Pastikan satu tim selalu memiliki koordinator bila masih ada personil. */
-function promoteReplacementCoordinator(teamId) {
-  const members = state.technicians.filter(
-    (technician) => technician.teamId === teamId && !technician.archived
-  );
-  if (members.some((technician) => technician.role === "Koordinator")) return;
-  const replacement = members.find((technician) => technician.active) || members[0];
-  if (replacement) replacement.role = "Koordinator";
 }
 
 function parseSkills(value) {
@@ -495,7 +513,7 @@ export function openTechnicianForm(technicianId) {
   openModal(modal);
 }
 
-export function handleTechnicianFormSubmit(event) {
+export async function handleTechnicianFormSubmit(event) {
   event.preventDefault();
 
   const id = byId("tech-form-id").value.trim();
@@ -518,9 +536,7 @@ export function handleTechnicianFormSubmit(event) {
     return;
   }
 
-  const existing = id
-    ? state.technicians.find((technician) => technician.id === id)
-    : null;
+  const existing = id ? state.technicians.find((technician) => technician.id === id) : null;
 
   if (id && !existing) {
     showToast("Teknisi Tidak Ditemukan", "Data teknisi sudah berubah. Muat ulang halaman.", "error");
@@ -534,6 +550,7 @@ export function handleTechnicianFormSubmit(event) {
     );
     return;
   }
+  if (busyTechnicians.has(id || "__create__")) return;
 
   if (existing && existing.active && !wantsActive && activeTickets(existing.id).length) {
     showToast(
@@ -544,155 +561,144 @@ export function handleTechnicianFormSubmit(event) {
     return;
   }
 
-  const previous = existing
-    ? { teamId: existing.teamId, role: existing.role }
-    : null;
+  const payload = {
+    name,
+    title,
+    teamId: team.id,
+    role,
+    phone,
+    skills,
+    active: wantsActive,
+  };
 
-  const technician =
-    existing ||
-    ({
-      id: nextTechnicianId(name, state.technicians),
-      archived: false,
-    });
-
-  technician.name = name;
-  technician.title = title;
-  technician.teamId = team.id;
-  technician.role = role;
-  technician.phone = phone || "-";
-  technician.skills = skills;
-  technician.active = wantsActive;
-
-  if (!existing) state.technicians.push(technician);
-
-  // Hanya satu koordinator aktif per tim.
-  if (role === "Koordinator") {
-    state.technicians.forEach((other) => {
-      if (
-        other.id !== technician.id &&
-        other.teamId === team.id &&
-        other.role === "Koordinator" &&
-        !other.archived
-      ) {
-        other.role = "Teknisi";
-      }
-    });
+  busyTechnicians.add(id || "__create__");
+  const submitButton = byId("tech-form-submit");
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.textContent = "Menyimpan…";
   }
 
-  // Bila koordinator lama pindah tim atau turun jabatan, angkat pengganti.
-  if (
-    previous?.role === "Koordinator" &&
-    (previous.teamId !== team.id || role !== "Koordinator")
-  ) {
-    promoteReplacementCoordinator(previous.teamId);
+  try {
+    const updated = existing
+      ? await updateTechnicianRequest(existing, payload)
+      : await createTechnicianRequest(payload);
+    applyTechnician(updated);
+
+    closeModal(byId("modal-technician-form"));
+    refreshTechnicianViews();
+
+    showToast(
+      existing ? "Data Teknisi Diperbarui" : "Teknisi Ditambahkan",
+      existing
+        ? `${updated.title} kini tercatat di ${team.short}.`
+        : `${updated.title} ditambahkan ke ${team.short}${updated.active ? "" : " (standby)"}.`,
+      "success"
+    );
+  } catch (error) {
+    showToast("Gagal Menyimpan Teknisi", error.message || "Coba lagi beberapa saat.", "error");
+  } finally {
+    busyTechnicians.delete(id || "__create__");
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.textContent = existing ? "Simpan Perubahan" : "Tambah Teknisi";
+    }
   }
-
-  closeModal(byId("modal-technician-form"));
-  refreshTechnicianViews();
-
-  showToast(
-    existing ? "Data Teknisi Diperbarui" : "Teknisi Ditambahkan",
-    existing
-      ? `${technician.title} kini tercatat di ${team.short}.`
-      : `${technician.title} ditambahkan ke ${team.short}${technician.active ? "" : " (standby)"}.`,
-    "success"
-  );
 }
 
-export function removeTechnician(technicianId) {
+/** Arsipkan teknisi: keluar dari roster aktif, riwayat tiket tetap tersimpan. */
+export async function removeTechnician(technicianId) {
   const technician = state.technicians.find((item) => item.id === technicianId);
-  if (!technician || technician.archived) return;
+  if (!technician || technician.archived || busyTechnicians.has(technicianId)) return;
 
   const active = activeTickets(technician.id);
   if (active.length) {
     showToast(
-      "Tidak Bisa Dihapus",
+      "Tidak Bisa Diarsipkan",
       `${technician.title} masih menangani ${active.length} tiket aktif. Selesaikan atau pindahkan tiket terlebih dahulu.`,
       "error"
     );
     return;
   }
 
-  if (technician.role === "Koordinator") {
-    const replacement =
-      state.technicians.find(
-        (other) =>
-          other.id !== technician.id &&
-          other.teamId === technician.teamId &&
-          !other.archived &&
-          other.active
-      ) ||
-      state.technicians.find(
-        (other) =>
-          other.id !== technician.id &&
-          other.teamId === technician.teamId &&
-          !other.archived
-      );
+  busyTechnicians.add(technicianId);
+  try {
+    const updated = await archiveTechnicianRequest(technician);
+    applyTechnician(updated);
 
-    if (!replacement) {
-      showToast(
-        "Koordinator Belum Ada Pengganti",
-        "Tambahkan atau aktifkan personil lain di tim ini sebelum menghapus koordinator.",
-        "error"
-      );
-      return;
-    }
-
-    replacement.role = "Koordinator";
-    technician.role = "Teknisi";
-  }
-
-  const referenced = state.reports.some((report) =>
-    ticketInvolves(report, technician.id)
-  );
-
-  closeModal(byId("modal-technician"));
-  closeModal(byId("modal-technician-form"));
-
-  if (referenced) {
-    // Pertahankan data agar riwayat tiket & analitik tidak kehilangan nama.
-    technician.archived = true;
-    technician.active = false;
+    closeModal(byId("modal-technician"));
+    closeModal(byId("modal-technician-form"));
     refreshTechnicianViews();
+
     showToast(
       "Teknisi Diarsipkan",
-      `${technician.title} tidak lagi tampil di roster aktif. Riwayat tiketnya tetap tersimpan.`,
+      `${updated.title} tidak lagi tampil di roster aktif. Riwayat tiketnya tetap tersimpan, dan teknisi tanpa riwayat dapat dihapus permanen dari tampilan arsip.`,
       "success"
     );
-    return;
+  } catch (error) {
+    showToast("Gagal Mengarsipkan Teknisi", error.message || "Coba lagi beberapa saat.", "error");
+  } finally {
+    busyTechnicians.delete(technicianId);
   }
-
-  state.technicians = state.technicians.filter((item) => item.id !== technician.id);
-  refreshTechnicianViews();
-  showToast(
-    "Teknisi Dihapus",
-    `${technician.title} dihapus permanen karena belum memiliki riwayat tiket.`,
-    "success"
-  );
 }
 
-export function restoreTechnician(technicianId) {
+/** Hapus permanen teknisi yang sudah diarsipkan dan tidak punya riwayat penugasan. */
+export async function deleteTechnicianPermanently(technicianId) {
   const technician = state.technicians.find((item) => item.id === technicianId);
-  if (!technician || !technician.archived) return;
+  if (!technician || !technician.archived || busyTechnicians.has(technicianId)) return;
 
-  technician.archived = false;
-  technician.active = false;
+  busyTechnicians.add(technicianId);
+  try {
+    await deleteTechnicianRequest(technician);
+    state.technicians = state.technicians.filter((item) => item.id !== technicianId);
 
-  // Kembali ke tampilan roster utama agar teknisi yang dipulihkan langsung terlihat.
-  state.techStatusFilter = "all";
-  const statusFilter = byId("tech-status-filter");
-  if (statusFilter) statusFilter.value = "all";
+    closeModal(byId("modal-technician"));
+    refreshTechnicianViews();
 
-  refreshTechnicianViews();
-
-  const body = byId("technician-detail-body");
-  if (body && body.dataset.tech === technician.id) {
-    body.innerHTML = technicianDetailMarkup(technician);
+    showToast(
+      "Teknisi Dihapus",
+      `${technician.title} dihapus permanen karena tidak memiliki riwayat penugasan tiket.`,
+      "success"
+    );
+  } catch (error) {
+    showToast(
+      "Tidak Bisa Dihapus",
+      error.message || "Teknisi dengan riwayat penugasan hanya dapat diarsipkan.",
+      "error"
+    );
+  } finally {
+    busyTechnicians.delete(technicianId);
   }
+}
 
-  showToast(
-    "Teknisi Dipulihkan",
-    `${technician.title} kembali ke roster sebagai standby. Aktifkan saat siap bertugas.`,
-    "success"
-  );
+export async function restoreTechnician(technicianId) {
+  const technician = state.technicians.find((item) => item.id === technicianId);
+  if (!technician || !technician.archived || busyTechnicians.has(technicianId)) return;
+
+  busyTechnicians.add(technicianId);
+  try {
+    const updated = await restoreTechnicianRequest(technician);
+    applyTechnician(updated);
+
+    // Kembali ke tampilan roster utama agar teknisi yang dipulihkan langsung terlihat.
+    state.techStatusFilter = "all";
+    const statusFilter = byId("tech-status-filter");
+    if (statusFilter) statusFilter.value = "all";
+
+    refreshTechnicianViews();
+
+    const body = byId("technician-detail-body");
+    if (body && body.dataset.tech === technician.id) {
+      body.innerHTML = technicianDetailMarkup(updated);
+    }
+
+    showToast(
+      "Teknisi Dipulihkan",
+      `${updated.title} kembali ke roster. Aktifkan bertugas saat siap menangani tiket.`,
+      "success"
+    );
+  } catch (error) {
+    showToast("Gagal Memulihkan Teknisi", error.message || "Coba lagi beberapa saat.", "error");
+  } finally {
+    busyTechnicians.delete(technicianId);
+  }
 }

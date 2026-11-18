@@ -17,7 +17,14 @@ export function showToast(title, message, variant = "success") {
   byId("toast-message").textContent = message || "";
 
   const icon = byId("toast-icon");
-  icon.textContent = variant === "error" ? "error" : variant === "info" ? "info" : "check";
+  icon.textContent =
+    variant === "error"
+      ? "error"
+      : variant === "info"
+        ? "info"
+        : variant === "warning"
+          ? "warning"
+          : "check";
 
   toast.classList.add("is-visible");
   toastTimer = setTimeout(() => toast.classList.remove("is-visible"), 4200);

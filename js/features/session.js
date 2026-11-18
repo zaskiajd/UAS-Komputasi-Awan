@@ -14,7 +14,7 @@ import { renderReports } from "./reports.js";
 import { renderInventory } from "./inventory.js";
 import { closeDrawers } from "../ui/sidebar.js";
 import { clearToken } from "../core/api.js";
-import { seedReports } from "../data/reports.js";
+import { connectRealtime, disconnectRealtime } from "../core/realtime.js";
 
 /**
  * Menyelesaikan proses login sukses:
@@ -32,6 +32,8 @@ export function handleAuthSuccess(user) {
 export function loginAs(role, options = {}) {
   closeDrawers();
   state.role = role;
+  // Notifikasi real-time aktif untuk sesi apa pun yang berhasil masuk.
+  connectRealtime();
 
   if (role === "admin") {
     setAdminTab("dashboard");
@@ -60,9 +62,11 @@ export function loginAs(role, options = {}) {
 
 export function logout(options = {}) {
   clearToken();
+  disconnectRealtime();
   state.student = null;
   state.role = "public";
-  state.reports = seedReports(); // buang data tiket milik sesi sebelumnya
+  state.reports = []; // buang data tiket milik sesi sebelumnya
+  state.technicians = []; // data teknisi hanya dimuat untuk admin yang login
   state.assets = []; // data inventaris hanya dimuat untuk admin yang login
   state.studentFilter = "all";
   state.adminFilter = "all";

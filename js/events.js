@@ -29,6 +29,7 @@ import { handleAuthSuccess, logout } from "./features/session.js";
 import { ApiError, loginRequest, registerRequest } from "./core/api.js";
 import { loadTicketsSafely } from "./features/tickets-api.js";
 import { loadAssetsSafely } from "./features/assets-api.js";
+import { loadTechniciansSafely } from "./features/technicians-api.js";
 import {
   handleDispatchSubmit,
   openDispatch,
@@ -60,6 +61,7 @@ import {
   updateTicketStatus,
 } from "./features/ticket-actions.js";
 import {
+  deleteTechnicianPermanently,
   handleTechnicianFormSubmit,
   openTechnicianDetail,
   openTechnicianForm,
@@ -271,6 +273,9 @@ function handleAction(actionElement) {
     case "restore-tech":
       restoreTechnician(actionElement.dataset.tech);
       break;
+    case "delete-tech":
+      deleteTechnicianPermanently(actionElement.dataset.tech);
+      break;
 
     case "toggle-tech-duty":
       toggleTechnicianDuty(actionElement.dataset.tech);
@@ -342,15 +347,6 @@ function handleAction(actionElement) {
 
     case "close-student-sidebar":
       toggleStudentSidebar(false);
-      break;
-
-    case "demo":
-      toggleSidebar(false);
-      showToast(
-        "Mode Prototipe",
-        actionElement.dataset.note || "Fitur ini akan terhubung ke backend pada tahap berikutnya.",
-        "info"
-      );
       break;
 
     default:
@@ -618,6 +614,8 @@ export function bindEvents() {
         if (user.role === "admin") {
           await loadAssetsSafely();
           renderInventory();
+          await loadTechniciansSafely();
+          renderTechnicians();
         }
         handleAuthSuccess(user);
       } catch (error) {

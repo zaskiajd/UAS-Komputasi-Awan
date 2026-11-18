@@ -2,10 +2,8 @@
    core/init.js — Inisialisasi state dan seluruh perilaku aplikasi
    ========================================================================== */
 
-import { resetReportSequence, state } from "./state.js";
+import { state } from "./state.js";
 import { setView } from "./router.js";
-import { seedReports } from "../data/reports.js";
-import { seedTechnicians } from "../data/technicians.js";
 import { bindEvents } from "../events.js";
 import { setAuthRole, setAuthTab, initGoogleAuth } from "../views/auth.js";
 import { fillDispatchOptions } from "../features/dispatch.js";
@@ -18,6 +16,7 @@ import { clearToken, fetchMe, getToken, setUnauthorizedHandler } from "./api.js"
 import { loginAs, logout } from "../features/session.js";
 import { loadTicketsSafely } from "../features/tickets-api.js";
 import { loadAssetsSafely } from "../features/assets-api.js";
+import { loadTechniciansSafely } from "../features/technicians-api.js";
 
 /** Memulihkan sesi dari token tersimpan; token tidak valid dibuang secara aman. */
 async function restoreSession() {
@@ -40,6 +39,8 @@ async function restoreSession() {
     if (user.role === "admin") {
       await loadAssetsSafely();
       renderInventory();
+      await loadTechniciansSafely();
+      renderTechnicians();
     }
     loginAs(user.role, { name: user.name });
   } catch (error) {
@@ -57,10 +58,10 @@ async function restoreSession() {
 export function init() {
   const initialHash = window.location.hash.replace("#", "").toLowerCase();
 
-  state.reports = seedReports();
-  state.technicians = seedTechnicians();
+  // Tanpa data dummy: tiket & teknisi dimuat dari API setelah login.
+  state.reports = [];
+  state.technicians = [];
   state.assets = []; // diisi dari API setelah admin login
-  resetReportSequence();
 
   setUnauthorizedHandler((message) => {
     if (state.view === "student" || state.view === "admin") {
