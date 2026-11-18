@@ -1,18 +1,17 @@
 <section class="app-view" id="view-public" aria-label="Dashboard publik CampusCare">
   <header class="public-header fixed top-0 left-0 right-0 h-20 bg-surface-container-lowest/95 backdrop-blur-xl border-b border-surface-container-high z-40 px-3 sm:px-5 lg:px-8 flex items-center justify-between shadow-[0_4px_20px_rgba(20,23,26,0.04)]">
     <a class="flex items-center gap-3" href="#" data-action="back-public" aria-label="Beranda CampusCare">
-      <span class="w-10 h-10 rounded-2xl bg-primary-container text-white flex items-center justify-center shadow-[0_6px_18px_rgba(255,102,31,0.35)] shrink-0"><span class="material-symbols-outlined text-2xl font-bold">school</span></span>
+      <span class="w-10 h-10 rounded-2xl bg-primary-container text-white flex items-center justify-center shadow-[0_6px_18px_rgba(255,102,31,0.35)] shrink-0"><span class="material-symbols-outlined text-2xl" aria-hidden="true">school</span></span>
       <span class="flex flex-col">
         <span class="flex items-center gap-2"><span class="text-lg sm:text-xl font-bold tracking-tight text-on-surface leading-none font-display">CampusCare</span><span class="text-[10px] tracking-wider uppercase text-primary font-bold px-2 py-0.5 rounded-full bg-primary-fixed hidden sm:inline-block">UNSIL</span></span>
-        <span class="text-[11px] text-secondary font-medium tracking-tight mt-0.5 hidden md:block">Portal Pengaduan Sarana &amp; Prasarana</span>
+        <span class="text-[11px] text-gray-500 font-medium tracking-tight mt-0.5 hidden md:block">Portal Pengaduan Sarana &amp; Prasarana</span>
       </span>
     </a>
 
     <!-- Navigasi Publik: Menggunakan segmented pill tabs yang selaras dengan UI -->
     <nav class="hidden xl:flex items-center p-1 bg-surface-container rounded-full gap-1" aria-label="Navigasi publik">
       <button type="button" class="seg-tab is-active" data-public-tab="overview">Beranda</button>
-      <button type="button" class="seg-tab" data-public-tab="tracker">Pantau Aduan</button>
-      <button type="button" class="seg-tab" data-public-tab="campus">Zona Kampus</button>
+      <button type="button" class="seg-tab" data-public-tab="services">Layanan &amp; FAQ</button>
       <button type="button" class="seg-tab" data-public-tab="guide">Alur &amp; SOP</button>
       <button type="button" class="seg-tab" data-public-tab="help">Bantuan</button>
     </nav>
@@ -20,18 +19,18 @@
     <div class="flex items-center gap-2 sm:gap-3">
       <button type="button" class="h-10 px-3 sm:px-5 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-bold transition-colors" data-action="open-admin-login"><span class="hidden sm:inline">Login Admin</span><span class="sm:hidden">Admin</span></button>
       <button type="button" class="h-10 px-3 sm:px-5 rounded-full bg-primary-container hover:bg-primary-hover text-white text-xs font-bold shadow-[0_8px_20px_-6px_rgba(255,102,31,0.6)] transition-all flex items-center gap-2" data-action="open-student-login">
-        <span class="material-symbols-outlined text-base">login</span><span class="hidden sm:inline">Masuk Mahasiswa</span><span class="sm:hidden">Masuk</span>
+        <span class="material-symbols-outlined text-base" aria-hidden="true">login</span><span class="hidden sm:inline">Masuk Mahasiswa</span><span class="sm:hidden">Masuk</span>
       </button>
     </div>
   </header>
 
   <!-- =========================================================================
-       PANEL 1: BERANDA FULL SCREEN TANPA FIELD (FOTO UNSIL EDGE-TO-EDGE)
+       PANEL 1: BERANDA FULL SCREEN (FOTO UNSIL EDGE-TO-EDGE)
        ========================================================================= -->
   <div class="cc-panel is-active" id="panel-public-overview">
     <div class="public-hero-fullscreen">
       <!-- Foto UNSIL Utuh Menyeluruh Tanpa Kotak/Field Pembatas -->
-      <img class="public-hero-fullscreen-bg" src="/UNSIL.png" alt="Gedung Rektorat Universitas Siliwangi" fetchpriority="high">
+      <img class="public-hero-fullscreen-bg" src="/UNSIL.png" width="1671" height="941" alt="Gedung Rektorat Universitas Siliwangi" fetchpriority="high">
 
       <!-- Gradient Overlay Halus untuk Kemudahan Membaca Teks (Foto Tetap Tajam & Jernih) -->
       <div class="public-hero-fullscreen-overlay"></div>
@@ -41,39 +40,34 @@
         <!-- Mobile Segmented Tabs Bar: Tampil Mengambang di Tampilan Beranda Mobile -->
         <div class="xl:hidden flex items-center gap-1.5 p-1 bg-black/45 backdrop-blur-lg border border-white/20 rounded-full overflow-x-auto no-scrollbar mb-8 max-w-full w-fit shadow-xl">
           <button type="button" class="seg-tab is-active text-xs shrink-0 !text-white !bg-primary-container" data-public-tab="overview">Beranda</button>
-          <button type="button" class="seg-tab text-xs shrink-0 !text-white/85 hover:!text-white" data-public-tab="tracker">Pantau Aduan</button>
-          <button type="button" class="seg-tab text-xs shrink-0 !text-white/85 hover:!text-white" data-public-tab="campus">Zona Kampus</button>
+          <button type="button" class="seg-tab text-xs shrink-0 !text-white/85 hover:!text-white" data-public-tab="services">Layanan &amp; FAQ</button>
           <button type="button" class="seg-tab text-xs shrink-0 !text-white/85 hover:!text-white" data-public-tab="guide">Alur &amp; SOP</button>
           <button type="button" class="seg-tab text-xs shrink-0 !text-white/85 hover:!text-white" data-public-tab="help">Bantuan</button>
         </div>
 
         <div class="max-w-3xl">
-          <!-- Badge Portal Resmi Fasilitas Kampus -->
-          <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-white text-xs sm:text-sm font-bold w-fit mb-5 shadow-sm">
+          <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-white text-xs sm:text-sm font-bold w-fit mb-5 shadow-sm" data-hero-step>
             <span class="w-2.5 h-2.5 rounded-full bg-orange-400 animate-pulse"></span>
             <span>Portal Resmi Fasilitas Kampus</span>
           </div>
 
-          <!-- Judul / Kalimat Utama Sesuai Referensi -->
-          <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.12] font-display drop-shadow">
+          <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.12] font-display drop-shadow" data-hero-step>
             Fasilitas kampus bermasalah?<br>
             <span class="text-orange-400 drop-shadow-md">Laporkan, pantau, sampai selesai.</span>
           </h1>
 
-          <!-- Deskripsi Portal -->
-          <p class="text-sm sm:text-base lg:text-lg text-white/95 leading-relaxed mt-5 max-w-2xl font-medium drop-shadow-sm">
+          <p class="text-sm sm:text-base lg:text-lg text-white/95 leading-relaxed mt-5 max-w-2xl font-medium drop-shadow-sm" data-hero-step>
             Sampaikan kendala fasilitas kampus Universitas Siliwangi secara mudah, cepat, dan transparan melalui satu portal terpadu.
           </p>
 
-          <!-- Tombol Aksi: Masuk sebagai Mahasiswa & Statistik -->
-          <div class="flex flex-wrap items-center gap-3.5 sm:gap-4 mt-8">
+          <div class="flex flex-wrap items-center gap-3.5 sm:gap-4 mt-8" data-hero-step>
             <button type="button" class="h-12 sm:h-14 px-6 sm:px-8 rounded-full bg-primary-container hover:bg-primary-hover text-white text-sm sm:text-base font-bold shadow-[0_12px_28px_-4px_rgba(255,102,31,0.65)] hover:shadow-[0_16px_36px_-4px_rgba(255,102,31,0.8)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2.5" data-action="open-student-login">
-              <span class="material-symbols-outlined text-lg sm:text-xl">arrow_forward</span>
+              <span class="material-symbols-outlined text-lg sm:text-xl" aria-hidden="true">arrow_forward</span>
               <span>Masuk sebagai Mahasiswa</span>
             </button>
-            <button type="button" class="h-12 sm:h-14 px-6 sm:px-7 rounded-full bg-white hover:bg-slate-50 text-slate-900 text-sm sm:text-base font-bold shadow-[0_8px_24px_rgba(0,0,0,0.2)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2" data-public-tab="tracker">
-              <span class="material-symbols-outlined text-lg sm:text-xl text-primary font-bold">bar_chart</span>
-              <span>Statistik</span>
+            <button type="button" class="h-12 sm:h-14 px-6 sm:px-7 rounded-full bg-white hover:bg-slate-50 text-slate-900 text-sm sm:text-base font-bold shadow-[0_8px_24px_rgba(0,0,0,0.2)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2" data-public-tab="services">
+              <span class="material-symbols-outlined text-lg sm:text-xl text-primary" aria-hidden="true">support_agent</span>
+              <span>Layanan &amp; FAQ</span>
             </button>
           </div>
         </div>
@@ -81,385 +75,349 @@
     </div>
   </div>
 
-  <!-- CONTAINER UNTUK PANEL TAB LAINNYA (Pantau Aduan, Zona Kampus, Alur SOP, Bantuan) -->
-  <main class="public-content hidden w-full max-w-[1520px] mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-16" id="public-main-content">
+  <!-- CONTAINER UNTUK PANEL TAB LAINNYA (Layanan & FAQ, Alur SOP, Bantuan) -->
+  <main class="public-content hidden w-full max-w-[1520px] mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-24" id="public-main-content">
+
+    <!-- Latar foto UNSIL yang sangat pudar: memberi suasana kampus tanpa
+         mengganggu keterbacaan. Fixed agar stabil saat scroll (mirip halaman
+         login, tetapi wash-nya terang, bukan gelap). -->
+    <div class="public-backdrop" aria-hidden="true">
+      <img src="/UNSIL.png" width="1671" height="941" alt="" loading="lazy">
+      <div class="public-backdrop-wash"></div>
+    </div>
 
     <!-- Mobile Tabs Bar: Selaras dan mudah digeser di layar kecil -->
-    <div class="xl:hidden flex items-center gap-1.5 p-1 bg-surface-container rounded-full overflow-x-auto no-scrollbar mb-6">
+    <div class="xl:hidden flex items-center gap-1.5 p-1 bg-surface-container rounded-full overflow-x-auto no-scrollbar mb-12 relative">
       <button type="button" class="seg-tab text-xs shrink-0" data-public-tab="overview">Beranda</button>
-      <button type="button" class="seg-tab is-active text-xs shrink-0" data-public-tab="tracker">Pantau Aduan</button>
-      <button type="button" class="seg-tab text-xs shrink-0" data-public-tab="campus">Zona Kampus</button>
+      <button type="button" class="seg-tab is-active text-xs shrink-0" data-public-tab="services">Layanan &amp; FAQ</button>
       <button type="button" class="seg-tab text-xs shrink-0" data-public-tab="guide">Alur &amp; SOP</button>
       <button type="button" class="seg-tab text-xs shrink-0" data-public-tab="help">Bantuan</button>
     </div>
 
+
     <!-- =========================================================================
-         PANEL 2: PANTAU FASILITAS & PELACAK ADUAN TERBUKA (STATISTIK & ADUAN)
+         PANEL 2: LAYANAN & FAQ
+         Beberapa field kecil rapi ala halaman login: kartu kategori, kartu FAQ,
+         dan kartu ajakan. Motif tiket hadir sebagai garis perforasi pemisah
+         baris di dalam kartu.
          ========================================================================= -->
-    <div class="cc-panel" id="panel-public-tracker">
+    <div class="cc-panel" id="panel-public-services">
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-5 max-w-4xl mx-auto">
 
-      <!-- Section Statistik Pengaduan (Full Grid 4 Kolom) -->
-      <section class="mb-8" id="ringkasan" aria-label="Ringkasan angka pengaduan">
-        <div class="flex flex-wrap items-end justify-between gap-3 mb-5">
-          <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-on-surface font-display tracking-tight">Ringkasan Statistik Pengaduan</h2>
-            <p class="text-xs text-secondary mt-1">Status laporan pemeliharaan dan perbaikan sarana prasarana kampus secara keseluruhan.</p>
-          </div>
-          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container text-secondary text-xs font-semibold">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-            Data Agregat Terbuka
-          </span>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-          <!-- Card: Antrean Sarpras -->
-          <article class="public-stat-card public-stat-card--review">
-            <div class="flex items-center justify-between">
-              <span class="public-stat-icon bg-primary-fixed text-primary">
-                <span class="material-symbols-outlined text-xl">fact_check</span>
-              </span>
-              <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-primary-fixed text-primary">Antrean</span>
-            </div>
-            <div>
-              <p class="public-stat-value text-primary"><span data-public-count="review">0</span></p>
-              <p class="public-stat-label">Menunggu verifikasi Sarpras</p>
-            </div>
-          </article>
-
-          <!-- Card: Sedang Diproses -->
-          <article class="public-stat-card public-stat-card--progress">
-            <div class="flex items-center justify-between">
-              <span class="public-stat-icon bg-indigo-50 text-indigo-600">
-                <span class="material-symbols-outlined text-xl">engineering</span>
-              </span>
-              <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">Proses</span>
-            </div>
-            <div>
-              <p class="public-stat-value text-indigo-600"><span data-public-count="progress">0</span></p>
-              <p class="public-stat-label">Sedang ditangani teknisi</p>
-            </div>
-          </article>
-
-          <!-- Card: Selesai Ditangani -->
-          <article class="public-stat-card public-stat-card--done">
-            <div class="flex items-center justify-between">
-              <span class="public-stat-icon bg-emerald-100 text-emerald-700">
-                <span class="material-symbols-outlined text-xl">task_alt</span>
-              </span>
-              <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">Selesai</span>
-            </div>
-            <div>
-              <p class="public-stat-value text-emerald-700"><span data-public-count="done">0</span></p>
-              <p class="public-stat-label">Sudah divalidasi &amp; ditutup</p>
-            </div>
-          </article>
-
-          <!-- Card: Semua Aduan Tercatat -->
-          <article class="public-stat-card public-stat-card--all">
-            <div class="flex items-center justify-between">
-              <span class="public-stat-icon bg-surface-container text-on-surface">
-                <span class="material-symbols-outlined text-xl">inbox</span>
-              </span>
-              <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-surface-container text-secondary">Semua</span>
-            </div>
-            <div>
-              <p class="public-stat-value"><span data-public-count="all">0</span></p>
-              <p class="public-stat-label">Total pengaduan tercatat</p>
-            </div>
-          </article>
-        </div>
-
-        <!-- Bilah Distribusi Status Real-Time -->
-        <div class="public-status-summary mt-5">
-          <div class="flex items-center justify-between gap-3 text-xs">
-            <span class="font-bold text-on-surface">Distribusi Status Pengerjaan Tiket</span>
-            <span class="text-secondary font-medium text-[11px]" id="public-status-caption">Memuat data agregat...</span>
-          </div>
-          <div class="h-3 w-full rounded-full bg-surface-container mt-2.5 overflow-hidden flex" id="public-status-bar" aria-hidden="true"></div>
-        </div>
-      </section>
-
-      <!-- Section Aduan Terkini & Sebaran Kategori -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start mb-8">
-        <!-- Aduan Publik Terkini -->
-        <section class="lg:col-span-7 bg-surface-container-lowest rounded-3xl border border-[#e2e8f0] shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)] p-5 sm:p-6">
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 class="text-xl font-bold text-on-surface font-display tracking-tight">Aduan Fasilitas Terkini</h2>
-              <p class="text-xs text-secondary mt-1">Laporan terbaru yang sedang ditindaklanjuti.</p>
-            </div>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container text-secondary text-[11px] font-semibold">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              Live Update
-            </span>
-          </div>
-          <div class="flex flex-col gap-3 mt-5" id="public-recent-list"></div>
-        </section>
-
-        <!-- Sebaran Kategori -->
-        <section class="lg:col-span-5 bg-surface-container-lowest rounded-3xl border border-[#e2e8f0] shadow-[0_12px_32px_-4px_rgba(20,23,26,0.05)] p-5 sm:p-6">
-          <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
-            <div>
-              <h2 class="text-xl font-bold text-on-surface font-display tracking-tight">Sebaran Kategori</h2>
-              <p class="text-xs text-secondary mt-1">Kategori fasilitas pada laporan yang tercatat.</p>
-            </div>
-            <span class="text-[11px] font-semibold text-secondary" id="public-category-caption">0 kategori</span>
-          </div>
-          <div class="flex flex-col" id="public-category-list"></div>
-        </section>
-      </div>
-
-      <div class="bg-surface-container-lowest rounded-3xl border border-[#e2e8f0] shadow-sm p-6 sm:p-8 mb-8">
-        <div class="max-w-3xl mb-6">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-fixed text-primary text-xs font-bold mb-3">
-            <span class="material-symbols-outlined text-sm">manage_search</span>
-            <span>Pelacak Fasilitas Terbuka</span>
-          </div>
-          <h2 class="text-2xl sm:text-3xl font-extrabold text-on-surface font-display tracking-tight">Pantau Laporan Fasilitas Kampus</h2>
-          <p class="text-xs sm:text-sm text-secondary mt-2 leading-relaxed">
-            Cek progres perbaikan sarana prasarana yang sedang ditangani oleh Biro Sarana &amp; Prasarana UNSIL secara terbuka demi transparansi dan akuntabilitas.
+        <!-- Field 1: Kategori yang dapat dilaporkan -->
+        <div class="public-card lg:col-span-5">
+          <h2 class="text-xl sm:text-2xl font-bold text-gray-900 font-display tracking-tight">Kategori yang Dapat Dilaporkan</h2>
+          <p class="text-xs sm:text-sm text-gray-500 leading-relaxed mt-1.5">
+            Setiap laporan diteruskan otomatis ke tim lapangan yang menangani kategori tersebut.
           </p>
+
+          <div class="ticket-ledger mt-6" data-stagger>
+            <div class="ticket-row">
+              <span class="ticket-stub"><span class="material-symbols-outlined text-lg" aria-hidden="true">mode_fan</span></span>
+              <div class="ticket-row-body">
+                <h3 class="text-sm font-semibold text-gray-800 font-display">Kelistrikan &amp; AC</h3>
+                <p class="text-xs sm:text-sm text-gray-500 leading-relaxed mt-1">AC tidak dingin atau bocor, lampu mati, colokan rusak, panel listrik trip.</p>
+              </div>
+              <p class="ticket-row-team">Tim Kelistrikan &amp; Tata Udara</p>
+            </div>
+
+            <div class="ticket-row">
+              <span class="ticket-stub"><span class="material-symbols-outlined text-lg" aria-hidden="true">videocam_off</span></span>
+              <div class="ticket-row-body">
+                <h3 class="text-sm font-semibold text-gray-800 font-display">Proyektor &amp; Audio</h3>
+                <p class="text-xs sm:text-sm text-gray-500 leading-relaxed mt-1">Proyektor mati atau bergaris, sound system, mikrofon, kabel HDMI kelas.</p>
+              </div>
+              <p class="ticket-row-team">Tim Multimedia &amp; AV</p>
+            </div>
+
+            <div class="ticket-row">
+              <span class="ticket-stub"><span class="material-symbols-outlined text-lg" aria-hidden="true">wifi_off</span></span>
+              <div class="ticket-row-body">
+                <h3 class="text-sm font-semibold text-gray-800 font-display">Jaringan Wi-Fi</h3>
+                <p class="text-xs sm:text-sm text-gray-500 leading-relaxed mt-1">Wi-Fi terputus, access point mati, sinyal lemah di area kampus.</p>
+              </div>
+              <p class="ticket-row-team">Tim Jaringan &amp; IT</p>
+            </div>
+
+            <div class="ticket-row">
+              <span class="ticket-stub"><span class="material-symbols-outlined text-lg" aria-hidden="true">plumbing</span></span>
+              <div class="ticket-row-body">
+                <h3 class="text-sm font-semibold text-gray-800 font-display">Sanitasi &amp; Sipil</h3>
+                <p class="text-xs sm:text-sm text-gray-500 leading-relaxed mt-1">Toilet tersumbat, kebocoran air, drainase mampet, keretakan dinding.</p>
+              </div>
+              <p class="ticket-row-team">Tim Sanitasi &amp; Sipil</p>
+            </div>
+
+            <div class="ticket-row">
+              <span class="ticket-stub"><span class="material-symbols-outlined text-lg" aria-hidden="true">chair</span></span>
+              <div class="ticket-row-body">
+                <h3 class="text-sm font-semibold text-gray-800 font-display">Meubel &amp; Ruang Kuliah</h3>
+                <p class="text-xs sm:text-sm text-gray-500 leading-relaxed mt-1">Kursi atau meja patah, papan tulis rusak, pintu dan jendela tidak bisa dikunci.</p>
+              </div>
+              <p class="ticket-row-team">Tim Sanitasi &amp; Sipil</p>
+            </div>
+
+            <div class="ticket-row">
+              <span class="ticket-stub"><span class="material-symbols-outlined text-lg" aria-hidden="true">elevator</span></span>
+              <div class="ticket-row-body">
+                <h3 class="text-sm font-semibold text-gray-800 font-display">Lift &amp; Akses Gedung</h3>
+                <p class="text-xs sm:text-sm text-gray-500 leading-relaxed mt-1">Lift macet atau menyendat, pintu otomatis rusak, tangga darurat bermasalah.</p>
+              </div>
+              <p class="ticket-row-team">Tim Sanitasi &amp; Sipil</p>
+            </div>
+          </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div class="p-4 rounded-2xl bg-surface-container-low border border-surface-container-high flex items-center gap-3">
-            <span class="w-10 h-10 rounded-xl bg-primary-fixed text-primary flex items-center justify-center font-bold shrink-0">
-              <span class="material-symbols-outlined text-xl">fact_check</span>
-            </span>
-            <div>
-              <span class="text-[10px] uppercase tracking-wider text-secondary font-bold">Tahap Verifikasi</span>
-              <p class="text-xs font-semibold text-on-surface mt-0.5">Penetapan prioritas &amp; lokasi oleh tim Sarpras</p>
-            </div>
-          </div>
-          <div class="p-4 rounded-2xl bg-surface-container-low border border-surface-container-high flex items-center gap-3">
-            <span class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold shrink-0">
-              <span class="material-symbols-outlined text-xl">engineering</span>
-            </span>
-            <div>
-              <span class="text-[10px] uppercase tracking-wider text-secondary font-bold">Tahap Pengerjaan</span>
-              <p class="text-xs font-semibold text-on-surface mt-0.5">Teknisi ditugaskan langsung ke lapangan</p>
-            </div>
-          </div>
-          <div class="p-4 rounded-2xl bg-surface-container-low border border-surface-container-high flex items-center gap-3">
-            <span class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold shrink-0">
-              <span class="material-symbols-outlined text-xl">task_alt</span>
-            </span>
-            <div>
-              <span class="text-[10px] uppercase tracking-wider text-secondary font-bold">Tahap Selesai</span>
-              <p class="text-xs font-semibold text-on-surface mt-0.5">Hasil perbaikan divalidasi dan tiket ditutup</p>
-            </div>
+        <!-- Field 2: FAQ -->
+        <div class="public-card lg:col-span-3">
+          <h2 class="text-xl sm:text-2xl font-bold text-gray-900 font-display tracking-tight">Pertanyaan yang Sering Diajukan</h2>
+          <p class="text-xs sm:text-sm text-gray-500 leading-relaxed mt-1.5">
+            Jawaban ringkas untuk pelapor baru.
+          </p>
+
+          <div class="faq-list mt-4" data-stagger>
+            <details class="faq-item">
+              <summary>
+                Bagaimana cara melaporkan fasilitas yang rusak?
+                <span class="material-symbols-outlined faq-chevron text-lg" aria-hidden="true">expand_more</span>
+              </summary>
+              <p class="faq-body">Masuk dengan akun kampus Anda (email UNSIL atau SSO Google), buka panel mahasiswa, lalu isi formulir pengaduan: pilih kategori, lokasi gedung/ruang, jelaskan masalah, dan lampirkan 1–3 foto bila ada.</p>
+            </details>
+
+            <details class="faq-item">
+              <summary>
+                Apakah foto kerusakan wajib dilampirkan?
+                <span class="material-symbols-outlined faq-chevron text-lg" aria-hidden="true">expand_more</span>
+              </summary>
+              <p class="faq-body">Sistem menerima 1–3 foto per laporan, maksimal 3 MB per foto (JPG, PNG, atau WebP).</p>
+            </details>
+
+            <details class="faq-item">
+              <summary>
+                Berapa lama laporan saya ditangani?
+                <span class="material-symbols-outlined faq-chevron text-lg" aria-hidden="true">expand_more</span>
+              </summary>
+              <p class="faq-body">Target otomatis: <strong>Tinggi</strong> 2 jam, <strong>Sedang</strong> 6 jam, <strong>Rendah</strong> 24 jam sejak verifikasi. Progres dipantau di panel Pengaduan Saya.</p>
+            </details>
+
+            <details class="faq-item">
+              <summary>
+                Saya kehilangan kode tiket, bagaimana memantau statusnya?
+                <span class="material-symbols-outlined faq-chevron text-lg" aria-hidden="true">expand_more</span>
+              </summary>
+              <p class="faq-body">Masuk dengan akun Anda, lalu buka panel <strong>Pengaduan Saya</strong> — seluruh riwayat dan progres laporan tampil di sana.</p>
+            </details>
           </div>
         </div>
 
-        <div class="p-5 rounded-2xl bg-surface-container-low border border-surface-container-high flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div class="flex items-center gap-3">
-            <span class="w-10 h-10 rounded-full bg-primary-container text-white flex items-center justify-center font-bold shrink-0 shadow-sm">
-              <span class="material-symbols-outlined text-xl">campaign</span>
-            </span>
-            <div>
-              <h3 class="text-sm font-bold text-on-surface font-display">Ingin melaporkan fasilitas yang rusak?</h3>
-              <p class="text-xs text-secondary">Masuk dengan akun kampus Anda untuk mengirimkan laporan lengkap dengan foto.</p>
-            </div>
-          </div>
-          <button type="button" class="h-11 px-6 rounded-full bg-primary-container hover:bg-primary-hover text-white text-xs font-bold shrink-0 shadow-md transition-all flex items-center gap-2" data-action="open-student-login">
-            <span class="material-symbols-outlined text-base">add_circle</span>
-            <span>Buat Laporan Baru</span>
+        <!-- Field 3: Akun & CTA -->
+        <div class="public-card lg:col-span-2 flex flex-col">
+          <h2 class="text-xl sm:text-2xl font-bold text-gray-900 font-display tracking-tight">Akun &amp; Login</h2>
+          <p class="text-xs sm:text-sm text-gray-500 leading-relaxed mt-1.5">
+            Login dengan akun Google kampus gagal? Pastikan email ber-domain <strong class="text-gray-700">@student.unsil.ac.id</strong> atau <strong class="text-gray-700">@unsil.ac.id</strong>.
+          </p>
+          <button type="button" class="mt-4 h-10 px-5 rounded-full bg-surface-container text-primary text-xs font-bold hover:bg-surface-container-high transition self-start" data-action="open-sso-help">
+            Panduan SSO Kampus
           </button>
+
+          <div class="mt-auto pt-8">
+            <p class="text-xs text-gray-500 leading-relaxed">Siap melaporkan fasilitas yang rusak?</p>
+            <button type="button" class="mt-3 h-11 px-6 rounded-full bg-primary-container hover:bg-primary-hover text-white text-xs font-bold shadow-[0_12px_28px_-8px_rgba(255,102,31,0.6)] hover:scale-[1.02] active:scale-[0.98] transition-all inline-flex items-center gap-2" data-action="open-student-login">
+              <span class="material-symbols-outlined text-base" aria-hidden="true">add_circle</span>
+              <span>Buat Laporan Baru</span>
+            </button>
+          </div>
         </div>
+
       </div>
     </div>
 
     <!-- =========================================================================
-         PANEL 3: PETA & ZONA KAMPUS
-         ========================================================================= -->
-    <div class="cc-panel" id="panel-public-campus">
-      <div class="bg-surface-container-lowest rounded-3xl border border-[#e2e8f0] shadow-sm p-6 sm:p-8 mb-8">
-        <div class="max-w-3xl mb-8">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container text-on-surface text-xs font-bold mb-3">
-            <span class="material-symbols-outlined text-sm">apartment</span>
-            <span>Zonasi Fasilitas Universitas Siliwangi</span>
-          </div>
-          <h2 class="text-2xl sm:text-3xl font-extrabold text-on-surface font-display tracking-tight">Kesiapan Fasilitas &amp; Zona Kampus</h2>
-          <p class="text-xs sm:text-sm text-secondary mt-2 leading-relaxed">
-            Informasi gedung, zona pemeliharaan berkala, dan ruang kuliah yang terhubung dalam sistem pemantauan terpadu CampusCare.
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          <!-- Gedung Rektorat -->
-          <div class="p-5 rounded-2xl bg-surface-container-low border border-surface-container-high flex flex-col justify-between">
-            <div>
-              <div class="flex items-center justify-between mb-3">
-                <span class="w-10 h-10 rounded-xl bg-orange-100 text-primary-container flex items-center justify-center font-bold">
-                  <span class="material-symbols-outlined text-xl">account_balance</span>
-                </span>
-                <span class="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">99% Normal</span>
-              </div>
-              <h3 class="text-base font-bold text-on-surface font-display">Gedung A (Rektorat)</h3>
-              <p class="text-xs text-secondary mt-1">Pusat Administrasi Kampus, Biro Sarpras, Layanan Akademik &amp; Kemahasiswaan.</p>
-            </div>
-            <div class="pt-4 mt-4 border-t border-surface-container flex items-center justify-between text-[11px] text-secondary font-medium">
-              <span>Lantai 1-4 • 48 Titik Pantau</span>
-              <span class="text-emerald-600 font-bold">Optimal</span>
-            </div>
-          </div>
-
-          <!-- Fakultas Teknik -->
-          <div class="p-5 rounded-2xl bg-surface-container-low border border-surface-container-high flex flex-col justify-between">
-            <div>
-              <div class="flex items-center justify-between mb-3">
-                <span class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
-                  <span class="material-symbols-outlined text-xl">precision_manufacturing</span>
-                </span>
-                <span class="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">97% Normal</span>
-              </div>
-              <h3 class="text-base font-bold text-on-surface font-display">Gedung F (Fakultas Teknik)</h3>
-              <p class="text-xs text-secondary mt-1">Ruang Kuliah Informatika, Sipil, Elektro, Lab Jaringan &amp; Sistem Tertanam.</p>
-            </div>
-            <div class="pt-4 mt-4 border-t border-surface-container flex items-center justify-between text-[11px] text-secondary font-medium">
-              <span>Lab Komputer 1-4 • Bengkel</span>
-              <span class="text-indigo-600 font-bold">Terpantau</span>
-            </div>
-          </div>
-
-          <!-- Laboratorium Terpadu -->
-          <div class="p-5 rounded-2xl bg-surface-container-low border border-surface-container-high flex flex-col justify-between">
-            <div>
-              <div class="flex items-center justify-between mb-3">
-                <span class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
-                  <span class="material-symbols-outlined text-xl">science</span>
-                </span>
-                <span class="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">98% Normal</span>
-              </div>
-              <h3 class="text-base font-bold text-on-surface font-display">Lab Terpadu &amp; Riset</h3>
-              <p class="text-xs text-secondary mt-1">Laboratorium Sains Dasar, UPT TIK Server Pusat, dan Fasilitas Riset Dosen-Mahasiswa.</p>
-            </div>
-            <div class="pt-4 mt-4 border-t border-surface-container flex items-center justify-between text-[11px] text-secondary font-medium">
-              <span>32 Titik Sensor IoT</span>
-              <span class="text-emerald-600 font-bold">Suhu &amp; Daya Stabil</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- =========================================================================
-         PANEL 4: ALUR & PANDUAN STANDAR (SOP)
+         PANEL 3: ALUR & PANDUAN STANDAR (SOP)
+         Field 1: timeline alur (konten memang berurutan, nomor menyandikan
+         urutan). Field 2: komitmen SLA + tips.
          ========================================================================= -->
     <div class="cc-panel" id="panel-public-guide">
-      <div class="bg-surface-container-lowest rounded-3xl border border-[#e2e8f0] shadow-sm p-6 sm:p-8 mb-8">
-        <div class="max-w-3xl mb-8">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100 text-primary-container text-xs font-bold mb-3">
-            <span class="material-symbols-outlined text-sm">menu_book</span>
-            <span>Standar Operasional Prosedur</span>
-          </div>
-          <h2 class="text-2xl sm:text-3xl font-extrabold text-on-surface font-display tracking-tight">Alur &amp; Panduan Pengaduan Fasilitas</h2>
-          <p class="text-xs sm:text-sm text-secondary mt-2 leading-relaxed">
-            Tahapan pelaporan sarana prasarana yang transparan dari saat dikirim oleh mahasiswa hingga divalidasi selesai oleh Sarpras.
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 max-w-4xl mx-auto">
+
+        <!-- Field 1: Timeline alur -->
+        <div class="public-card">
+          <h2 class="text-xl sm:text-2xl font-bold text-gray-900 font-display tracking-tight">Alur Pengaduan</h2>
+          <p class="text-xs sm:text-sm text-gray-500 leading-relaxed mt-1.5">
+            Dari laporan dikirim hingga divalidasi selesai oleh Sarpras.
           </p>
+
+          <ol class="sop-timeline mt-6" data-stagger>
+            <li>
+              <span class="sop-dot sop-dot--primary">1</span>
+              <div>
+                <h3 class="text-sm font-semibold text-gray-800 font-display">Kirim Pengaduan</h3>
+                <p class="text-xs sm:text-sm text-gray-500 leading-relaxed mt-1">Mahasiswa login, memilih lokasi gedung/ruang, kategori fasilitas, dan mengunggah foto bukti.</p>
+              </div>
+            </li>
+            <li>
+              <span class="sop-dot sop-dot--fixed">2</span>
+              <div>
+                <h3 class="text-sm font-semibold text-gray-800 font-display">Verifikasi Sarpras</h3>
+                <p class="text-xs sm:text-sm text-gray-500 leading-relaxed mt-1">Admin memeriksa urgensi kerusakan dan menetapkan estimasi penanganan.</p>
+              </div>
+            </li>
+            <li>
+              <span class="sop-dot sop-dot--tertiary">3</span>
+              <div>
+                <h3 class="text-sm font-semibold text-gray-800 font-display">Pengerjaan Teknisi</h3>
+                <p class="text-xs sm:text-sm text-gray-500 leading-relaxed mt-1">Teknisi lapangan memperbaiki fasilitas dan memperbarui status progres.</p>
+              </div>
+            </li>
+            <li>
+              <span class="sop-dot sop-dot--done">4</span>
+              <div>
+                <h3 class="text-sm font-semibold text-gray-800 font-display">Validasi Selesai</h3>
+                <p class="text-xs sm:text-sm text-gray-500 leading-relaxed mt-1">Fasilitas diuji fungsi, dinyatakan tuntas, dan tiket resmi ditutup.</p>
+              </div>
+            </li>
+          </ol>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div class="p-5 rounded-2xl bg-surface-container-low border border-surface-container-high flex flex-col gap-2">
-            <span class="w-8 h-8 rounded-full bg-primary-container text-white flex items-center justify-center text-xs font-bold">1</span>
-            <h3 class="text-sm font-bold text-on-surface font-display mt-2">Kirim Pengaduan</h3>
-            <p class="text-xs text-secondary leading-relaxed">Mahasiswa login, memilih lokasi gedung/ruang, kategori fasilitas, dan mengunggah foto bukti.</p>
-          </div>
-          <div class="p-5 rounded-2xl bg-surface-container-low border border-surface-container-high flex flex-col gap-2">
-            <span class="w-8 h-8 rounded-full bg-primary-fixed text-primary flex items-center justify-center text-xs font-bold">2</span>
-            <h3 class="text-sm font-bold text-on-surface font-display mt-2">Verifikasi Sarpras</h3>
-            <p class="text-xs text-secondary leading-relaxed">Admin memeriksa urgensi kerusakan, ketersediaan suku cadang, dan menetapkan estimasi penanganan.</p>
-          </div>
-          <div class="p-5 rounded-2xl bg-surface-container-low border border-surface-container-high flex flex-col gap-2">
-            <span class="w-8 h-8 rounded-full bg-indigo-50 text-indigo-700 flex items-center justify-center text-xs font-bold">3</span>
-            <h3 class="text-sm font-bold text-on-surface font-display mt-2">Pengerjaan Teknisi</h3>
-            <p class="text-xs text-secondary leading-relaxed">Teknisi lapangan memperbaiki fasilitas, mencatat catatan teknis, dan memperbarui status progres.</p>
-          </div>
-          <div class="p-5 rounded-2xl bg-surface-container-low border border-surface-container-high flex flex-col gap-2">
-            <span class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs font-bold">4</span>
-            <h3 class="text-sm font-bold text-on-surface font-display mt-2">Validasi Selesai</h3>
-            <p class="text-xs text-secondary leading-relaxed">Fasilitas diuji fungsi, dinyatakan tuntas divalidasi, dan tiket resmi ditutup.</p>
-          </div>
-        </div>
+        <!-- Field 2: Komitmen SLA + tips -->
+        <div class="public-card flex flex-col">
+          <h2 class="text-xl sm:text-2xl font-bold text-gray-900 font-display tracking-tight">Komitmen Waktu Penanganan</h2>
+          <p class="text-xs sm:text-sm text-gray-500 leading-relaxed mt-1.5">
+            Target nyata yang ditegakkan sistem sejak laporan diverifikasi.
+          </p>
 
-        <div class="p-5 rounded-2xl bg-orange-50 border border-orange-200/80 flex items-center justify-between flex-wrap gap-4">
-          <div class="flex items-center gap-3">
-            <span class="material-symbols-outlined text-2xl text-primary-container">lightbulb</span>
-            <p class="text-xs text-gray-800 font-medium">Tips: Lampirkan foto dengan pencahayaan jelas dan sebutkan nomor ruang secara detail agar teknisi langsung menuju lokasi.</p>
+          <div class="sla-grid mt-6" data-stagger>
+            <div class="sla-item">
+              <span class="material-symbols-outlined text-xl text-red-600" aria-hidden="true">priority_high</span>
+              <div>
+                <p class="text-xs font-bold text-red-700">Prioritas Tinggi</p>
+                <p class="text-base font-bold text-gray-900 font-display mt-0.5">Target 2 Jam</p>
+                <p class="text-xs text-gray-500 mt-1">Berisiko keselamatan</p>
+              </div>
+            </div>
+            <div class="sla-item">
+              <span class="material-symbols-outlined text-xl text-amber-600" aria-hidden="true">schedule</span>
+              <div>
+                <p class="text-xs font-bold text-amber-700">Prioritas Sedang</p>
+                <p class="text-base font-bold text-gray-900 font-display mt-0.5">Target 6 Jam</p>
+                <p class="text-xs text-gray-500 mt-1">Mengganggu perkuliahan</p>
+              </div>
+            </div>
+            <div class="sla-item">
+              <span class="material-symbols-outlined text-xl text-emerald-600" aria-hidden="true">task_alt</span>
+              <div>
+                <p class="text-xs font-bold text-emerald-700">Prioritas Rendah</p>
+                <p class="text-base font-bold text-gray-900 font-display mt-0.5">Target 24 Jam</p>
+                <p class="text-xs text-gray-500 mt-1">Dapat dijadwalkan</p>
+              </div>
+            </div>
           </div>
-          <button type="button" class="px-5 py-2.5 rounded-full bg-primary-container text-white text-xs font-bold hover:bg-primary-hover transition-colors" data-action="open-student-login">
+
+          <div class="mt-auto pt-6 flex items-start gap-3">
+            <span class="material-symbols-outlined text-xl text-primary shrink-0 mt-0.5" aria-hidden="true">lightbulb</span>
+            <p class="text-xs sm:text-sm text-gray-500 leading-relaxed">Tips: lampirkan foto dengan pencahayaan jelas dan sebutkan nomor ruang secara detail agar teknisi langsung menuju lokasi.</p>
+          </div>
+
+          <button type="button" class="mt-6 h-11 px-6 rounded-full bg-primary-container hover:bg-primary-hover text-white text-xs font-bold shadow-[0_12px_28px_-8px_rgba(255,102,31,0.6)] hover:scale-[1.02] active:scale-[0.98] transition-all inline-flex items-center gap-2 self-start" data-action="open-student-login">
             Mulai Melapor
           </button>
         </div>
+
       </div>
     </div>
 
     <!-- =========================================================================
-         PANEL 5: PUSAT BANTUAN & KONTAK
+         PANEL 4: PUSAT BANTUAN & KONTAK
+         Field 1: kontak resmi. Field 2: lokasi & jam. Field 3: privasi.
          ========================================================================= -->
     <div class="cc-panel" id="panel-public-help">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-        <section class="public-info-card">
-          <div class="flex items-center gap-3">
-            <span class="public-info-icon bg-primary-fixed text-primary">
-              <span class="material-symbols-outlined text-xl">support_agent</span>
-            </span>
-            <div>
-              <h2 class="text-lg font-bold text-on-surface font-display">Bantuan &amp; Kontak Resmi</h2>
-              <p class="text-xs text-secondary mt-0.5">Hubungi Biro Sarana &amp; Prasarana Universitas Siliwangi.</p>
-            </div>
-          </div>
-          <div class="flex flex-col gap-3 mt-5">
-            <a class="public-contact-link" href="tel:+6282112345678">
-              <span class="public-info-icon bg-primary-fixed text-primary"><span class="material-symbols-outlined text-lg">call</span></span>
-              <span class="min-w-0"><span class="block text-xs font-bold text-on-surface">Hotline Sarpras (WhatsApp / Telp)</span><span class="block text-[11px] text-secondary mt-0.5">+62 821-1234-5678</span></span>
-              <span class="material-symbols-outlined text-secondary ml-auto">arrow_outward</span>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 max-w-4xl mx-auto">
+
+        <!-- Field 1: Kontak resmi -->
+        <div class="public-card">
+          <h2 class="text-xl sm:text-2xl font-bold text-gray-900 font-display tracking-tight">Kontak Resmi</h2>
+          <p class="text-xs sm:text-sm text-gray-500 leading-relaxed mt-1.5">
+            Saluran resmi Biro Sarana &amp; Prasarana UNSIL.
+          </p>
+
+          <div class="contact-list mt-4" data-stagger>
+            <a class="contact-row" href="tel:+6282112345678">
+              <span class="contact-icon"><span class="material-symbols-outlined text-lg" aria-hidden="true">call</span></span>
+              <span class="min-w-0">
+                <span class="block text-sm font-semibold text-gray-800">Hotline Sarpras</span>
+                <span class="block text-xs text-gray-500 mt-0.5">+62 821-1234-5678 (WhatsApp / Telp)</span>
+              </span>
+              <span class="material-symbols-outlined text-lg text-gray-400 ml-auto" aria-hidden="true">arrow_outward</span>
             </a>
-            <a class="public-contact-link" href="mailto:sarpras@unsil.ac.id">
-              <span class="public-info-icon bg-surface-container text-secondary"><span class="material-symbols-outlined text-lg">mail</span></span>
-              <span class="min-w-0"><span class="block text-xs font-bold text-on-surface">Email resmi Sarpras</span><span class="block text-[11px] text-secondary mt-0.5 break-all">sarpras@unsil.ac.id</span></span>
-              <span class="material-symbols-outlined text-secondary ml-auto">arrow_outward</span>
+            <a class="contact-row" href="mailto:sarpras@unsil.ac.id">
+              <span class="contact-icon"><span class="material-symbols-outlined text-lg" aria-hidden="true">mail</span></span>
+              <span class="min-w-0">
+                <span class="block text-sm font-semibold text-gray-800">Email Sarpras</span>
+                <span class="block text-xs text-gray-500 mt-0.5 break-all">sarpras@unsil.ac.id</span>
+              </span>
+              <span class="material-symbols-outlined text-lg text-gray-400 ml-auto" aria-hidden="true">arrow_outward</span>
             </a>
-            <button type="button" class="public-contact-link text-left" data-action="open-sso-help">
-              <span class="public-info-icon bg-surface-container text-secondary"><span class="material-symbols-outlined text-lg">help</span></span>
-              <span class="min-w-0"><span class="block text-xs font-bold text-on-surface">Bantuan Akun SSO Kampus</span><span class="block text-[11px] text-secondary mt-0.5">Panduan reset sandi &amp; verifikasi mahasiswa</span></span>
-              <span class="material-symbols-outlined text-secondary ml-auto">chevron_right</span>
+            <button type="button" class="contact-row text-left w-full" data-action="open-sso-help">
+              <span class="contact-icon"><span class="material-symbols-outlined text-lg" aria-hidden="true">help</span></span>
+              <span class="min-w-0">
+                <span class="block text-sm font-semibold text-gray-800">Bantuan Akun SSO Kampus</span>
+                <span class="block text-xs text-gray-500 mt-0.5">Panduan reset sandi &amp; verifikasi mahasiswa</span>
+              </span>
+              <span class="material-symbols-outlined text-lg text-gray-400 ml-auto" aria-hidden="true">chevron_right</span>
             </button>
           </div>
-        </section>
+        </div>
 
-        <section class="public-info-card flex flex-col justify-between">
-          <div>
-            <div class="flex items-center gap-3">
-              <span class="public-info-icon bg-surface-container text-on-surface">
-                <span class="material-symbols-outlined text-xl">location_on</span>
-              </span>
-              <div>
-                <h2 class="text-lg font-bold text-on-surface font-display">Lokasi Layanan Fisik</h2>
-                <p class="text-xs text-secondary mt-0.5">Jam operasional kantor Biro Sarana &amp; Prasarana.</p>
-              </div>
-            </div>
-            <div class="p-4 rounded-2xl bg-surface-container-low border border-surface-container-high mt-5 space-y-2">
-              <p class="text-xs font-bold text-on-surface font-display">Gedung Rektorat UNSIL Lt. 1</p>
-              <p class="text-xs text-secondary leading-relaxed">Jl. Siliwangi No. 24, Kota Tasikmalaya, Jawa Barat 46115</p>
-              <div class="pt-2 text-[11px] text-secondary border-t border-surface-container">
-                <p>Senin – Jumat: 08.00 – 16.00 WIB</p>
-                <p>Sabtu, Minggu &amp; Libur Nasional: Tutup (Gunakan Hotline Darurat)</p>
-              </div>
+        <!-- Field 2: Lokasi layanan -->
+        <div class="public-card">
+          <h2 class="text-xl sm:text-2xl font-bold text-gray-900 font-display tracking-tight">Lokasi Layanan</h2>
+          <p class="text-xs sm:text-sm text-gray-500 leading-relaxed mt-1.5">
+            Layanan fisik Biro Sarana &amp; Prasarana.
+          </p>
+
+          <div class="mt-5">
+            <p class="text-sm font-semibold text-gray-800 font-display">Gedung Rektorat UNSIL Lt. 1</p>
+            <p class="text-xs sm:text-sm text-gray-500 leading-relaxed mt-1.5">Jl. Siliwangi No. 24, Kota Tasikmalaya, Jawa Barat 46115</p>
+            <div class="mt-4 text-xs text-gray-500 leading-relaxed">
+              <p>Senin – Jumat: 08.00 – 16.00 WIB</p>
+              <p>Sabtu, Minggu &amp; Libur Nasional: Tutup</p>
             </div>
           </div>
-          <button type="button" class="w-full h-11 mt-5 rounded-full bg-primary-container hover:bg-primary-hover text-white text-xs font-bold transition-colors flex items-center justify-center gap-2" data-action="open-student-login">
-            <span class="material-symbols-outlined text-base">login</span>
-            <span>Masuk ke Portal Pengaduan</span>
-          </button>
-        </section>
+        </div>
+
+        <!-- Field 3: Privasi -->
+        <div class="public-card lg:col-span-2">
+          <h2 class="text-xl sm:text-2xl font-bold text-gray-900 font-display tracking-tight">Privasi &amp; Perlindungan Data</h2>
+          <p class="text-xs sm:text-sm text-gray-500 leading-relaxed mt-1.5">
+            Yang perlu Anda ketahui tentang laporan dan foto yang Anda kirim.
+          </p>
+          <ul class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+            <li class="flex gap-3">
+              <span class="material-symbols-outlined text-lg text-primary shrink-0 mt-0.5" aria-hidden="true">check_circle</span>
+              <p class="text-xs sm:text-sm text-gray-500 leading-relaxed">Laporan hanya dilihat oleh Anda dan petugas Sarpras yang berwenang.</p>
+            </li>
+            <li class="flex gap-3">
+              <span class="material-symbols-outlined text-lg text-primary shrink-0 mt-0.5" aria-hidden="true">check_circle</span>
+              <p class="text-xs sm:text-sm text-gray-500 leading-relaxed">Foto disimpan dengan nama berkas acak, tidak dapat ditebak pihak lain.</p>
+            </li>
+            <li class="flex gap-3">
+              <span class="material-symbols-outlined text-lg text-primary shrink-0 mt-0.5" aria-hidden="true">check_circle</span>
+              <p class="text-xs sm:text-sm text-gray-500 leading-relaxed">Nama &amp; NIM hanya untuk pencatatan penanganan, tidak dipublikasikan.</p>
+            </li>
+            <li class="flex gap-3">
+              <span class="material-symbols-outlined text-lg text-primary shrink-0 mt-0.5" aria-hidden="true">check_circle</span>
+              <p class="text-xs sm:text-sm text-gray-500 leading-relaxed">Riwayat laporan dapat dipantau kapan saja di panel Pengaduan Saya.</p>
+            </li>
+          </ul>
+        </div>
+
       </div>
     </div>
 
   </main>
 
   <footer class="border-t border-surface-container-high bg-surface-container-lowest">
-    <div class="max-w-[1520px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-secondary">
+    <div class="max-w-[1520px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-gray-500">
       <span>© 2026 CampusCare · Biro Sarana &amp; Prasarana Universitas Siliwangi</span>
       <span>Portal publik · transparansi preservasi sarana kampus</span>
     </div>

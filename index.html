@@ -24,7 +24,7 @@
   <!-- Tailwind CSS hasil kompilasi (utility layer, tidak butuh koneksi internet).
        Dimuat paling akhir agar utilitas tetap menimpa gaya komponen, sama seperti
        perilaku Tailwind Play CDN yang dulu menyuntik <style> di akhir <head>. -->
-  <link rel="stylesheet" href="css/tailwind.css">
+  <link rel="stylesheet" href="css/tailwind.css?v=20261119b">
 
   <!-- Gaya mode debug (panel log, tombol DEBUG, peringatan tampilan kosong). -->
   <link rel="stylesheet" href="css/debug.css">
@@ -165,6 +165,11 @@
       });
     })();
   </script>
+
+  <!-- Motion (micro-interaction & orkestrasi animasi, self-hosted, UMD → global
+       window.Motion). Dimuat sebelum main.js; modul membacanya via js/ui/motion.js.
+       Bila gagal dimuat, halaman tetap berfungsi (animasi hanya tidak berjalan). -->
+  <script defer src="js/vendor/motion.js"></script>
 
   <!-- JavaScript aplikasi (ES module, dimuat setelah partial siap) -->
   <script type="module" src="js/main.js"></script>

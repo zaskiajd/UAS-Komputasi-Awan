@@ -9,12 +9,13 @@
 import { info, error as logError, auditView } from "./core/debug.js";
 import { loadPartials } from "./core/partials.js";
 import { init } from "./core/init.js";
+import { playPublicHeroIntro, bindFaqMotion, bindRowStagger } from "./ui/motion.js";
 
 /** View dan panel wajib ada; kalau hilang, dashboard tampil kosong tanpa pesan. */
 const REQUIRED_VIEWS = ["view-public", "view-auth", "view-student", "view-admin"];
 const REQUIRED_PANELS = {
   student: ["summary", "complaints", "help"],
-  admin: ["dashboard", "dispatches", "techs", "inventory", "sla"],
+  admin: ["dashboard", "dispatches", "techs", "inventory", "sla", "damage"],
 };
 const REQUIRED_MODALS = [
   "modal-complaint",
@@ -37,6 +38,8 @@ const nextFrame = () => new Promise((resolve) => requestAnimationFrame(() => res
 function revealApp() {
   document.body.classList.remove("cc-booting");
   document.getElementById("boot-screen")?.remove();
+  // Momen orkestrasi masuk beranda (satu-satunya animasi non-aksi di halaman).
+  playPublicHeroIntro();
 }
 
 function showBootError(error) {
@@ -96,6 +99,9 @@ async function boot() {
     const tInit = performance.now();
     init();
     info("Inisialisasi modul selesai", ms(tInit));
+
+    bindFaqMotion();
+    bindRowStagger();
 
     validateShell();
 

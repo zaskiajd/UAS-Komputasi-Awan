@@ -10,5 +10,8 @@
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.10",
     "tailwindcss": "^3.4.17"
+  },
+  "dependencies": {
+    "motion": "^14.14.0"
   }
 }
