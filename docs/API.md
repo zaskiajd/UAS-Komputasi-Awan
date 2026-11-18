@@ -319,6 +319,73 @@ perbedaan pada enam field itu, catatan berisi
 
 ---
 
+## Manajemen Teknisi (`/technicians`) — khusus admin
+
+Semua endpoint di bawah ini memerlukan header `Authorization: Bearer <token>`
+dengan role `admin`.
+
+| Endpoint | Fungsi |
+| --- | --- |
+| `GET /technicians` | Daftar semua teknisi + tim + beban tiket (`activeTicketCount`, `doneTicketCount`, `totalTicketCount`). |
+| `POST /technicians` | Buat teknisi baru. ID dibuat server dari slug nama. |
+| `GET /technicians/:id` | Detail satu teknisi. |
+| `PATCH /technicians/:id` | Ubah data parsial (`name`, `title`, `role`, `teamId`, `active`, `phone`, `skills`). |
+| `POST /technicians/:id/duty` | Body `{ "active": true|false }` — bertugas/standby. |
+| `POST /technicians/:id/archive` | Arsipkan (wajib: tidak memegang tiket aktif). |
+| `POST /technicians/:id/restore` | Pulihkan dari arsip. |
+| `DELETE /technicians/:id` | Hapus permanen (wajib: sudah diarsipkan & tanpa riwayat penugasan). |
+
+### Body `POST /technicians`
+
+```json
+{
+  "name": "Budi",
+  "title": "Pak Budi",
+  "role": "Teknisi",
+  "teamId": "electrical",
+  "active": true,
+  "phone": "+62 812-000-000",
+  "skills": ["AC split", "Instalasi daya"]
+}
+```
+
+### Aturan penting
+
+- Satu koordinator aktif per tim: `role: "Koordinator"` ditolak `409` bila
+  tim sudah punya koordinator; `teams.coordinator_id` ikut disinkronkan.
+- `active: false` dan arsip ditolak `409` bila teknisi masih memegang tiket
+  berstatus selain `done`/`rejected`.
+- Hapus permanen ditolak `409` bila teknisi punya riwayat penugasan —
+  gunakan arsip agar riwayat tiket tetap terhubung.
+
+---
+
+## WebSocket Real-time (`/api/ws`)
+
+Notifikasi perubahan tiket dikirim melalui WebSocket di path `ws(s)://<host>/api/ws`
+(path yang sama dengan HTTP server, melalui Nginx dengan header Upgrade).
+
+**Autentikasi:** setelah koneksi terbuka, kirim satu pesan JSON dalam 10 detik:
+
+```json
+{ "type": "auth", "token": "<JWT>" }
+```
+
+Server membalas `{ "type": "connected", "role": "admin" }` atau menutup
+koneksi dengan kode 4401 bila token tidak valid/kedaluwarsa.
+
+**Event broadcast (JSON, field `type`):**
+
+| type | Penerima | Arti |
+| --- | --- | --- |
+| `ticket.created` | semua admin | Pengaduan baru masuk. |
+| `ticket.status` | semua admin + pemilik tiket | Status/progres tiket berubah (termasuk disposisi PIC). |
+| `ticket.photo` | semua admin + pemilik tiket | Foto baru diunggah. |
+
+Payload umum: `{ type, ticketId, ticketCode, title, status, progress, ownerId, actor, at }`.
+
+---
+
 ## Contoh cepat (curl)
 
 ```bash
