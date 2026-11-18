@@ -24,5 +24,6 @@ router.get(
 router.use('/auth', require('./auth.routes'));
 router.use('/tickets', require('./ticket.routes'));
 router.use('/assets', require('./asset.routes'));
+router.use('/technicians', require('./technician.routes'));
 
 module.exports = router;
