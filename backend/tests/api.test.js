@@ -617,7 +617,11 @@ test.describe('Pengaduan — kepemilikan (hanya milik sendiri)', () => {
     assert.equal(still.body.data.title, ta.title);
   });
 
-  test('tiket seed milik mahasiswa lain tidak bisa dibuka (IDOR)', async () => {
+  test('tiket milik mahasiswa lain tidak bisa dibuka (IDOR, tanpa data seed)', async () => {
+    // Database tidak lagi memuat tiket seed; buat tiket milik mahasiswa lain dulu.
+    const other = await registerStudent();
+    await newTicket(other.token);
+
     const { token } = await registerStudent();
     const { rows } = await query('SELECT id FROM tickets ORDER BY id LIMIT 1');
     assert.equal((await api('GET', `/tickets/${rows[0].id}`, { token })).status, 404);
@@ -629,7 +633,7 @@ test.describe('Pengaduan — kepemilikan (hanya milik sendiri)', () => {
 
     const list = await api('GET', '/tickets?limit=100', { token: adminToken });
     assert.equal(list.status, 200);
-    assert.ok(list.body.meta.total >= 10);
+    assert.ok(list.body.meta.total >= 1);
     assert.ok(list.body.data.some((x) => x.ticketId === t.ticketId));
 
     const detail = await api('GET', `/tickets/${t.ticketId}`, { token: adminToken });
