@@ -25,9 +25,10 @@
 }
 
 /* ==========================================================================
-   Latar Kampus Pudar (konsep halaman login, wash terang)
-   Foto UNSIL fixed di belakang konten, sangat pudar (opacity rendah +
-   desaturasi) sehingga memberi suasana tanpa mengganggu keterbacaan.
+   Latar Kampus (disamakan persis dengan beranda)
+   Foto UNSIL fixed di belakang konten dengan overlay gelap yang sama seperti
+   hero beranda, sehingga semua panel terasa satu halaman. Foto tampil utuh
+   (tanpa blur) dan overlay menjaga kontras agar tidak terlalu terang.
    pointer-events none + aria-hidden: murni dekorasi.
    ========================================================================== */
 .public-backdrop {
@@ -35,25 +36,45 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  background-color: #0b1324;
 }
 
 .public-backdrop img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 35%;
-  /* Frosted: foto terlihat utuh tapi dihaluskan blur, BUKAN ditimpa warna.
-     Sedikit scale + brightness agar blur tetap terang dan tepi tak bolong. */
+  object-position: right 60%;
   opacity: 1;
-  filter: blur(8px) saturate(0.92) brightness(1.08);
-  transform: scale(1.08);
+  filter: none;
+  transform: scale(1.005);
 }
 
-/* Lapisan tipis untuk menstabilkan kontras blur tanpa menutupi foto. */
+/* Overlay identik dengan .public-hero-fullscreen-overlay di beranda. */
 .public-backdrop-wash {
   position: absolute;
   inset: 0;
-  background: rgba(247, 249, 253, 0.14);
+  background: linear-gradient(
+    90deg,
+    rgba(11, 19, 36, 0.90) 0%,
+    rgba(11, 19, 36, 0.74) 42%,
+    rgba(11, 19, 36, 0.28) 75%,
+    rgba(11, 19, 36, 0.05) 100%
+  );
+}
+
+@media (max-width: 768px) {
+  .public-backdrop img {
+    object-position: center 40%;
+  }
+
+  .public-backdrop-wash {
+    background: linear-gradient(
+      180deg,
+      rgba(11, 19, 36, 0.85) 0%,
+      rgba(11, 19, 36, 0.72) 55%,
+      rgba(11, 19, 36, 0.45) 100%
+    );
+  }
 }
 
 /* ==========================================================================
@@ -63,7 +84,7 @@
    teks, oranye hanya pada elemen interaktif.
    ========================================================================== */
 .public-card {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.85);
